@@ -1,3 +1,5 @@
+import asyncio
+import gc
 import os
 from pathlib import Path
 
@@ -16,9 +18,6 @@ from zsim.models.session.session_run import (
     SessionRun,
 )
 from zsim.simulator.simulator_class import Simulator
-
-import asyncio
-import gc
 
 
 class TestSimulator:
@@ -168,54 +167,54 @@ class TestSimulator:
         )
 
         # # 队伍2: 莱特-扳机-雨果 (火属性队)
-        # team_configs.append(
-        #     (
-        #         "莱特火属性队",
-        #         CommonCfg(
-        #             session_id="test-team-lighter-fire",
-        #             char_config=[
-        #                 CharConfig(
-        #                     name="莱特",
-        #                     weapon="焰心桂冠",
-        #                     weapon_level=5,
-        #                     cinema=6,
-        #                     scATK_percent=47,
-        #                     scCRIT=30,
-        #                     scCRIT_DMG=50,
-        #                     equip_style="4+2",
-        #                     equip_set4="震星迪斯科",
-        #                     equip_set2_a="炎狱重金属",
-        #                 ),
-        #                 CharConfig(
-        #                     name="扳机",
-        #                     weapon="索魂影眸",
-        #                     weapon_level=5,
-        #                     cinema=6,
-        #                     scATK_percent=47,
-        #                     scCRIT=30,
-        #                     scCRIT_DMG=50,
-        #                     equip_style="4+2",
-        #                     equip_set4="如影相随",
-        #                     equip_set2_a="啄木鸟电音",
-        #                 ),
-        #                 CharConfig(
-        #                     name="雨果",
-        #                     weapon="千面日陨",
-        #                     weapon_level=5,
-        #                     cinema=6,
-        #                     scATK_percent=47,
-        #                     scCRIT=30,
-        #                     scCRIT_DMG=50,
-        #                     equip_style="4+2",
-        #                     equip_set4="啄木鸟电音",
-        #                     equip_set2_a="激素朋克",
-        #                 ),
-        #             ],
-        #             enemy_config=EnemyConfig(index_id=11412, adjustment_id=22412, difficulty=8.74),
-        #             apl_path="./zsim/data/APLData/莱特-扳机-雨果.toml",
-        #         ),
-        #     )
-        # )
+        team_configs.append(
+            (
+                "莱特火属性队",
+                CommonCfg(
+                    session_id="test-team-lighter-fire",
+                    char_config=[
+                        CharConfig(
+                            name="莱特",
+                            weapon="焰心桂冠",
+                            weapon_level=5,
+                            cinema=0,
+                            scATK_percent=47,
+                            scCRIT=30,
+                            scCRIT_DMG=50,
+                            equip_style="4+2",
+                            equip_set4="震星迪斯科",
+                            equip_set2_a="炎狱重金属",
+                        ),
+                        CharConfig(
+                            name="扳机",
+                            weapon="索魂影眸",
+                            weapon_level=5,
+                            cinema=0,
+                            scATK_percent=47,
+                            scCRIT=30,
+                            scCRIT_DMG=50,
+                            equip_style="4+2",
+                            equip_set4="如影相随",
+                            equip_set2_a="啄木鸟电音",
+                        ),
+                        CharConfig(
+                            name="雨果",
+                            weapon="千面日陨",
+                            weapon_level=5,
+                            cinema=0,
+                            scATK_percent=47,
+                            scCRIT=30,
+                            scCRIT_DMG=50,
+                            equip_style="4+2",
+                            equip_set4="啄木鸟电音",
+                            equip_set2_a="激素朋克",
+                        ),
+                    ],
+                    enemy_config=EnemyConfig(index_id=11412, adjustment_id=22412, difficulty=8.74),
+                    apl_path="./zsim/data/APLData/莱特-扳机-雨果.toml",
+                ),
+            )
+        )
 
         # 队伍3: 青衣-丽娜-雅 (雷属性队)
         team_configs.append(
@@ -516,6 +515,7 @@ class TestSimulator:
     async def test_async_queue_multiple_teams(self):
         """使用队列系统测试多个不同队伍的异步模拟，替代单队伍测试。"""
         from datetime import datetime
+
         from zsim.api_src.services.database.session_db import get_session_db
         from zsim.models.session.session_create import Session
 
@@ -546,10 +546,10 @@ class TestSimulator:
                 # 将队伍配置放入队列
                 await controller.put_into_queue(session.session_id, common_cfg, None)
 
-                print(f"✅ 队伍 '{team_name}' 已添加到队列")
+                print(f"队伍 '{team_name}' 已添加到队列")
 
             # 执行所有队伍的模拟
-            print(f"🚀 开始执行 {len(team_configs)} 个队伍的模拟...")
+            print(f"开始执行 {len(team_configs)} 个队伍的模拟...")
             executed_sessions = await controller.execute_simulation_test(
                 max_tasks=len(team_configs)
             )
@@ -568,7 +568,7 @@ class TestSimulator:
                     f"会话 {session_id} 状态不是 completed"
                 )
 
-            print(f"✅ 所有 {len(team_configs)} 个队伍模拟均已完成")
+            print(f"所有 {len(team_configs)} 个队伍模拟均已完成")
 
         finally:
             # 清理数据库
@@ -579,6 +579,7 @@ class TestSimulator:
     async def test_async_queue_parallel_mode_execution(self):
         """使用队列系统测试并行模式执行。"""
         from datetime import datetime
+
         from zsim.api_src.services.database.session_db import get_session_db
         from zsim.models.session.session_create import Session
 

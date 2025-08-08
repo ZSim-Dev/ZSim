@@ -96,3 +96,20 @@ class DirgeOfDestinyAnomaly(AnomalyBar):
     def __hash__(self):
         """使对象可哈希"""
         return hash(self.UUID)
+
+
+class PolarizedAssault(AnomalyBar):
+    def __init__(self, Output_bar: AnomalyBar, active_by, sim_instance: "Simulator"):
+        """
+        爱丽丝的极性强击，其核心是一个强击异常条的deepcopy，因为这个极性强击拥有和强击相同的性质，所以不做区分。
+        它将进入AnB分支被当成普通的属性异常进行处理
+        """
+        super().__init__(sim_instance=sim_instance)
+        self.__dict__.update(Output_bar.__dict__)
+        self.sim_instance = sim_instance
+        self.activate_by = active_by
+        self.source_uuid = self.UUID
+        self.UUID = uuid.uuid4()
+
+    def __hash__(self):
+        return hash(self.UUID)

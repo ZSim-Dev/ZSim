@@ -29,7 +29,7 @@ from zsim.sim_progress.Load.LoadDamageEvent import (
 from zsim.sim_progress.Load.loading_mission import LoadingMission
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Update import update_anomaly
-
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from .CalAnomaly import CalAbloom, CalAnomaly, CalDisorder, CalPolarityDisorder
 from .Calculator import Calculator, MultiplierData  # noqa: F401
 
@@ -154,9 +154,11 @@ class ScheduledEvent:
                 elif isinstance(event, Abloom):
                     self.abloom_event(event)
                 elif isinstance(event, PolarityDisorder):
+                    self.sim_instance.listener_manager.broadcast_event(event=event, signal=LBS.DISORDER_SETTLED)
                     self.polarity_disorder_event(event)
                 elif isinstance(event, Disorder):
                     # print(f'检测到{event.element_type}属性的紊乱，快照为：{event.current_ndarray}')
+                    self.sim_instance.listener_manager.broadcast_event(event=event, signal=LBS.DISORDER_SETTLED)
                     self.disorder_event(event)
                 elif isinstance(event, AnB):
                     self.anomaly_event(event)

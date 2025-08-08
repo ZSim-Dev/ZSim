@@ -54,8 +54,12 @@ class Alice(Character):
 
     def POST_INIT_DATA(self, sim_insatnce: "Simulator"):
         # 初始化紊乱回复剑仪值的监听器（组队被动激活时）
+        sim_insatnce.listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_0", sim_instance=sim_insatnce)
         if self.additional_abililty_active:
             sim_insatnce.listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_1", sim_instance=sim_insatnce)
 
-    def get_resources(self, *args, **kwargs) -> tuple[str | None, int | float | None]:
-        pass
+    def get_resources(self, *args, **kwargs) -> tuple[str, int]:
+        return "剑仪格", self.blade_etquitte_bar
+
+    def get_special_stats(self, *args, **kwargs) -> dict[str | None, object | None]:
+        return {"剑仪值": self.blade_etiquette}

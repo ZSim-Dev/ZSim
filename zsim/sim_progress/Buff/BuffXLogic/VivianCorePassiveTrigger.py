@@ -100,6 +100,8 @@ class VivianCorePassiveTrigger(Buff.BuffLogic):
             )
         active_anomaly_bar = get_result[0]
         copyed_anomaly = AnomalyBar.create_new_from_existing(active_anomaly_bar)
+        if not copyed_anomaly.settled:
+            copyed_anomaly.anomaly_settled()
         event_list = JudgeTools.find_event_list(sim_instance=self.buff_instance.sim_instance)
         mul_data = Mul(self.record.enemy, self.record.dynamic_buff_list, self.record.char)
         ap = Cal.AnomalyMul.cal_ap(mul_data)

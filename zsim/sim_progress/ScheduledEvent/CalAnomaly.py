@@ -42,6 +42,8 @@ class CalAnomaly:
         self.sim_instance = sim_instance
         self.enemy_obj = enemy_obj
         self.anomaly_obj: AnomalyBar = anomaly_obj
+        if not self.anomaly_obj.settled:
+            raise ValueError(f"即将被计算的 {ETM[self.anomaly_obj.element_type]} 异常条对象尚未结算快照，请检查前置业务逻辑")
         self.dynamic_buff = dynamic_buff
         snapshot: tuple[ElementType, np.ndarray] = (
             self.anomaly_obj.element_type,

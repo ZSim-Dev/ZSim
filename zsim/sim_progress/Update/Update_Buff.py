@@ -115,8 +115,11 @@ def update_dot(enemy: Enemy, timetick):
                 enemy.dynamic.dynamic_dot_list.remove(_)
                 report_to_log(f"[Dot END]:{timetick}:{_.ft.index}结束，已从动态列表移除", level=4)
         else:
-            resulrt = _.exit_judge(enemy=enemy)
-            if resulrt:
+            exit_result = _.exit_judge(enemy=enemy)
+            # 不是所有的dot的退出函数都有返回，这里必须处理退出函数不返回内容的情况
+            if exit_result is None:
+                raise ValueError(f"复杂退出逻辑Dot的退出函数必须返回有效布尔值")
+            if exit_result:
                 _.end(timetick)
                 enemy.dynamic.dynamic_dot_list.remove(_)
                 report_to_log(f"[Dot END]:{timetick}:{_.ft.index}结束，已从动态列表移除", level=4)

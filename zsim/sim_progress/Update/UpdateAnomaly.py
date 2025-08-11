@@ -77,6 +77,13 @@ def anomaly_effect_active(
     这里通过Buff的BuffInitialize函数来根据Buff名，直接提取对应的双字典，
     并且直接放进Buff的构造函数内，对新的Buff进行实例化。
     然后，回传给exist_buff_dict中的Buff0。
+    Args:
+        bar: AnomalyBar: 样本异常条实例，仅用于获取静态信息（多为字符串），不用于业务和运算
+        timenow: int: 当前时间
+        enemy: Enemy: 敌人实例
+        new_anomaly: AnomalyBar: 新触发的异常实例，通常为参与业务的主体，是样本异常条实例的深拷贝
+        element_type: int: 属性类型（0~6）
+        sim_instance: Simulator: 模拟器实例
     """
     if bar.accompany_debuff:
         for debuff in bar.accompany_debuff:
@@ -132,13 +139,12 @@ def update_anomaly(
             bar.change_info_cause_active(
                 time_now, dynamic_buff_dict=dynamic_buff_dict, skill_node=skill_node
             )
-            enemy.update_anomaly(element_type)
+            enemy.update_max_anomaly(element_type)
 
             active_bar = deepcopy(bar)
             enemy.dynamic.active_anomaly_bar_dict[element_type] = active_bar
 
             # 异常事件监听器广播
-
             sim_instance.listener_manager.broadcast_event(event=active_bar, signal=LBS.ANOMALY)
             """
             更新完毕，现在正式进入分支判断——触发同类异常 & 触发异类异常（紊乱）。
@@ -316,7 +322,7 @@ def spawn_anomaly_dot(
 ):
     if element_type in anomlay_dot_dict:
         class_name = anomlay_dot_dict[element_type]
-        new_dot = create_dot_instance(class_name, bar, sim_instance=sim_instance)
+        new_dot = create_dot_instance(class_name, sim_instance=sim_instance, bar=bar)
         if isinstance(new_dot, Dot):
             new_dot.start(timenow)
         return new_dot
@@ -324,14 +330,14 @@ def spawn_anomaly_dot(
         return False
 
 
-def spawn_normal_dot(dot_index, sim_instance: "Simulator"):
+def spawn_normal_dot(dot_index, sim_instance: "Simulator", bar=None):
     if sim_instance is None:
         raise ValueError("sim_instance不能为空！")
-    new_dot = create_dot_instance(dot_index, sim_instance=sim_instance)
+    new_dot = create_dot_instance(dot_index, sim_instance=sim_instance, bar=bar)
     return new_dot
 
 
-def create_dot_instance(class_name, bar=None, sim_instance: "Simulator | None" = None):
+def create_dot_instance(class_name: str, sim_instance: "Simulator | None" = None, bar=None):
     # 动态导入相应模块
     module_name = f"zsim.sim_progress.Dot.Dots.{class_name}"  # 假设你的类都在dot.DOTS模块中
     try:

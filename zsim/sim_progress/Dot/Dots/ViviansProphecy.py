@@ -16,7 +16,7 @@ class ViviansProphecy(Dot):
         super().__init__(bar=bar, sim_instance=sim_instance)  # 调用父类Dot的初始化方法
         self.ft = self.DotFeature(sim_instance=sim_instance)
         if sim_instance is None:
-            raise ValueError("sim_instance is None, but it should not be.")
+            raise ValueError("构造dot实例时必须传入有效的sim_instance实例")
 
         self.preload_data = JudgeTools.find_preload_data(sim_instance=sim_instance)
         tick = JudgeTools.find_tick(sim_instance=sim_instance)
@@ -33,16 +33,16 @@ class ViviansProphecy(Dot):
         max_count: int | None = 999999
         incremental_step: int | None = 1
         max_duration: int | None = 999999
-        complex_exit_logic = True
+        complex_exit_logic = True       # 该dot为复杂退出逻辑
 
     def exit_judge(self, **kwargs):
         """薇薇安的预言 dot的退出逻辑：敌人只要处于异常状态，就不会退出。"""
         enemy = kwargs.get("enemy", None)
-        if enemy is None:
-            return
         from zsim.sim_progress.Enemy import Enemy
 
         if not isinstance(enemy, Enemy):
             raise TypeError("enemy参数必须是Enemy类的实例")
         if not enemy.dynamic.is_under_anomaly():
             self.dy.active = False
+            return True
+        return False

@@ -27,6 +27,7 @@ class AliceDisorderListener(BaseListener):
         if not isinstance(signal, Disorder | PolarityDisorder):
             print(f"【爱丽丝紊乱监听器警告】检测到紊乱结算信号(DISORDER_SETTLED)，但是与之匹配传入的不是紊乱或是极性紊乱类型，而是{type(event)}类型")
             return
+        self.listener_active()
 
     def listener_active(self):
         if ALICE_REPORT:

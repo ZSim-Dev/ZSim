@@ -396,7 +396,7 @@ class Enemy:
         else:
             pass
 
-    def update_anomaly(self, element: str | int = "ALL", *, times: int = 1) -> None:
+    def update_max_anomaly(self, element: str | int = "ALL", *, times: int = 1) -> None:
         """更新怪物异常值，触发一次异常后调用。"""
 
         # 参数类型检查

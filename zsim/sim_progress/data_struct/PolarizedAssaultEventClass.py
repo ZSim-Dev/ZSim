@@ -42,17 +42,27 @@ class PolarizedAssaultEvent:
         """执行极性强击事件，向EventList添加强击、紊乱事件"""
         # 先添加一次极性强击；
         event_list = self.sim_instance.schedule_data.event_list
+        enemy = self.sim_instance.enemy
         event_list.append(self.anomaly_bar)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
             print(f"【爱丽丝事件】{self.skill_node.skill.skill_text} 触发的极性强击结算了！")
-
+        # 更新畏缩状态
+        from zsim.sim_progress.Update.UpdateAnomaly import anomaly_effect_active
+        anomaly_effect_active(
+            bar=self.anomaly_bar,
+            timenow=self.sim_instance.tick,
+            enemy=enemy,
+            new_anomaly=self.anomaly_bar,
+            element_type=0,
+            sim_instance=self.sim_instance)
         # 再检测敌人是否处于异常状态下，如果敌人当前存在异常状态则立刻触发一次紊乱
-        enemy = self.sim_instance.enemy
         active_anomaly_list = enemy.dynamic.get_active_anomaly()
         if not active_anomaly_list:
             return
         anomaly_bar = active_anomaly_list[0]
+        if not anomaly_bar.settled:
+            anomaly_bar.anomaly_settled()
         """
         由于爱丽丝的极性强击不影响原有的异常条状态，
         所以这里必须用深拷贝规避结算紊乱函数对于异常条的破坏性修改

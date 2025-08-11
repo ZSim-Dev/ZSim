@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-from zsim.define import ElementType
+from zsim.define import ElementType, ELEMENT_TYPE_MAPPING as ETM
 from zsim.sim_progress.anomaly_bar import AnomalyBar
 from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
     DirgeOfDestinyAnomaly as Abloom,
@@ -208,8 +208,13 @@ class CalAnomaly:
 
     def cal_anomaly_dmg(self) -> np.float64:
         """计算异常伤害期望"""
-
-        return np.float64(np.prod(self.final_multipliers)/(self.dmg_sp[0,9] * self.dmg_sp[0,10]))
+        """
+        在v0.3.5a1中，由于爱丽丝的核心被动Dot会以固定比例造成属性异常伤害，
+        所以我们为属性异常伤害期望计算添加了缩放比例的乘算逻辑
+        """
+        return np.float64(
+            np.prod(self.final_multipliers) / (self.dmg_sp[0, 9] * self.dmg_sp[0, 10]) * self.anomaly_obj.scaling_factor
+        )
 
 
 class CalDisorder(CalAnomaly):

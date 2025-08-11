@@ -121,7 +121,8 @@ class YanagiPolarityDisorderTrigger(Buff.BuffLogic):
         active_anomaly_bar = self.record.enemy.get_active_anomaly_bar()
 
         active_bar_deep_copy = deepcopy(active_anomaly_bar)
-
+        if not active_bar_deep_copy.settled:
+            active_bar_deep_copy.anomaly_settled()
         # 构造极性紊乱对象
         from zsim.sim_progress.Update import spawn_output
 

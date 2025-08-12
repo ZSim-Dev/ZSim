@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import path from 'node:path';
 import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
+// @ts-expect-error no @types
+import SemiPlugin from 'vite-plugin-semi-theme';
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -26,5 +29,9 @@ export default defineConfig({
             undefined
           : {},
     }),
+    SemiPlugin({
+      theme: '@semi-bot/semi-theme-zsim',
+    }),
+    tailwindcss(),
   ],
 });

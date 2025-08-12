@@ -85,8 +85,7 @@ uv run zsim api
 
 # For Electron App development, also install Node.js dependencies
 cd electron-app
-corepack install
-pnpm install
+yarn install
 ```
 
 ### Testing Structure

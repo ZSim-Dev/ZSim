@@ -1,0 +1,94 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "reset": "Reset",
+    "close": "Close",
+    "open": "Open",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "nav": {
+    "simulator": "Simulator",
+    "characters": "Characters",
+    "apl": "APL Editor",
+    "analysis": "Analysis",
+    "sessions": "Sessions",
+    "settings": "Settings"
+  },
+  "aside": {
+    "name": {
+      "apl-editor": "APL Editor",
+      "apl-specification": "APL Spec.",
+      "character-configuration": "Characters",
+      "character-support-list": "Character Supports",
+      "contribution-guide": "Contribution Guide",
+      "data-analysis": "Analysis",
+      "session-managerment": "Session",
+      "simulator": "Simulator"
+    }
+  },
+  "simulator": {
+    "title": "Damage Simulator",
+    "description": "Simulate team damage output based on character configurations and action priority lists",
+    "run": "Run Simulation",
+    "config": "Configuration",
+    "results": "Results",
+    "team": "Team",
+    "enemy": "Enemy",
+    "duration": "Duration",
+    "iterations": "Iterations"
+  },
+  "character": {
+    "title": "Character Management",
+    "name": "Name",
+    "level": "Level",
+    "rank": "Rank",
+    "weapon": "Weapon",
+    "discs": "Discs",
+    "stats": "Stats",
+    "add": "Add Character",
+    "edit": "Edit Character",
+    "delete": "Delete Character"
+  },
+  "apl": {
+    "title": "Action Priority List Editor",
+    "description": "Create and edit action priority lists for your characters",
+    "create": "Create APL",
+    "edit": "Edit APL",
+    "test": "Test APL",
+    "export": "Export APL",
+    "import": "Import APL"
+  },
+  "analysis": {
+    "title": "Data Analysis",
+    "damage": "Damage Analysis",
+    "rotation": "Rotation Analysis",
+    "compare": "Compare Builds",
+    "export": "Export Results"
+  },
+  "session": {
+    "title": "Session Management",
+    "save": "Save Session",
+    "load": "Load Session",
+    "delete": "Delete Session",
+    "export": "Export Session",
+    "import": "Import Session"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "api": "API Settings",
+    "about": "About"
+  }
+}

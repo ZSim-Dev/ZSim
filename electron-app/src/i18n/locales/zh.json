@@ -1,0 +1,94 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "search": "搜索",
+    "reset": "重置",
+    "close": "关闭",
+    "open": "打开",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步"
+  },
+  "nav": {
+    "simulator": "模拟器",
+    "characters": "角色",
+    "apl": "APL编辑器",
+    "analysis": "分析",
+    "sessions": "会话",
+    "settings": "设置"
+  },
+  "aside": {
+    "name": {
+      "apl-editor": "APL 编辑器",
+      "apl-specification": "APL 设计书",
+      "character-configuration": "角色配置",
+      "character-support-list": "角色支持列表",
+      "contribution-guide": "贡献指南",
+      "data-analysis": "数据分析",
+      "session-managerment": "会话管理",
+      "simulator": "模拟器"
+    }
+  },
+  "simulator": {
+    "title": "伤害模拟器",
+    "description": "基于角色配置和动作优先级列表模拟团队伤害输出",
+    "run": "运行模拟",
+    "config": "配置",
+    "results": "结果",
+    "team": "团队",
+    "enemy": "敌人",
+    "duration": "持续时间",
+    "iterations": "迭代次数"
+  },
+  "character": {
+    "title": "角色管理",
+    "name": "名称",
+    "level": "等级",
+    "rank": "星级",
+    "weapon": "武器",
+    "discs": "唱片",
+    "stats": "属性",
+    "add": "添加角色",
+    "edit": "编辑角色",
+    "delete": "删除角色"
+  },
+  "apl": {
+    "title": "动作优先级列表编辑器",
+    "description": "为你的角色创建和编辑动作优先级列表",
+    "create": "创建APL",
+    "edit": "编辑APL",
+    "test": "测试APL",
+    "export": "导出APL",
+    "import": "导入APL"
+  },
+  "analysis": {
+    "title": "数据分析",
+    "damage": "伤害分析",
+    "rotation": "循环分析",
+    "compare": "对比配置",
+    "export": "导出结果"
+  },
+  "session": {
+    "title": "会话管理",
+    "save": "保存会话",
+    "load": "加载会话",
+    "delete": "删除会话",
+    "export": "导出会话",
+    "import": "导入会话"
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "theme": "主题",
+    "api": "API设置",
+    "about": "关于"
+  }
+}

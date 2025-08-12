@@ -27,7 +27,9 @@ def count_effective_lines(directory):
                             and not line.strip().startswith("//")
                             and not line.strip().startswith("/*")
                         ]
-                    total_lines += len(effective_lines)
+                    # 确保effective_lines已定义后再累加
+                    if "effective_lines" in locals():
+                        total_lines += len(effective_lines)  # type: ignore
     return total_lines
 
 

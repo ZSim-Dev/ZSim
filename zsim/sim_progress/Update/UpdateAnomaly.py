@@ -60,6 +60,9 @@ def spawn_output(anomaly_bar, mode_number, sim_instance: "Simulator", **kwargs):
         )
     if output is None:
         raise ValueError("在调用spawn_output函数时，未正确生成一个AnomalyBar实例！")
+    # 广播事件
+    if mode_number in [1, 2]:
+        sim_instance.listener_manager.broadcast_event(event=output, signal=LBS.DISORDER_SPAWN)
     return output
 
 

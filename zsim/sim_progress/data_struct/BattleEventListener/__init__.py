@@ -27,7 +27,9 @@ class ListenerManger:
             "CinderCobalt_1": "CinderCobaltListener",
             "Yuzuha_1": "YuzuhaC2QTEListener",
             "Yuzuha_2": "YuzuhaC6ParryListener",
-            "Alice_1": "AliceDisorderListener"
+            "Alice_1": "AliceDisorderListener",
+            "Alice_2": "AliceCoreSkillDisorderBasicMulBonusListener",
+            "Alice_3": "AliceCoreSkillPhyBuildupBonusListener"
         }
 
     def add_listener(self, listener_owner: "Character | Enemy | None", listener: BaseListener):

@@ -20,6 +20,6 @@ class BaseListener(ABC):
         pass
 
     @abstractmethod
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         """当监听到预期事件时，监听器的激活函数"""
         pass

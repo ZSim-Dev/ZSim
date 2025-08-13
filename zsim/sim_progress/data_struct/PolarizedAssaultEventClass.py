@@ -1,4 +1,5 @@
 from zsim.define import ELEMENT_TYPE_MAPPING as ETM, ALICE_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from copy import deepcopy
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -43,6 +44,7 @@ class PolarizedAssaultEvent:
         # 先添加一次极性强击；
         event_list = self.sim_instance.schedule_data.event_list
         enemy = self.sim_instance.enemy
+        self.sim_instance.listener_manager.broadcast_event(event=self.anomaly_bar, signal=LBS.POLARIZED_ASSAULT_SPAWN)
         event_list.append(self.anomaly_bar)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()

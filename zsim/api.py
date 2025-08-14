@@ -8,7 +8,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from zsim.api_src.routes import router as api_router
+import os
+from zsim.api_src.ipc import IPCServer, IPCConfig
 
 app = FastAPI()
 
@@ -20,7 +21,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix="/api", tags=["ZSim API"])
+if os.getenv("ZSIM_DISABLE_ROUTES") != "1":
+    from zsim.api_src.routes import router as api_router  # defer import to avoid side effects in tests
+
+    app.include_router(api_router, prefix="/api", tags=["ZSim API"])
+
+
+ipc_server = IPCServer(app, IPCConfig())
+
+
+@app.on_event("startup")
+async def _start_ipc_server():
+    await ipc_server.start()
+
+
+@app.on_event("shutdown")
+async def _stop_ipc_server():
+    await ipc_server.stop()
 
 
 @app.get("/health")

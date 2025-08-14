@@ -42,7 +42,7 @@ class TestAPLImportExport:
 
         zsim.api_src.services.database.apl_db.DEFAULT_APL_DIR = test_default_dir
         zsim.api_src.services.database.apl_db.COSTOM_APL_DIR = test_custom_dir
-        zsim.api_src.services.database.apl_db.APL_DATABASE_FILE = os.path.join(
+        zsim.api_src.services.database.apl_db.APL_DATABASE_FILE = os.path.join(  # type: ignore
             test_default_dir, "apl_configs.db"
         )
 

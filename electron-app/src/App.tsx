@@ -12,7 +12,7 @@ const App = () => {
   // DEMO
   const asideMenuList = useMemo<MenuItem[]>(
     () => [
-      { label: t('aside.name.session-managerment'), key: 'session-managerment' },
+      { label: t('aside.name.session-management'), key: 'session-management' },
       { label: t('aside.name.character-configuration'), key: 'character-configuration' },
       { label: t('aside.name.simulator'), key: 'simulator' },
       { label: t('aside.name.data-analysis'), key: 'data-analysis' },
@@ -34,7 +34,7 @@ const App = () => {
   }, [asideMenuList]);
 
   // DEMO
-  const [activedMenu, setActivedMenu] = useState('session-managerment');
+  const [activedMenu, setActivedMenu] = useState('session-management');
 
   return (
     <div className="w-screen h-screen bg-[#F1F1F1] overflow-hidden">

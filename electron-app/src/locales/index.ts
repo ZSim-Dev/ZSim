@@ -5,6 +5,6 @@ export type MessageSchema = {
   'aside.name.character-support-list': string
   'aside.name.contribution-guide': string
   'aside.name.data-analysis': string
-  'aside.name.session-managerment': string
+  'aside.name.session-management': string
   'aside.name.simulator': string
 }

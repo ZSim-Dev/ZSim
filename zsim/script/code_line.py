@@ -13,6 +13,7 @@ def count_effective_lines(directory):
                 with open(file_path, "r", encoding="utf-8") as f:
                     lines = f.readlines()
                     # 根据文件类型过滤掉空行和注释行
+                    effective_lines: list[str] = []
                     if file.endswith(".py") or file.endswith(".txt"):
                         effective_lines = [
                             line
@@ -27,7 +28,8 @@ def count_effective_lines(directory):
                             and not line.strip().startswith("//")
                             and not line.strip().startswith("/*")
                         ]
-                    total_lines += len(effective_lines)
+                    if effective_lines:
+                        total_lines += len(effective_lines)
     return total_lines
 
 

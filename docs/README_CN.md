@@ -80,8 +80,7 @@ uv run zsim api
 
 # Electron应用开发，还需安装Node.js依赖
 cd electron-app
-corepack install
-pnpm install
+yarn install
 ```
 
 ### 测试结构

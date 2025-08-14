@@ -1,0 +1,65 @@
+{
+  appId: 'com.electron.app',
+  productName: 'ZSim',
+  directories: {
+    output: 'release/${version}',
+    buildResources: 'build',
+  },
+  files: ['dist', 'dist-electron'],
+  asarUnpack: ['resources/**'],
+  win: {
+    executableName: 'ZSim',
+    target: [
+      {
+        target: 'nsis',
+        arch: ['x64'],
+      },
+    ],
+  },
+  nsis: {
+    artifactName: '${name}-${version}-setup.${ext}',
+    shortcutName: '${productName}',
+    uninstallDisplayName: '${productName}',
+    createDesktopShortcut: 'always',
+    oneClick: false,
+    perMachine: false,
+    allowToChangeInstallationDirectory: true,
+    deleteAppDataOnUninstall: false,
+  },
+  mac: {
+    entitlementsInherit: 'build/entitlements.mac.plist',
+    extendInfo: [
+      { NSCameraUsageDescription: "Application requests access to the device's camera." },
+      { NSMicrophoneUsageDescription: "Application requests access to the device's microphone." },
+      {
+        NSDocumentsFolderUsageDescription: "Application requests access to the user's Documents folder.",
+      },
+      {
+        NSDownloadsFolderUsageDescription: "Application requests access to the user's Downloads folder.",
+      },
+    ],
+    notarize: false,
+    target: ['dmg'],
+    artifactName: '${productName}-Mac-${version}-Installer.${ext}',
+  },
+  dmg: {
+    artifactName: '${name}-${version}.${ext}',
+  },
+  linux: {
+    target: ['AppImage', 'snap', 'deb'],
+    maintainer: 'electronjs.org',
+    category: 'Utility',
+    artifactName: '${productName}-Linux-${version}.${ext}',
+  },
+  appImage: {
+    artifactName: '${name}-${version}.${ext}',
+  },
+  npmRebuild: false,
+  publish: {
+    provider: 'generic',
+    url: 'https://example.com/auto-updates',
+  },
+  electronDownload: {
+    mirror: 'https://npmmirror.com/mirrors/electron/',
+  },
+}

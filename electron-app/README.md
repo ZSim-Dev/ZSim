@@ -6,39 +6,27 @@
 
 ## Project Setup
 
-### Prepare
-
-1. vscode
-2. node >= 22.0
-3. pnpm >= 10.0
-
-### Select Package Manager
-
-```bash
-$ corepack install
-```
-
 ### Install
 
 ```bash
-$ pnpm i
+$ yarn
 ```
 
 ### Development
 
 ```bash
-$ pnpm dev
+$ yarn dev
 ```
 
 ### Build
 
 ```bash
 # For windows
-$ pnpm run build:win
+$ yarn build:win
 
 # For macOS
-$ pnpm run build:mac
+$ yarn build:mac
 
 # For Linux
-$ pnpm run build:linux
+$ yarn build:linux
 ```

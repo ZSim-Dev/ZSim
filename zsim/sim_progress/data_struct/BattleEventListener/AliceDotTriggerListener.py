@@ -36,8 +36,8 @@ class AliceDotTriggerListener(BaseListener):
         """
         解释：deepcopy的对象为何来自enemy.anomaly_bars_dict而非enemy.dynamic.active_anomaly_bar_dicts？
         监听器的激活时间点位于enemy.dynamic.assault被赋值为True的时间点，
-        改时间点比enemy.dynamic.active_anomaly_bar_dicts的更新更早，所以此时从enemy.dynamic.active_anomaly_bar_dicts中是获取不到我们想要的异常条的，
-        此时刚激活的异常条还处于enemy.anomaly_bars_dict中，所以要从这里获取。
+        该时间点比enemy.dynamic.active_anomaly_bar_dicts的更新更早，所以此时从enemy.dynamic.active_anomaly_bar_dicts中是获取不到我们想要的异常条的，
+        此时刚激活的异常条的最新状态还处于enemy.anomaly_bars_dict中，所以要从这里获取。
         """
         phy_anomaly_bar = deepcopy(enemy.anomaly_bars_dict[0])
         phy_anomaly_bar.anomaly_settled()

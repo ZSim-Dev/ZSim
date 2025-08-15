@@ -16,6 +16,20 @@ class Alice(Character):
         super().__init__(**kwargs)
         self.blade_etiquette: float = 300.0  # 剑仪
         self.max_blade_etiquette: float = 300.0  # 最大剑仪值
+        self.victory_state_update_tick: int = 0         # 六画的决胜状态的更新时间
+        self.victory_state_duration: int = 1800         # 决胜状态持续时间
+        self.victory_state_activation_origin: list[str] = ["1401_SNA_3", "1401_Q"]      # 决胜状态激活源
+        self.victory_state_attack_counter: int = 0       # 六画的决胜状态的剩余攻击次数
+        self.victory_state_max_attack_count: int = 6     # 六画的决胜状态的最大攻击次数
+
+    @property
+    def victory_state(self) -> bool:
+        """决胜状态是否处于激活状态"""
+        if self.victory_state_update_tick == 0 or self.victory_state_attack_counter == 0:
+            return False
+        else:
+            # 层数没耗尽时，才检查时间条件
+            return self.sim_instance.tick - self.victory_state_update_tick < self.victory_state_duration
 
     @property
     def blade_etquitte_bar(self) -> int:
@@ -28,6 +42,14 @@ class Alice(Character):
         skill_nodes: list[SkillNode] = _skill_node_filter(*args, **kwargs)
         for node in skill_nodes:
             if node.char_name == self.NAME:
+                # 6画情况下，优先更新决胜状态的相关参数
+                if self.cinema == 6:
+                    if node.skill_tag in self.victory_state_activation_origin:
+                        self.victory_state_update_tick = self.sim_instance.tick
+                        self.victory_state_attack_counter = self.victory_state_max_attack_count
+                        if ALICE_REPORT:
+                            self.sim_instance.schedule_data.change_process_state()
+                            print(f"【爱丽丝事件】【6画】检测到爱丽丝释放了{node.skill.skill_text}，激活了决胜状态")
                 # 更新剑仪值
                 self.update_blade_etiquette(update_obj=node)
             else:
@@ -53,11 +75,28 @@ class Alice(Character):
             print(f"【爱丽丝事件】爱丽丝 {"恢复" if blade_etiquette >= 0 else "消耗"} 了 {abs(blade_etiquette):.2f} 点剑仪值，当前剑仪值为 {self.blade_etiquette:.2f}")
 
     def POST_INIT_DATA(self, sim_insatnce: "Simulator"):
-        # 初始化紊乱回复剑仪值的监听器（组队被动激活时）
+        """初始化爱丽丝的监听器组"""
+        listener_manager = sim_insatnce.listener_manager
+        # 组队被动激活时，初始化紊乱回剑仪值的监听器
         if self.additional_abililty_active:
-            sim_insatnce.listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_1", sim_instance=sim_insatnce)
+            listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_1", sim_instance=sim_insatnce)
+
+        # 初始化本体固有监听器（紊乱倍率、物理积蓄效率）
         for listener_id in ["Alice_2", "Alice_3"]:
-            sim_insatnce.listener_manager.listener_factory(listener_owner=self, initiate_signal=listener_id, sim_instance=sim_insatnce)
+            listener_manager.listener_factory(listener_owner=self, initiate_signal=listener_id, sim_instance=sim_insatnce)
+
+        # 1画激活时，初始化1画监听器（减防Buff）
+        if self.cinema >= 1:
+            listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_Cinema_1_A", sim_instance=sim_insatnce)
+            listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_Cinema_1_B", sim_instance=sim_insatnce)
+        
+        # 2画激活时，初始化2画监听器（紊乱伤害提升）
+        if self.cinema >= 2:
+            listener_manager.listener_factory(listener_owner=self, initiate_signal="Alice_Cinema_2_A", sim_instance=sim_insatnce)
+
+    def spawn_extra_attack(self):
+        """6画额外攻击的接口，向Preload添加一次额外攻击事件，同时扣除一次使用次数"""
+        pass
 
     def get_resources(self, *args, **kwargs) -> tuple[str, int]:
         return "剑仪格", self.blade_etquitte_bar

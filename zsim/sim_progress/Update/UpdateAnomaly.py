@@ -149,6 +149,8 @@ def update_anomaly(
 
             # 异常事件监听器广播
             sim_instance.listener_manager.broadcast_event(event=active_bar, signal=LBS.ANOMALY)
+            if active_bar.element_type in [0]:
+                sim_instance.listener_manager.broadcast_event(event=active_bar, signal=LBS.ASSAULT_SPAWN)
             """
             更新完毕，现在正式进入分支判断——触发同类异常 & 触发异类异常（紊乱）。
             无论是哪个分支，都需要涉及enemy下的两大容器：enemy_debuff_list以及enemy_dot_list的修改，

@@ -29,7 +29,10 @@ class ListenerManger:
             "Yuzuha_2": "YuzuhaC6ParryListener",
             "Alice_1": "AliceDisorderListener",
             "Alice_2": "AliceCoreSkillDisorderBasicMulBonusListener",
-            "Alice_3": "AliceCoreSkillPhyBuildupBonusListener"
+            "Alice_3": "AliceCoreSkillPhyBuildupBonusListener",
+            "Alice_Cinema_1_A": "AliceCinema1DefReduceListener",
+            "Alice_Cinema_1_B": "AliceCinema1BladeEtquitteRecoverListener",
+            "Alice_Cinema_2_A": "AliceCinema2DisorderDmgBonus"
         }
 
     def add_listener(self, listener_owner: "Character | Enemy | None", listener: BaseListener):

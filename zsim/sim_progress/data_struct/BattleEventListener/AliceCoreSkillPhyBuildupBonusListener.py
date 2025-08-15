@@ -24,11 +24,9 @@ class AliceCoreSkillPhyBuildupBonusListener(BaseListener):
             char_obj = self.sim_instance.char_data.find_char_obj(CID=1401)
             self.char = char_obj
         event: "AnomalyBar"
-        if signal in [LBS.ANOMALY, LBS.POLARIZED_ASSAULT_SPAWN]:
-            if signal == LBS.ANOMALY:
+        if signal in [LBS.ASSAULT_SPAWN, LBS.POLARIZED_ASSAULT_SPAWN]:
+            if signal == LBS.ASSAULT_SPAWN:
                 # 过滤不是爱丽丝自己触发的普通强击
-                if event.element_type != 0:
-                    return
                 if event.activated_by.char_name != "爱丽丝":
                     return
             self.listener_active()

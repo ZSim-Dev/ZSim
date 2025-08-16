@@ -27,7 +27,7 @@ class MultiplierData:
     def __new__(
         cls,
         enemy_obj: Enemy,
-        dynamic_buff: dict,
+        dynamic_buff: dict[str, list],
         character_obj: Character | None = None,
         judge_node: SkillNode | AnomalyBar | None = None,
     ):

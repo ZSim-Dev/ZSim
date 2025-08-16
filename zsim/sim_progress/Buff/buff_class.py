@@ -9,6 +9,7 @@ import pandas as pd
 
 from zsim.define import CONFIG_PATH, EFFECT_FILE_PATH, EXIST_FILE_PATH, JUDGE_FILE_PATH
 from zsim.sim_progress.Report import report_to_log
+from .BuffXLogic._buff_record_base_class import BuffRecordBaseClass as BRBC
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
@@ -260,7 +261,7 @@ class Buff:
         def __init__(self):
             self.exist = False  # buff是否参与了计算,即是否允许被激活
             self.active = False  # buff当前的激活状态
-            self.count = 0  # buff当前层数
+            self.count: int | float = 0  # buff当前层数
             self.ready = True  # buff的可叠层状态,如果是True,就意味着是内置CD结束了,可以叠层,如果不是True,就不能叠层.
             self.startticks = 0  # buff上一次触发的时间(tick)
             self.endticks = 0  # buff计划课中,buff的结束时间
@@ -302,8 +303,8 @@ class Buff:
         它们会在各自的分支中被调用。
         """
 
-        def __init__(self, buff_instance):
-            self.buff = buff_instance
+        def __init__(self, buff_instance: "Buff"):
+            self.buff: "Buff" = buff_instance
             self.xjudge = None  # 判断逻辑
             self.xstart = None  # 复杂的开始逻辑
             self.xhit = None  # 复杂的命中更新逻辑
@@ -376,7 +377,7 @@ class Buff:
             self.real_count = 0  # 莱特组队被动专用的字段，用于记录实层。
             self.last_update_tick = 0  # 部分复杂buff需要的上一次更新时间
             self.last_update_resource = 0  # 部分复杂buff需要的上一次更新时的资源数量
-            self.record = None
+            self.record: "BRBC | None" = None
 
         def reset_myself(self):
             """重置Buff.history"""
@@ -494,7 +495,7 @@ class Buff:
         # report_to_log(
         #     f'[Buff INFO]:{timenow}:{self.ft.name}第{buff_0.history.end_times}次结束;duration:{buff_0.history.last_duration}', level=3)
 
-    def simple_start(self, timenow: int, sub_exist_buff_dict: dict, **kwargs):
+    def simple_start(self, timenow: int, sub_exist_buff_dict: dict[str, "Buff"], **kwargs):
         """
         sub_exist_buff_dict = exist_buff_dict[角色名]
         角色名指的是当前的前台角色。
@@ -506,7 +507,7 @@ class Buff:
         no_end = kwargs.get("no_end", False)
         no_count = kwargs.get("no_count", False)
         specified_count = kwargs.get("specified_count", None)  # 外部定制层数——层数不独立结算的Buff
-        _simple_start_buff_0 = sub_exist_buff_dict[self.ft.index]
+        _simple_start_buff_0: "Buff" = sub_exist_buff_dict[self.ft.index]
         individule_settled_count = kwargs.get("individule_settled_count", 0)
         if no_count and any([individule_settled_count, specified_count]):
             raise ValueError("在传入no_count参数时，同时传入了其他控制层数的参数。")

@@ -312,7 +312,7 @@ class Buff:
             self.xeffect = None  # 生效逻辑
             self.xexit = None  # 退出逻辑
 
-        def special_judge_logic(self, **kwargs):
+        def special_judge_logic(self, **kwargs) -> bool | None:
             pass
 
         def special_start_logic(self, **kwargs):
@@ -683,9 +683,11 @@ class Buff:
             raise TypeError(f"{buff_0}不是Buff类！")
         if not self.ft.simple_start_logic:
             # EXAMPLE：Buff触发时，随机获得层数。
+            assert self.logic.xstart is not None, (
+                f"{self.ft.index} 的simple_start_logic参数不为True时，其logic.xstart不能为空"
+            )
             self.logic.xstart()
             self.update_to_buff_0(buff_0)
-
             return
         if self.ft.maxduration == 0:  # 瞬时buff
             if not self.ft.hitincrease:  # 命中不叠层

@@ -81,3 +81,8 @@ dev = [
     "pytest-cov>=5.0.0",
     "pytest-asyncio>=1.1.0",
 ]
+
+[project.optional-dependencies]
+windows = [
+    "pywin32>=308",
+]

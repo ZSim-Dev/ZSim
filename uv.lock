@@ -1801,6 +1801,11 @@ dependencies = [
     { name = "uvicorn" },
 ]
 
+[package.optional-dependencies]
+windows = [
+    { name = "pywin32" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
@@ -1826,6 +1831,7 @@ requires-dist = [
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pydantic", specifier = ">=2.11.3" },
     { name = "pywebview", specifier = ">=5.4" },
+    { name = "pywin32", marker = "extra == 'windows'", specifier = ">=308" },
     { name = "setuptools", specifier = "~=75.1.0" },
     { name = "streamlit", specifier = "~=1.44.0" },
     { name = "streamlit-ace", specifier = ">=0.1.1" },
@@ -1833,6 +1839,7 @@ requires-dist = [
     { name = "tqdm", specifier = "~=4.66.5" },
     { name = "uvicorn", specifier = ">=0.35.0" },
 ]
+provides-extras = ["windows"]
 
 [package.metadata.requires-dev]
 dev = [

@@ -188,12 +188,21 @@ class IPCServer:
                 if hr != 0:
                     break
                 request = json.loads(data.decode("utf-8"))
-                # Dispatch synchronously inside thread
-                response = asyncio.run(self._dispatch_request(request))
+                
+                # Create a new event loop for this thread
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    # Dispatch synchronously inside thread
+                    response = loop.run_until_complete(self._dispatch_request(request))
+                finally:
+                    loop.close()
+                    
                 resp_bytes = self._encode_message(response)
                 win32file.WriteFile(handle, resp_bytes)
-        except Exception:
-            pass
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error in pipe client handler: {e}")
         finally:
             try:
                 win32file.CloseHandle(handle)
@@ -212,7 +221,11 @@ class IPCServer:
         else:
             body_bytes = body
 
-        async with httpx.AsyncClient(app=self.asgi_app, base_url="http://ipc") as client:
+        # Use ASGI transport directly
+        from httpx._transports.asgi import ASGITransport
+        
+        transport = ASGITransport(app=self.asgi_app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://ipc") as client:
             try:
                 resp = await client.request(
                     method=method,

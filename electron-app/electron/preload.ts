@@ -93,27 +93,51 @@ async function ipcRequest(method: string, p: string, opts: RequestOptions = {}):
     })
   );
 
-  return await new Promise<IpcResponse>((resolve, reject) => {
-    const client = net.createConnection(socketPath, () => {
-      client.write(toFrame(payload));
-    });
-    client.setNoDelay(true);
-    client.on('error', (err) => {
-      client.destroy();
-      reject(err);
-    });
-    fromFrames(client, (buf) => {
-      try {
-        const resp = JSON.parse(buf.toString('utf-8')) as IpcResponse;
-        resolve(resp);
-      } catch (e) {
-        reject(e);
-      } finally {
-        client.end();
-        client.destroy();
+  const maxRetries = 3;
+  const retryDelay = 100; // ms
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await new Promise<IpcResponse>((resolve, reject) => {
+        const client = net.createConnection(socketPath, () => {
+          client.write(toFrame(payload));
+        });
+        client.setNoDelay(true);
+        
+        const timeout = setTimeout(() => {
+          client.destroy();
+          reject(new Error('IPC request timeout'));
+        }, 5000);
+
+        client.on('error', (err) => {
+          clearTimeout(timeout);
+          client.destroy();
+          reject(err);
+        });
+        
+        fromFrames(client, (buf) => {
+          clearTimeout(timeout);
+          try {
+            const resp = JSON.parse(buf.toString('utf-8')) as IpcResponse;
+            resolve(resp);
+          } catch (e) {
+            reject(e);
+          } finally {
+            client.end();
+            client.destroy();
+          }
+        });
+      });
+    } catch (err) {
+      if (attempt === maxRetries) {
+        throw err;
       }
-    });
-  });
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+  
+  throw new Error('Max retries exceeded');
 }
 
 const apiClient = {

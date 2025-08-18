@@ -93,7 +93,7 @@ class IPCServer:
     @staticmethod
     async def _read_message(reader: asyncio.StreamReader) -> dict[str, Any]:
         length_bytes = await IPCServer._read_exactly(reader, 4)
-        length = int.from_bytes(length_bytes, byteorder="big")
+        length = int.from_bytes(length_bytes, byteorder="big")  # type: ignore[arg-type]
         if length <= 0 or length > 32 * 1024 * 1024:
             raise ValueError("invalid frame length")
         data = await IPCServer._read_exactly(reader, length)
@@ -126,7 +126,7 @@ class IPCServer:
                 except Exception:
                     pass
 
-        self._uds_server = await asyncio.start_unix_server(handle_client, path=str(uds_path))
+        self._uds_server = await asyncio.start_unix_server(handle_client, path=str(uds_path))  # type: ignore[assignment]
 
     # ------------------------ Windows Named Pipe ----------------------
     def _start_pipe(self) -> None:
@@ -146,12 +146,14 @@ class IPCServer:
                     handle = win32pipe.CreateNamedPipe(
                         pipe_path,
                         win32pipe.PIPE_ACCESS_DUPLEX,
-                        win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_READMODE_BYTE | win32pipe.PIPE_WAIT,
+                        win32pipe.PIPE_TYPE_BYTE
+                        | win32pipe.PIPE_READMODE_BYTE
+                        | win32pipe.PIPE_WAIT,
                         win32pipe.PIPE_UNLIMITED_INSTANCES,
                         1024 * 1024,
                         1024 * 1024,
                         0,
-                        None,
+                        None,  # type: ignore[arg-type]
                     )
                     try:
                         win32pipe.ConnectNamedPipe(handle, None)
@@ -160,7 +162,9 @@ class IPCServer:
                         continue
 
                     # Each client handled sequentially in this worker; spawn new thread for next one
-                    threading.Thread(target=self._handle_pipe_client, args=(handle,), daemon=True).start()
+                    threading.Thread(
+                        target=self._handle_pipe_client, args=(handle,), daemon=True
+                    ).start()
                 except Exception:
                     # Prevent tight loop on unexpected errors
                     self._stop_event.wait(0.2)
@@ -181,14 +185,14 @@ class IPCServer:
                 hr, length_bytes = win32file.ReadFile(handle, 4)
                 if hr != 0:
                     break
-                length = int.from_bytes(length_bytes, byteorder="big")
+                length = int.from_bytes(length_bytes, byteorder="big")  # type: ignore[arg-type]
                 if length <= 0 or length > 32 * 1024 * 1024:
                     break
                 hr, data = win32file.ReadFile(handle, length)
                 if hr != 0:
                     break
-                request = json.loads(data.decode("utf-8"))
-                
+                request = json.loads(data.decode("utf-8"))  # type: ignore[arg-type]
+
                 # Create a new event loop for this thread
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -197,7 +201,7 @@ class IPCServer:
                     response = loop.run_until_complete(self._dispatch_request(request))
                 finally:
                     loop.close()
-                    
+
                 resp_bytes = self._encode_message(response)
                 win32file.WriteFile(handle, resp_bytes)
         except Exception as e:
@@ -223,7 +227,7 @@ class IPCServer:
 
         # Use ASGI transport directly
         from httpx._transports.asgi import ASGITransport
-        
+
         transport = ASGITransport(app=self.asgi_app)
         async with httpx.AsyncClient(transport=transport, base_url="http://ipc") as client:
             try:
@@ -248,5 +252,3 @@ class IPCServer:
 
 
 __all__ = ["IPCConfig", "IPCServer"]
-
-

@@ -12,7 +12,7 @@ import multiprocessing as mp
 import pytest
 
 
-def _server_process(pipe_name: str, ready: "mp.synchronize.Event", stop: "mp.synchronize.Event") -> None:
+def _server_process(pipe_name: str, ready: "mp.Event", stop: "mp.Event") -> None:  # type: ignore[misc]
     os.environ["ZSIM_IPC_MODE"] = "pipe"
     os.environ["ZSIM_IPC_PIPE_NAME"] = pipe_name
     os.environ["ZSIM_DISABLE_ROUTES"] = "1"
@@ -61,17 +61,17 @@ def _pipe_request(pipe_path: str, payload: dict[str, object]) -> dict[str, objec
         None,
     )
     try:
-        win32file.WriteFile(handle, buf)
+        win32file.WriteFile(handle, buf)  # type: ignore[arg-type]
         # Read response header
-        hr, length_bytes = win32file.ReadFile(handle, 4)
+        hr, length_bytes = win32file.ReadFile(handle, 4)  # type: ignore[arg-type]
         assert hr == 0
-        length = int.from_bytes(length_bytes, byteorder="big")
-        hr, body = win32file.ReadFile(handle, length)
+        length = int.from_bytes(length_bytes, byteorder="big")  # type: ignore[arg-type]
+        hr, body = win32file.ReadFile(handle, length)  # type: ignore[arg-type]
         assert hr == 0
-        return json.loads(body.decode("utf-8"))
+        return json.loads(body.decode("utf-8"))  # type: ignore[attr-defined]
     finally:
         try:
-            win32file.CloseHandle(handle)
+            win32file.CloseHandle(handle)  # type: ignore[arg-type]
         except Exception:
             pass
 

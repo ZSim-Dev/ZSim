@@ -122,7 +122,7 @@ class Alice(Character):
                 listener_owner=self, initiate_signal="Alice_Cinema_2_A", sim_instance=sim_insatnce
             )
 
-    def spawn_extra_attack(self):
+    def spawn_extra_attack(self) -> None:
         """6画额外攻击的接口，向Preload添加一次额外攻击事件，同时扣除一次使用次数"""
         assert self.victory_state, "6画额外攻击接口调用时，决胜状态未激活，请检查前置判断逻辑"
         assert self.sim_instance is not None, "角色未正确初始化，请检查函数"

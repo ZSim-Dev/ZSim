@@ -238,6 +238,9 @@ class Buff:
                     return None
             else:
                 label_rule = int(label_rule)
+                assert self.label is not None, (
+                    f"在初始化{self.index}时，label_rule为{label_rule}，但label为None"
+                )
                 if label_rule != 0 and label_rule > len(self.label.keys()):
                     raise ValueError(
                         f"{self.index}在初始化时填入的label_rule为{label_rule}，大于其label中填入的参数数量！self.ft.label = {self.label}"
@@ -770,6 +773,7 @@ class Buff:
             # report_to_log(f"[Buff INFO]:{timenow}:{buff_0.ft.index}第{buff_0.history.active_times}次触发", level=3)
         else:
             # EXAMPLE：普攻结束后，随机获得1~10层的攻击力Buff。
+            assert self.logic.xend is not None, f"{self.ft.index}的buff没有初始化xend方法"
             self.logic.xend()
             self.dy.is_changed = True
         if self.dy.is_changed:
@@ -795,6 +799,7 @@ class Buff:
             # 已经触发了buff
             endticks = self.dy.endticks
         if not self.ft.simple_hit_logic:
+            assert self.logic.xhit is not None, f"{self.ft.index}的buff没有初始化xhit方法"
             self.logic.xhit()
             self.dy.is_changed = True
             self.update_to_buff_0(buff_0)
@@ -857,7 +862,7 @@ class Buff:
         return new_obj
 
 
-def spawn_buff_from_index(index: str):
+def spawn_buff_from_index(index: str, sim_instance: Simulator):
     """
     注意：本函数基本上是为了Pytest服务的，所以涉及反复打开CSV，基本没有任何性能优化可言
     正常的主程序运行不要调用本函数！！！！
@@ -876,9 +881,4 @@ def spawn_buff_from_index(index: str):
     trigger_dict = find_row_as_dict(index, EXIST_FILE_PATH)
     judge_dict = find_row_as_dict(index, JUDGE_FILE_PATH)
     # 创建Buff实例
-    return Buff(trigger_dict, judge_dict)
-
-
-if __name__ == "__main__":
-    buff_0 = spawn_buff_from_index("Buff-音擎-精1霰落星殿-暴伤")
-    print(buff_0.ft.index)
+    return Buff(trigger_dict, judge_dict, sim_instance=sim_instance)

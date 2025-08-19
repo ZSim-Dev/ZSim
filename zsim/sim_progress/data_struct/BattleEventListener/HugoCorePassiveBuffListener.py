@@ -35,7 +35,7 @@ class HugoCorePassiveBuffListener(BaseListener):
                 f"雨果的失衡事件监听器监听到了雨果的技能{event.skill_tag}（{event.skill_node.skill.skill_text}）使怪物陷入失衡状态，根据核心被动，触发一次【暗渊回响】Buff"
             )
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         """触发核心被动Buff，通过BuffAddStrategy来暴力添加Buff"""
         from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
 

@@ -32,7 +32,8 @@ class ListenerManger:
             "Alice_3": "AliceCoreSkillPhyBuildupBonusListener",
             "Alice_Cinema_1_A": "AliceCinema1DefReduceListener",
             "Alice_Cinema_1_B": "AliceCinema1BladeEtquitteRecoverListener",
-            "Alice_Cinema_2_A": "AliceCinema2DisorderDmgBonus"
+            "Alice_Cinema_2_A": "AliceCinema2DisorderDmgBonus",
+            "PracticedPerfection_1": "PracticedPerfectionPhyDmgBonusListener",
         }
 
     def add_listener(self, listener_owner: "Character | Enemy | None", listener: BaseListener):
@@ -88,6 +89,8 @@ class ListenerManger:
                     listener_obj = getattr(module, listener_class_name)(
                         listener_id, sim_instance=sim_instance
                     )
+                    if listener_obj.owner is None:
+                        listener_obj.owner = listener_owner
                     self.add_listener(listener_owner=listener_owner, listener=listener_obj)
                     return listener_obj
                 except ModuleNotFoundError:

@@ -1,10 +1,6 @@
 from math import floor
 from typing import TYPE_CHECKING
-
-from numpy import isin
 from zsim.define import ALICE_REPORT
-from zsim.sim_progress.Report import report_to_log
-
 from .character import Character
 from .utils.filters import _skill_node_filter
 
@@ -29,6 +25,7 @@ class Alice(Character):
     def victory_state(self) -> bool:
         """决胜状态是否处于激活状态"""
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
+        # 攻击次数尚未耗尽，或是时间为0tick(未发生过更新)，此时的决胜状态都判定为False
         if self.victory_state_update_tick == 0 or self.victory_state_attack_counter == 0:
             return False
         else:
@@ -126,7 +123,6 @@ class Alice(Character):
         """6画额外攻击的接口，向Preload添加一次额外攻击事件，同时扣除一次使用次数"""
         assert self.victory_state, "6画额外攻击接口调用时，决胜状态未激活，请检查前置判断逻辑"
         assert self.sim_instance is not None, "角色未正确初始化，请检查函数"
-        self.victory_state_attack_counter -= 1
         from zsim.sim_progress.data_struct.SchedulePreload import schedule_preload_event_factory
 
         preload_tick_list = [self.sim_instance.tick]
@@ -144,6 +140,8 @@ class Alice(Character):
             print(
                 f"【爱丽丝事件】【6画】队友攻击命中，爱丽丝触发额外攻击！当前剩余额外攻击次数：{self.victory_state_attack_counter}"
             )
+        # 保险起见，计数器在最后更新
+        self.victory_state_attack_counter -= 1
 
     def get_resources(self, *args, **kwargs) -> tuple[str, int]:
         return "剑仪格", self.blade_etquitte_bar

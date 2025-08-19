@@ -1,5 +1,5 @@
 import importlib
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING
 
 from .character import Character
 from .skill_class import lookup_name_or_cid
@@ -50,7 +50,7 @@ def character_factory(
         try:
             module_name = __char_module_map[name]
             module = importlib.import_module(f".{module_name}", package=__name__)
-            character_class: Type[Character] = getattr(module, module_name)
+            character_class: type[Character] = getattr(module, module_name)
             return character_class(char_config=char_config, sim_cfg=sim_cfg)
         except ModuleNotFoundError:
             return Character(char_config=char_config, sim_cfg=sim_cfg)

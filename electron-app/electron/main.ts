@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
-import { spawn, ChildProcess } from 'node:child_process';
+import { spawn, ChildProcess, spawnSync } from 'node:child_process';
 import net from 'node:net';
 import { platform } from 'node:os';
 import http from 'node:http';
@@ -35,6 +35,34 @@ let backendProcess: ChildProcess | null;
 let backendPort: number = 8000; // 存储后端端口
 let backendIpcMode: 'http' | 'uds' = 'http'; // 存储后端IPC模式
 let backendUdsPath: string = '/tmp/zsim_api.sock'; // 存储后端UDS路径
+
+function findPythonExecutable(): string {
+  // 优先尝试使用 uv run python
+  const uvPython = 'uv run python';
+  
+  // 尝试 python3 和 python 命令
+  const pythonCommands = ['python3', 'python'];
+  
+  // 在开发环境中，优先使用 uv run python
+  if (process.env.NODE_ENV === 'development') {
+    return uvPython;
+  }
+  
+  // 在生产环境中，尝试找到合适的 python 命令
+  for (const cmd of pythonCommands) {
+    try {
+      const result = spawnSync(cmd, ['--version'], { stdio: 'pipe' });
+      if (result.status === 0) {
+        return cmd;
+      }
+    } catch {
+      continue;
+    }
+  }
+  
+  // 默认返回 python
+  return 'python';
+}
 
 function findAvailablePort(startPort: number = 8000, maxPort: number = 8100): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -117,9 +145,20 @@ async function startBackendServer() {
     console.log(`[Backend] Using HTTP mode with port: ${availablePort}`);
   }
   
-  // 始终使用 python 运行 api.py
-  const backendCommand = 'python';
-  const backendArgs = [backendScript];
+  // 找到合适的Python命令
+  const pythonCommand = findPythonExecutable();
+  let backendCommand: string;
+  let backendArgs: string[];
+  
+  if (process.env.NODE_ENV === 'development' && pythonCommand.startsWith('uv run')) {
+    // 开发环境：拆分 uv run python 命令
+    backendCommand = 'uv';
+    backendArgs = ['run', 'python', backendScript];
+  } else {
+    // 生产环境：直接使用 python 命令
+    backendCommand = pythonCommand;
+    backendArgs = [backendScript];
+  }
     
   console.log(`[Backend] Starting with: ${backendCommand} ${backendArgs.join(' ')}`);
   
@@ -131,7 +170,7 @@ async function startBackendServer() {
   console.log(`[Backend] Working directory: ${cwd}`);
   
   backendProcess = spawn(backendCommand, backendArgs, {
-    env: envVars,
+    env: { ...envVars, ...process.env } as Record<string, string>,
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd,
   });

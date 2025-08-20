@@ -1,5 +1,53 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from './hooks';
+
+declare global {
+  interface Window {
+    apiClient: {
+      request(method: string, p: string, opts?: {
+        headers?: Record<string, string>;
+        query?: Record<string, unknown>;
+        body?: unknown;
+      }): Promise<{
+        status: number;
+        headers: Record<string, string>;
+        body: string;
+      }>;
+      get(p: string, opts?: {
+        headers?: Record<string, string>;
+        query?: Record<string, unknown>;
+      }): Promise<{
+        status: number;
+        headers: Record<string, string>;
+        body: string;
+      }>;
+      post(p: string, body?: unknown, opts?: {
+        headers?: Record<string, string>;
+        query?: Record<string, unknown>;
+      }): Promise<{
+        status: number;
+        headers: Record<string, string>;
+        body: string;
+      }>;
+      put(p: string, body?: unknown, opts?: {
+        headers?: Record<string, string>;
+        query?: Record<string, unknown>;
+      }): Promise<{
+        status: number;
+        headers: Record<string, string>;
+        body: string;
+      }>;
+      delete(p: string, opts?: {
+        headers?: Record<string, string>;
+        query?: Record<string, unknown>;
+      }): Promise<{
+        status: number;
+        headers: Record<string, string>;
+        body: string;
+      }>;
+    };
+  }
+}
 
 type MenuItem = {
   label: string;
@@ -8,11 +56,45 @@ type MenuItem = {
 
 const App = () => {
   const { t, language, setLanguage } = useLanguage();
+  const [apiStatus, setApiStatus] = useState<string>('初始化中...');
+  const [apiResponse, setApiResponse] = useState<any>(null);
+
+  // 检查 apiClient 是否可用
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.apiClient) {
+      console.log('[App] window.apiClient is available:', window.apiClient);
+      setApiStatus('API 客户端已就绪');
+    } else {
+      console.error('[App] window.apiClient is not available');
+      setApiStatus('API 客户端未加载');
+    }
+  }, []);
+
+  // 测试 API 连接
+  useEffect(() => {
+    const testApi = async () => {
+      if (!window.apiClient) {
+        setApiStatus('API 客户端未加载');
+        return;
+      }
+      
+      try {
+        const response = await window.apiClient.get('/health');
+        setApiStatus(`API 连接成功 (${response.status})`);
+        setApiResponse(JSON.parse(response.body));
+      } catch (error) {
+        setApiStatus(`API 连接失败: ${error}`);
+        console.error('API test failed:', error);
+      }
+    };
+
+    // 延迟测试 API，确保客户端已完全加载
+    setTimeout(testApi, 1000);
+  }, []);
 
   // DEMO
-  const asideMenuList = useMemo<MenuItem[]>(
-    () => [
-      { label: t('aside.name.session-management'), key: 'session-management' },
+  const asideMenuList = useMemo<MenuItem[]>(() => [
+    { label: t('aside.name.session-management'), key: 'session-management' },
       { label: t('aside.name.character-configuration'), key: 'character-configuration' },
       { label: t('aside.name.simulator'), key: 'simulator' },
       { label: t('aside.name.data-analysis'), key: 'data-analysis' },
@@ -106,9 +188,57 @@ const App = () => {
 
         {/* 模块.2 */}
         <div className="w-[calc(100%-48px)] shrink-0 mx-[24px] h-[56px] flex items-center justify-between">
-          <div>info left</div>
-          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80">
+          <div className="text-[14px] text-[#666]">
+            <span className="mr-[16px]">API 状态: {apiStatus}</span>
+            {apiResponse && (
+              <span className="text-[12px] text-[#999]">
+                后端: {apiResponse.message || '未知'}
+              </span>
+            )}
+          </div>
+          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]"
+            onClick={() => {
+              const testApi = async () => {
+                if (!window.apiClient) {
+                  setApiStatus('API 客户端未加载');
+                  return;
+                }
+                
+                try {
+                  const response = await window.apiClient.get('/health');
+                  setApiStatus(`API 连接成功 (${response.status})`);
+                  setApiResponse(JSON.parse(response.body));
+                } catch (error) {
+                  setApiStatus(`API 连接失败: ${error}`);
+                  console.error('API test failed:', error);
+                }
+              };
+              testApi();
+            }}
+          >
             创建会话
+          </div>
+          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#28A745] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80"
+            onClick={() => {
+              const testApi = async () => {
+                if (!window.apiClient) {
+                  setApiStatus('API 客户端未加载');
+                  return;
+                }
+                
+                try {
+                  const response = await window.apiClient.get('/health');
+                  setApiStatus(`API 连接成功 (${response.status})`);
+                  setApiResponse(JSON.parse(response.body));
+                } catch (error) {
+                  setApiStatus(`API 连接失败: ${error}`);
+                  console.error('API test failed:', error);
+                }
+              };
+              testApi();
+            }}
+          >
+            重新测试API
           </div>
         </div>
 

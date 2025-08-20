@@ -1,8 +1,5 @@
 import { electronAPI } from '@electron-toolkit/preload';
-import { contextBridge } from 'electron';
-import os from 'node:os';
-import path from 'node:path';
-import net from 'node:net';
+import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electron', electronAPI);
 
@@ -18,8 +15,6 @@ type IpcResponse = {
   body: string;
 };
 
-const isDev = process.env.NODE_ENV === 'development' || !!process.env.VITE_DEV_SERVER_URL;
-
 function buildUrl(base: string, p: string, query?: Record<string, unknown>): string {
   const url = new URL(p, base);
   if (query) {
@@ -31,119 +26,46 @@ function buildUrl(base: string, p: string, query?: Record<string, unknown>): str
   return url.toString();
 }
 
+async function getApiPort(): Promise<number> {
+  try {
+    return await ipcRenderer.invoke('get-api-port');
+  } catch (error) {
+    console.warn('Failed to get API port from main process, using default:', error);
+    return 8000;
+  }
+}
+
 async function httpRequest(method: string, p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
-  const base = 'http://127.0.0.1:8000';
+  const port = await getApiPort();
+  const base = `http://127.0.0.1:${port}`;
   const url = buildUrl(base, p, opts.query);
   const headers = { 'content-type': 'application/json', ...(opts.headers || {}) } as Record<string, string>;
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
-  });
-  const text = await res.text();
-  const outHeaders: Record<string, string> = {};
-  res.headers.forEach((v, k) => (outHeaders[k] = v));
-  return { status: res.status, headers: outHeaders, body: text };
-}
-
-function toFrame(data: Buffer): Buffer {
-  const header = Buffer.allocUnsafe(4);
-  header.writeUInt32BE(data.length, 0);
-  return Buffer.concat([header, data]);
-}
-
-function fromFrames(stream: net.Socket, onMessage: (buf: Buffer) => void): void {
-  let buffer = Buffer.alloc(0);
-  let needed = -1;
-  stream.on('data', (chunk) => {
-    buffer = Buffer.concat([buffer, chunk]);
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      if (needed < 0) {
-        if (buffer.length < 4) break;
-        needed = buffer.readUInt32BE(0);
-        buffer = buffer.subarray(4);
-      }
-      if (buffer.length < needed) break;
-      const frame = buffer.subarray(0, needed);
-      buffer = buffer.subarray(needed);
-      needed = -1;
-      onMessage(frame);
-    }
-  });
-}
-
-async function ipcRequest(method: string, p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
-  const pipeName = process.env.ZSIM_IPC_PIPE_NAME || 'zsim_api';
-  const udsPath = process.env.ZSIM_IPC_UDS_PATH || path.join(os.tmpdir(), 'zsim_api.sock');
-  const socketPath = process.platform === 'win32' ? `\\.\\pipe\\${pipeName}` : udsPath;
-
-  const payload = Buffer.from(
-    JSON.stringify({
+  
+  console.log(`[HTTP] Attempting ${method} request to ${url}`);
+  
+  try {
+    const res = await fetch(url, {
       method,
-      path: p,
-      query: opts.query || {},
-      headers: opts.headers || {},
-      body:
-        opts.body === undefined
-          ? undefined
-          : typeof opts.body === 'string'
-            ? opts.body
-            : JSON.stringify(opts.body)
-    })
-  );
-
-  const maxRetries = 3;
-  const retryDelay = 100; // ms
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await new Promise<IpcResponse>((resolve, reject) => {
-        const client = net.createConnection(socketPath, () => {
-          client.write(toFrame(payload));
-        });
-        client.setNoDelay(true);
-        
-        const timeout = setTimeout(() => {
-          client.destroy();
-          reject(new Error('IPC request timeout'));
-        }, 5000);
-
-        client.on('error', (err) => {
-          clearTimeout(timeout);
-          client.destroy();
-          reject(err);
-        });
-        
-        fromFrames(client, (buf) => {
-          clearTimeout(timeout);
-          try {
-            const resp = JSON.parse(buf.toString('utf-8')) as IpcResponse;
-            resolve(resp);
-          } catch (e) {
-            reject(e);
-          } finally {
-            client.end();
-            client.destroy();
-          }
-        });
-      });
-    } catch (err) {
-      if (attempt === maxRetries) {
-        throw err;
-      }
-      // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-    }
+      headers,
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
+    });
+    
+    const text = await res.text();
+    const outHeaders: Record<string, string> = {};
+    res.headers.forEach((v, k) => (outHeaders[k] = v));
+    
+    console.log(`[HTTP] Response received: ${res.status} ${res.status < 400 ? 'OK' : 'ERROR'}`);
+    
+    return { status: res.status, headers: outHeaders, body: text };
+  } catch (error) {
+    console.error(`[HTTP] Request failed:`, error);
+    throw error;
   }
-  
-  throw new Error('Max retries exceeded');
 }
 
 const apiClient = {
   async request(method: string, p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
-    if (isDev) return await httpRequest(method, p, opts);
-    return await ipcRequest(method, p, opts);
+    return await httpRequest(method, p, opts);
   },
   async get(p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
     return await this.request('GET', p, opts);
@@ -160,3 +82,4 @@ const apiClient = {
 };
 
 contextBridge.exposeInMainWorld('apiClient', apiClient);
+console.log('[Preload] apiClient exposed to window.apiClient');

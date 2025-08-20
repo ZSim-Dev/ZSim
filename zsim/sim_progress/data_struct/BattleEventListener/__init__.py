@@ -30,6 +30,7 @@ class ListenerManger:
             "Alice_1": "AliceDisorderListener",
             "Alice_2": "AliceCoreSkillDisorderBasicMulBonusListener",
             "Alice_3": "AliceCoreSkillPhyBuildupBonusListener",
+            "Alice_4": "AliceNAEnhancementListener",
             "Alice_Cinema_1_A": "AliceCinema1DefReduceListener",
             "Alice_Cinema_1_B": "AliceCinema1BladeEtquitteRecoverListener",
             "Alice_Cinema_2_A": "AliceCinema2DisorderDmgBonus",

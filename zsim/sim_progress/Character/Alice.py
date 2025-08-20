@@ -20,6 +20,21 @@ class Alice(Character):
         self.victory_state_attack_counter: int = 0  # 六画的决胜状态的剩余攻击次数
         self.victory_state_max_attack_count: int = 6  # 六画的决胜状态的最大攻击次数
         self.cinema_6_additional_attack_skill_tag: str = "1401_Cinema_6"  # 6画额外攻击的技能tag
+        self._na_enhancement_state: bool = False  # 强化平A可用状态
+
+    @property
+    def na_enhancement_counter(self) -> bool:
+        """强化平A是否可用"""
+        return self._na_enhancement_state
+
+    @na_enhancement_counter.setter
+    def na_enhancement_counter(self, value: bool) -> None:
+        """强化平A状态的赋值函数"""
+        if not self._na_enhancement_state and not value:
+            raise ValueError(
+                "【爱丽丝时间警告】企图将强化平A状态从False切换到False，这意味着Preload在强化平A不可用的情况下放行了强化A5"
+            )
+        self._na_enhancement_state = value
 
     @property
     def victory_state(self) -> bool:
@@ -57,6 +72,9 @@ class Alice(Character):
                             print(
                                 f"【爱丽丝事件】【6画】检测到爱丽丝释放了{node.skill.skill_text}，激活了决胜状态"
                             )
+                # 更新强化A5状态
+                if node.skill_tag == "1401_A5_PLUS":
+                    self.na_enhancement_counter = False
                 # 更新剑仪值
                 self.update_blade_etiquette(update_obj=node)
             else:
@@ -99,7 +117,7 @@ class Alice(Character):
             )
 
         # 初始化本体固有监听器（紊乱倍率、物理积蓄效率）
-        for listener_id in ["Alice_2", "Alice_3"]:
+        for listener_id in ["Alice_2", "Alice_3", "Alice_4"]:
             listener_manager.listener_factory(
                 listener_owner=self, initiate_signal=listener_id, sim_instance=sim_insatnce
             )

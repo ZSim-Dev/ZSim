@@ -1,0 +1,28 @@
+[general]
+title = "爱丽丝-柚叶-简"
+comment = "开发组为爱丽丝-柚叶-简 提供的默认APL"
+author = "虎皮"
+create_time = "2025-08-20T16:24:38.457+08:00"
+latest_change_time = "2025-08-20T16:25:38.457+08:00"
+
+[characters]
+required = [ "爱丽丝", "柚叶", "简",]
+optional = []
+
+[apl_logic]
+logic = ""
+
+[characters."爱丽丝"]
+cinema = []
+weapon = ""
+equip_set4 = ""
+
+[characters."柚叶"]
+cinema = []
+weapon = ""
+equip_set4 = ""
+
+[characters."简"]
+cinema = []
+weapon = ""
+equip_set4 = ""

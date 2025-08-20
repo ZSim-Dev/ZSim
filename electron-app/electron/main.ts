@@ -29,6 +29,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 let win: BrowserWindow | null;
 let backendProcess: ChildProcess | null;
+let backendPort: number = 8000; // 存储后端端口
 
 function findAvailablePort(startPort: number = 8000, maxPort: number = 8100): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -84,6 +85,9 @@ async function startBackendServer() {
   // 查找可用端口
   const availablePort = await findAvailablePort();
   console.log(`[Backend] Found available port: ${availablePort}`);
+  
+  // 存储端口到全局变量
+  backendPort = availablePort;
   
   // 设置环境变量
   const env = { ...process.env, ZSIM_API_PORT: availablePort.toString() };
@@ -188,9 +192,8 @@ app.whenReady().then(async () => {
       throw new Error('Backend server not running');
     }
     
-    // 从环境变量获取端口
-    const port = parseInt(process.env.ZSIM_API_PORT || '8000');
-    return port;
+    // 返回存储的端口号
+    return backendPort;
   });
 
   // 启动后端服务器

@@ -170,25 +170,25 @@ async function startBackendServer() {
   console.log(`[Backend] Working directory: ${cwd}`);
   
   backendProcess = spawn(backendCommand, backendArgs, {
-    env: { ...envVars, ...process.env } as Record<string, string>,
+    env: { ...envVars, ...process.env } as typeof process.env,
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd,
   });
 
-  backendProcess.stdout?.on('data', (data) => {
+  backendProcess?.stdout?.on('data', (data) => {
     console.log(`[Backend] ${data.toString().trim()}`);
   });
 
-  backendProcess.stderr?.on('data', (data) => {
+  backendProcess?.stderr?.on('data', (data) => {
     console.error(`[Backend] ${data.toString().trim()}`);
   });
 
-  backendProcess.on('close', (code) => {
+  backendProcess?.on('close', (code) => {
     console.log(`[Backend] Process exited with code ${code}`);
     backendProcess = null;
   });
 
-  backendProcess.on('error', (err) => {
+  backendProcess?.on('error', (err) => {
     console.error('[Backend] Failed to start:', err);
   });
 
@@ -266,6 +266,12 @@ app.whenReady().then(async () => {
 
   // 处理获取IPC配置的请求
   ipcMain.handle('get-ipc-config', async () => {
+    console.log('[Main] Handling get-ipc-config request');
+    console.log('[Main] Backend process exists:', !!backendProcess);
+    console.log('[Main] IPC mode:', backendIpcMode);
+    console.log('[Main] Port:', backendPort);
+    console.log('[Main] UDS path:', backendUdsPath);
+    
     if (!backendProcess) {
       throw new Error('Backend server not running');
     }
@@ -283,6 +289,11 @@ app.whenReady().then(async () => {
     const { method, path, headers, body, query, udsPath } = requestConfig;
     
     console.log(`[Main] Making UDS request to: ${udsPath}${path}`);
+    console.log(`[Main] Request method: ${method}`);
+    console.log(`[Main] Request path: ${path}`);
+    console.log(`[Main] Request headers:`, headers);
+    console.log(`[Main] Request body:`, body);
+    console.log(`[Main] Request query:`, query);
     
     return new Promise((resolve, reject) => {
       let requestPath = path;

@@ -46,6 +46,11 @@ declare global {
         body: string;
       }>;
     };
+    electron: {
+      ipcRenderer: {
+        invoke(channel: string, ...args: unknown[]): Promise<unknown>;
+      };
+    };
   }
 }
 
@@ -61,13 +66,47 @@ const App = () => {
 
   // 检查 apiClient 是否可用
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.apiClient) {
-      console.log('[App] window.apiClient is available:', window.apiClient);
-      setApiStatus('API 客户端已就绪');
-    } else {
-      console.error('[App] window.apiClient is not available');
-      setApiStatus('API 客户端未加载');
-    }
+    const checkApiClient = async () => {
+      console.log('[App] Checking window.apiClient...');
+      
+      // 等待preload脚本加载，最多等待10秒
+      const maxAttempts = 50;
+      let attempts = 0;
+      
+      const checkInterval = setInterval(() => {
+        attempts++;
+        console.log(`[App] Attempt ${attempts}: window.apiClient =`, typeof window.apiClient);
+        
+        if (typeof window !== 'undefined' && window.apiClient) {
+          clearInterval(checkInterval);
+          console.log('[App] window.apiClient is available:', window.apiClient);
+          setApiStatus('API 客户端已就绪');
+          
+          // 测试IPC配置获取
+          (async () => {
+            try {
+              if (window.electron && window.electron.ipcRenderer) {
+                console.log('[App] Testing IPC config retrieval...');
+                const config = await window.electron.ipcRenderer.invoke('get-ipc-config');
+                console.log('[App] IPC Config:', config);
+              } else {
+                console.log('[App] window.electron.ipcRenderer not available');
+              }
+            } catch (error) {
+              console.error('[App] IPC config error:', error);
+            }
+          })();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          console.error('[App] window.apiClient not available after maximum attempts');
+          setApiStatus('API 客户端加载超时');
+        } else {
+          console.log('[App] window.apiClient not available yet, waiting...');
+        }
+      }, 200);
+    };
+    
+    checkApiClient();
   }, []);
 
   // 测试 API 连接
@@ -190,11 +229,11 @@ const App = () => {
         <div className="w-[calc(100%-48px)] shrink-0 mx-[24px] h-[56px] flex items-center justify-between">
           <div className="text-[14px] text-[#666]">
             <span className="mr-[16px]">API 状态: {apiStatus}</span>
-            {apiResponse && typeof apiResponse === 'object' && 'message' in apiResponse && (
+            {apiResponse && typeof apiResponse === 'object' && 'message' in apiResponse ? (
               <span className="text-[12px] text-[#999]">
-                后端: {(apiResponse as { message?: string }).message || '未知'}
+                后端: {((apiResponse as { message?: string }).message) || '未知'}
               </span>
-            )}
+            ) : null}
           </div>
           <div className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]"
             onClick={() => {
@@ -209,7 +248,7 @@ const App = () => {
                   setApiStatus(`API 连接成功 (${response.status})`);
                   setApiResponse(JSON.parse(response.body));
                 } catch (error) {
-                  setApiStatus(`API 连接失败: ${error}`);
+                  setApiStatus(`API 连接失败: ${error instanceof Error ? error.message : String(error)}`);
                   console.error('API test failed:', error);
                 }
               };
@@ -231,7 +270,7 @@ const App = () => {
                   setApiStatus(`API 连接成功 (${response.status})`);
                   setApiResponse(JSON.parse(response.body));
                 } catch (error) {
-                  setApiStatus(`API 连接失败: ${error}`);
+                  setApiStatus(`API 连接失败: ${error instanceof Error ? error.message : String(error)}`);
                   console.error('API test failed:', error);
                 }
               };

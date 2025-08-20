@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
+import platform
 
 app = FastAPI(
     title="ZSim API",
@@ -31,8 +32,6 @@ if os.getenv("ZSIM_DISABLE_ROUTES") != "1":
     app.include_router(api_router, prefix="/api", tags=["ZSim API"])
 
 
-
-
 @app.get("/health")
 async def health_check():
     """
@@ -51,24 +50,50 @@ if __name__ == "__main__":
     def get_free_port():
         """获取一个可用的端口号"""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('', 0))
+            s.bind(("", 0))
             s.listen(1)
             port = s.getsockname()[1]
         return port
 
-    # 获取端口号，优先使用环境变量，否则自动查找可用端口
-    port = int(os.getenv("ZSIM_API_PORT", 0))
-    if port == 0:
-        port = get_free_port()
-    
-    host = os.getenv("ZSIM_API_HOST", "127.0.0.1")
-    
-    print(f"Starting FastAPI HTTP server on {host}:{port}")
-    uvicorn.run(
-        "zsim.api:app",
-        host=host,
-        port=port,
-        log_level="info",
-        reload=True,
-        access_log=True,
-    )
+    # 获取IPC模式，支持 http 和 uds
+    ipc_mode = os.getenv("ZSIM_IPC_MODE", "auto").lower()
+
+    # 自动检测模式：如果不在Windows上，优先使用UDS
+    if ipc_mode == "auto":
+        if platform.system() == "Windows":
+            ipc_mode = "http"
+        else:
+            ipc_mode = "uds"
+
+    if ipc_mode == "uds" and platform.system() != "Windows":
+        # UDS模式
+        uds_path = os.getenv("ZSIM_UDS_PATH", "/tmp/zsim_api.sock")
+        # 清理旧的socket文件
+        if os.path.exists(uds_path):
+            os.unlink(uds_path)
+
+        print(f"Starting FastAPI UDS server on {uds_path}")
+        uvicorn.run(
+            "zsim.api:app",
+            uds=uds_path,
+            log_level="info",
+            reload=True,
+            access_log=True,
+        )
+    else:
+        # HTTP模式
+        port = int(os.getenv("ZSIM_API_PORT", 0))
+        if port == 0:
+            port = get_free_port()
+
+        host = os.getenv("ZSIM_API_HOST", "127.0.0.1")
+
+        print(f"Starting FastAPI HTTP server on {host}:{port}")
+        uvicorn.run(
+            "zsim.api:app",
+            host=host,
+            port=port,
+            log_level="info",
+            reload=True,
+            access_log=True,
+        )

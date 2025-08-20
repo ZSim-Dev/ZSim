@@ -15,6 +15,12 @@ type IpcResponse = {
   body: string;
 };
 
+type IpcConfig = {
+  mode: 'http' | 'uds';
+  port: number;
+  udsPath: string;
+};
+
 function buildUrl(base: string, p: string, query?: Record<string, unknown>): string {
   const url = new URL(p, base);
   if (query) {
@@ -26,39 +32,64 @@ function buildUrl(base: string, p: string, query?: Record<string, unknown>): str
   return url.toString();
 }
 
-async function getApiPort(): Promise<number> {
+async function getIpcConfig(): Promise<IpcConfig> {
   try {
-    return await ipcRenderer.invoke('get-api-port');
+    return await ipcRenderer.invoke('get-ipc-config');
   } catch (error) {
-    console.warn('Failed to get API port from main process, using default:', error);
-    return 8000;
+    console.warn('Failed to get IPC config from main process, using default:', error);
+    return {
+      mode: 'http',
+      port: 8000,
+      udsPath: '/tmp/zsim_api.sock'
+    };
   }
 }
 
 async function httpRequest(method: string, p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
-  const port = await getApiPort();
-  const base = `http://127.0.0.1:${port}`;
-  const url = buildUrl(base, p, opts.query);
+  const ipcConfig = await getIpcConfig();
   const headers = { 'content-type': 'application/json', ...(opts.headers || {}) } as Record<string, string>;
   
-  console.log(`[HTTP] Attempting ${method} request to ${url}`);
+  console.log(`[HTTP] Attempting ${method} request with IPC mode: ${ipcConfig.mode}`);
   
   try {
-    const res = await fetch(url, {
-      method,
-      headers,
-      body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
-    });
-    
-    const text = await res.text();
-    const outHeaders: Record<string, string> = {};
-    res.headers.forEach((v, k) => (outHeaders[k] = v));
-    
-    console.log(`[HTTP] Response received: ${res.status} ${res.status < 400 ? 'OK' : 'ERROR'}`);
-    
-    return { status: res.status, headers: outHeaders, body: text };
+    if (ipcConfig.mode === 'uds') {
+      // UDS模式 - 通过IPC调用主进程的HTTP请求功能
+      const requestConfig = {
+        method,
+        path: p,
+        headers,
+        body: opts.body,
+        query: opts.query,
+        udsPath: ipcConfig.udsPath
+      };
+      
+      console.log(`[UDS] Making request via IPC to unix socket: ${ipcConfig.udsPath}${p}`);
+      
+      const result = await ipcRenderer.invoke('make-uds-request', requestConfig);
+      return result as IpcResponse;
+    } else {
+      // HTTP模式
+      const base = `http://127.0.0.1:${ipcConfig.port}`;
+      const url = buildUrl(base, p, opts.query);
+      
+      console.log(`[HTTP] Making request to: ${url}`);
+      
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
+      });
+      
+      const text = await res.text();
+      const outHeaders: Record<string, string> = {};
+      res.headers.forEach((v, k) => (outHeaders[k] = v));
+      
+      console.log(`[HTTP] Response received: ${res.status} ${res.status < 400 ? 'OK' : 'ERROR'}`);
+      
+      return { status: res.status, headers: outHeaders, body: text };
+    }
   } catch (error) {
-    console.error(`[HTTP] Request failed:`, error);
+    console.error(`[${ipcConfig.mode.toUpperCase()}] Request failed:`, error);
     throw error;
   }
 }

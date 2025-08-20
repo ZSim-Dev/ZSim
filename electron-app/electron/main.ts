@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { spawn, ChildProcess } from 'node:child_process';
 import net from 'node:net';
+import { platform } from 'node:os';
+import http from 'node:http';
+import { URLSearchParams } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,6 +33,8 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null;
 let backendProcess: ChildProcess | null;
 let backendPort: number = 8000; // 存储后端端口
+let backendIpcMode: 'http' | 'uds' = 'http'; // 存储后端IPC模式
+let backendUdsPath: string = '/tmp/zsim_api.sock'; // 存储后端UDS路径
 
 function findAvailablePort(startPort: number = 8000, maxPort: number = 8100): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -82,15 +87,35 @@ async function startBackendServer() {
   
   console.log('[Backend] Using script:', backendScript);
   
-  // 查找可用端口
-  const availablePort = await findAvailablePort();
-  console.log(`[Backend] Found available port: ${availablePort}`);
+  // 确定IPC模式
+  const currentPlatform = platform();
+  let ipcMode: 'http' | 'uds' = 'http';
   
-  // 存储端口到全局变量
-  backendPort = availablePort;
+  if (currentPlatform === 'win32') {
+    // Windows系统只能使用HTTP
+    ipcMode = 'http';
+  } else {
+    // 非Windows系统优先使用UDS
+    ipcMode = 'uds';
+  }
   
-  // 设置环境变量
-  const env = { ...process.env, ZSIM_API_PORT: availablePort.toString() };
+  backendIpcMode = ipcMode;
+  
+  let envVars: Record<string, string> = {};
+  
+  if (ipcMode === 'uds') {
+    // UDS模式
+    const udsPath = '/tmp/zsim_api.sock';
+    backendUdsPath = udsPath;
+    envVars = { ...process.env, ZSIM_IPC_MODE: 'uds', ZSIM_UDS_PATH: udsPath };
+    console.log(`[Backend] Using UDS mode with path: ${udsPath}`);
+  } else {
+    // HTTP模式
+    const availablePort = await findAvailablePort();
+    backendPort = availablePort;
+    envVars = { ...process.env, ZSIM_API_PORT: availablePort.toString(), ZSIM_IPC_MODE: 'http' };
+    console.log(`[Backend] Using HTTP mode with port: ${availablePort}`);
+  }
   
   // 始终使用 python 运行 api.py
   const backendCommand = 'python';
@@ -106,7 +131,7 @@ async function startBackendServer() {
   console.log(`[Backend] Working directory: ${cwd}`);
   
   backendProcess = spawn(backendCommand, backendArgs, {
-    env,
+    env: envVars,
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd,
   });
@@ -128,11 +153,15 @@ async function startBackendServer() {
     console.error('[Backend] Failed to start:', err);
   });
 
-  // 等待后端启动完成，并返回端口信息
-  return new Promise<number>((resolve) => {
+  // 等待后端启动完成
+  return new Promise<void>((resolve) => {
     setTimeout(() => {
-      console.log(`[Backend] Server started on port ${availablePort}`);
-      resolve(availablePort);
+      if (ipcMode === 'uds') {
+        console.log(`[Backend] Server started with UDS: ${backendUdsPath}`);
+      } else {
+        console.log(`[Backend] Server started on port ${backendPort}`);
+      }
+      resolve();
     }, 3000); // 等待 3 秒让服务器启动
   });
 }
@@ -196,10 +225,88 @@ app.whenReady().then(async () => {
     return backendPort;
   });
 
+  // 处理获取IPC配置的请求
+  ipcMain.handle('get-ipc-config', async () => {
+    if (!backendProcess) {
+      throw new Error('Backend server not running');
+    }
+    
+    // 返回IPC配置
+    return {
+      mode: backendIpcMode,
+      port: backendPort,
+      udsPath: backendUdsPath
+    };
+  });
+
+  // 处理UDS请求
+  ipcMain.handle('make-uds-request', async (_, requestConfig) => {
+    const { method, path, headers, body, query, udsPath } = requestConfig;
+    
+    console.log(`[Main] Making UDS request to: ${udsPath}${path}`);
+    
+    return new Promise((resolve, reject) => {
+      let requestPath = path;
+      
+      // 处理查询参数
+      if (query) {
+        const queryString = new URLSearchParams(query).toString();
+        if (queryString) {
+          requestPath += (requestPath.includes('?') ? '&' : '?') + queryString;
+        }
+      }
+      
+      const options = {
+        socketPath: udsPath,
+        path: requestPath,
+        method: method,
+        headers: headers || {}
+      };
+      
+      const req = http.request(options, (res) => {
+        let data = '';
+        
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        
+        res.on('end', () => {
+          const outHeaders: Record<string, string> = {};
+          Object.entries(res.headers).forEach(([k, v]) => {
+            if (typeof v === 'string') {
+              outHeaders[k] = v;
+            } else if (Array.isArray(v)) {
+              outHeaders[k] = v.join(', ');
+            }
+          });
+          
+          console.log(`[Main] UDS response received: ${res.statusCode} ${res.statusCode && res.statusCode < 400 ? 'OK' : 'ERROR'}`);
+          
+          resolve({
+            status: res.statusCode || 500,
+            headers: outHeaders,
+            body: data
+          });
+        });
+      });
+      
+      req.on('error', (error) => {
+        console.error(`[Main] UDS request failed:`, error);
+        reject(error);
+      });
+      
+      if (body !== undefined) {
+        req.write(JSON.stringify(body));
+      }
+      
+      req.end();
+    });
+  });
+
   // 启动后端服务器
   try {
-    const port = await startBackendServer();
-    console.log(`[Main] Backend server started successfully on port ${port}`);
+    await startBackendServer();
+    console.log(`[Main] Backend server started successfully`);
   } catch (error) {
     console.error('[Main] Failed to start backend server:', error);
   }

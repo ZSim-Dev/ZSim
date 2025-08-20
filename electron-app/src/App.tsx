@@ -57,7 +57,7 @@ type MenuItem = {
 const App = () => {
   const { t, language, setLanguage } = useLanguage();
   const [apiStatus, setApiStatus] = useState<string>('初始化中...');
-  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [apiResponse, setApiResponse] = useState<unknown>(null);
 
   // 检查 apiClient 是否可用
   useEffect(() => {
@@ -190,9 +190,9 @@ const App = () => {
         <div className="w-[calc(100%-48px)] shrink-0 mx-[24px] h-[56px] flex items-center justify-between">
           <div className="text-[14px] text-[#666]">
             <span className="mr-[16px]">API 状态: {apiStatus}</span>
-            {apiResponse && (
+            {apiResponse && typeof apiResponse === 'object' && 'message' in apiResponse && (
               <span className="text-[12px] text-[#999]">
-                后端: {apiResponse.message || '未知'}
+                后端: {(apiResponse as { message?: string }).message || '未知'}
               </span>
             )}
           </div>

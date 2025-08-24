@@ -30,7 +30,8 @@
         "default_apl_dir": "./zsim/data/APLData",
         "custom_apl_dir": "./zsim/data/APLData/custom",
         "Yanagi": "./zsim/data/DefaultConfig/1221.json",
-        "Hugo": "./zsim/data/DefaultConfig/1291.json"
+        "Hugo": "./zsim/data/DefaultConfig/1291.json",
+        "Alice": "./zsim/data/DefaultConfig/1401.json"
     },
     "swap_cancel_mode": {
         "enabled": true,

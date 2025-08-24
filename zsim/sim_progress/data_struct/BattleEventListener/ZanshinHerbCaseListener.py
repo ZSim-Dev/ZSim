@@ -20,6 +20,6 @@ class ZanshinHerbCaseListener(BaseListener):
             return
         self.active_signal = (event, True)
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         """置空信号"""
         self.active_signal = None

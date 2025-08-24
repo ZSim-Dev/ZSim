@@ -13,7 +13,7 @@ from .FindMain import (
     find_preload_data,
     find_stack,
     find_tick,  # noqa: F401
-    find_init_data  # noqa: F401,
+    find_init_data,  # noqa: F401,
 )
 
 if TYPE_CHECKING:
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def check_preparation(
-    buff_0: "Buff",
+    buff_0: "Buff | None",
     buff_instance: "Buff",
     equipper: str | None = None,
     char_CID: int | None = None,
@@ -32,6 +32,7 @@ def check_preparation(
     这是一个综合函数。根据传入的参数，来执行不同的内容。
     """
     # 先决条件检查
+    assert buff_0 is not None, "buff_0不能为空"
     if buff_0.history.record is None:
         raise ValueError("buff_0的record模块尚未初始化！！！")
     record = buff_0.history.record
@@ -62,8 +63,9 @@ def check_preparation(
         if record.equipper is None:
             record.equipper = find_equipper(equipper, sim_instance=buff_instance.sim_instance)
         if record.char is None:
+            assert record.equipper is not None, "equipper不能为空"
             record.char = find_char_from_name(
-                record.equipper, sim_instance=buff_instance.sim_instance
+                NAME=record.equipper, sim_instance=buff_instance.sim_instance
             )
     if char_CID:
         if record.char is None:

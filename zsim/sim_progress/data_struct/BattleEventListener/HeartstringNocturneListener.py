@@ -24,5 +24,5 @@ class HeartstringNocturneListener(BaseListener):
             raise ValueError("entr_battle_event的事件对象必须是SkillNode类型！")
         self.active_signal = (event, True)
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         self.active_signal = None

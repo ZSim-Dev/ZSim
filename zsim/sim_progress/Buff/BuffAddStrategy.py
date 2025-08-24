@@ -24,12 +24,17 @@ def _buff_filter(*args, **kwargs):
 def buff_add_strategy(
     *added_buffs: str | Buff,
     benifit_list: list[str] | None = None,
-    specified_count: int | None = None,
+    specified_count: int | float | None = None,
     sim_instance: "Simulator" = None,
 ):
     """
     这个函数是暴力添加buff用的，比如霜寒、畏缩等debuff，
     又比如核心被动强行添加buff的行为，都可以通过这个函数来实现。
+    Args:
+        added_buffs: str: 需要添加的Buff的index
+        benifit_list: list[str]: 受益者名单
+        specified_count: int | float | None: 指定层数，非必要参数
+        sim_instance: Simulator: 模拟器实例
     """
     if sim_instance is None:
         raise ValueError("调用buff_add_strategy函数时，sim_instance是None")

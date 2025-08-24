@@ -46,6 +46,8 @@ class AnomalyBar:
     UUID: uuid.UUID | None = None
     activated_by: "SkillNode | None" = None
     ndarray_box: list[tuple] | None = None
+    scaling_factor: float = 1.0     # 缩放比例，在计算伤害时会乘以该比例
+    settled: bool = False       # 快照是否被结算过
 
     def __post_init__(self):
         self.UUID = uuid.uuid4()
@@ -153,6 +155,7 @@ class AnomalyBar:
         self.current_anomaly = np.float64(0)
         self.current_ndarray = np.zeros((1, self.current_ndarray.shape[0]), dtype=np.float64)
         self.ndarray_box = []
+        self.settled = False
 
     def get_buildup_pct(self):
         if self.max_anomaly is None:
@@ -247,6 +250,8 @@ class AnomalyBar:
 
     def anomaly_settled(self):
         """结算快照！"""
+        if self.settled:
+            raise RuntimeError(f"【异常条结算警告】当前异常条快照已经被结算过一次了，请检查业务逻辑，找出重复结算的时间点！")
         total_array = np.zeros((1, 1), dtype=np.float64)
         effective_buildup: np.float64 = np.float64(0)
         while self.ndarray_box:
@@ -267,3 +272,4 @@ class AnomalyBar:
             effective_buildup += _build_up
         self.current_effective_anomaly = effective_buildup
         self.current_ndarray = total_array / self.current_effective_anomaly
+        self.settled = True

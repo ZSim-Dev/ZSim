@@ -56,7 +56,7 @@ class YixuanAnomalyListener(BaseListener):
                 self.sim_instance.schedule_data.change_process_state()
             self.listener_active()
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         """监听事件激活，检测内置Cd，通过后为仪玄恢复闪能值。"""
         if not self.ready:
             if YIXUAN_REPORT:

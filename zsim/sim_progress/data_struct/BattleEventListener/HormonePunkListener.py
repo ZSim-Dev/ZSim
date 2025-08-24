@@ -24,5 +24,5 @@ class HormonePunkListener(BaseListener):
             return
         self.active_signal = (event, True)
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         pass

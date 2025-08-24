@@ -9,6 +9,7 @@ from .SchedulePreload import SchedulePreload, schedule_preload_event_factory
 from .single_hit import SingleHit
 from .sp_update_data import ScheduleRefreshData, SPUpdateData
 from .StunForcedTerminationEvent import StunForcedTerminationEvent
+from .PolarizedAssaultEventClass import PolarizedAssaultEvent
 
 __all__ = [
     "ActionStack",
@@ -26,4 +27,5 @@ __all__ = [
     "SPUpdateData",
     "ScheduleRefreshData",
     "StunForcedTerminationEvent",
+    "PolarizedAssaultEvent"
 ]

@@ -96,3 +96,5 @@ class DirgeOfDestinyAnomaly(AnomalyBar):
     def __hash__(self):
         """使对象可哈希"""
         return hash(self.UUID)
+
+

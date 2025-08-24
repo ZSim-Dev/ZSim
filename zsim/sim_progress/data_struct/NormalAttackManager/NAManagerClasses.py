@@ -40,3 +40,4 @@ class HugoNAManager(BaseNAManager):
             "perfection_mode": lambda: HUGO_NA_MODE_LEVEL == 2,
             "only_full_charge_na": lambda: HUGO_NA_MODE_LEVEL == 3,
         }
+

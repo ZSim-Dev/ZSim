@@ -23,12 +23,12 @@ class Alice(Character):
         self._na_enhancement_state: bool = False  # 强化平A可用状态
 
     @property
-    def na_enhancement_counter(self) -> bool:
+    def na_enhancement_state(self) -> bool:
         """强化平A是否可用"""
         return self._na_enhancement_state
 
-    @na_enhancement_counter.setter
-    def na_enhancement_counter(self, value: bool) -> None:
+    @na_enhancement_state.setter
+    def na_enhancement_state(self, value: bool) -> None:
         """强化平A状态的赋值函数"""
         if not self._na_enhancement_state and not value:
             raise ValueError(
@@ -74,7 +74,12 @@ class Alice(Character):
                             )
                 # 更新强化A5状态
                 if node.skill_tag == "1401_A5_PLUS":
-                    self.na_enhancement_counter = False
+                    self.na_enhancement_state = False
+                    if ALICE_REPORT:
+                        self.sim_instance.schedule_data.change_process_state()
+                        print(
+                            f"【爱丽丝事件】爱丽丝成功释放了一次强化A5：{node.skill.skill_text}，强化A5状态关闭"
+                        )
                 # 更新剑仪值
                 self.update_blade_etiquette(update_obj=node)
             else:
@@ -161,8 +166,15 @@ class Alice(Character):
         # 保险起见，计数器在最后更新
         self.victory_state_attack_counter -= 1
 
+    def personal_action_replace_strategy(self, action: str):
+        """爱丽丝的个人动作替换策略，其核心是：尝试把NA_5替换为它的强化版本"""
+        if action == "1401_NA_5":
+            if self.na_enhancement_state:
+                return "1401_NA_5_PLUS"
+        return action
+
     def get_resources(self, *args, **kwargs) -> tuple[str, int]:
         return "剑仪格", self.blade_etquitte_bar
 
     def get_special_stats(self, *args, **kwargs) -> dict[str | None, object | None]:
-        return {"剑仪值": self.blade_etiquette}
+        return {"剑仪值": self.blade_etiquette, "强化A5状态": self.na_enhancement_state}

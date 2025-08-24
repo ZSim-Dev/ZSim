@@ -30,4 +30,4 @@ class AliceNAEnhancementListener(BaseListener):
             self.sim_instance.schedule_data.change_process_state()
             print("【爱丽丝事件】监听到强击事件触发！爱丽丝获得1次强化A5次数~")
         assert isinstance(self.char, Alice)
-        self.char.na_enhancement_counter = True
+        self.char.na_enhancement_state = True

@@ -16,6 +16,7 @@ from .APLOperator import APLOperator
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import PreloadData
     from zsim.simulator.simulator_class import Simulator
+    from zsim.sim_progress.Character.character import Character
 
 
 class APLClass:
@@ -45,6 +46,7 @@ class APLClass:
         self.apl_operator: APLOperator | None = None
         self.repeat_action: tuple[str, int] = ("", 0)
         self.action_replace_manager = None
+        self.char_obj_dict: dict[int, "Character"] = {}
 
     def execute(self, tick, mode: int) -> tuple[str, int, ActionAPLUnit]:
         if self.game_state is None:
@@ -111,7 +113,7 @@ class APLClass:
             output = self.spawn_action_directly(CID, action)
         return output
 
-    def spawn_action_directly(self, CID, action):
+    def spawn_action_directly(self, CID: int, action: str):
         """在没有被快速支援、或是其他技能拦截的情况下，直接生成动作"""
         assert self.preload_data is not None
         if action == "auto_NA":
@@ -140,5 +142,14 @@ class APLClass:
             else:
                 output = f"{CID}_Assault_Aid"
         else:
-            output = action
+            if CID not in self.char_obj_dict:
+                assert self.sim_instance.char_data is not None, "Preload_data is not initialized"
+                for _char_obj in self.sim_instance.char_data.char_obj_list:
+                    if _char_obj.CID == CID:
+                        self.char_obj_dict[CID] = _char_obj
+                        break
+                else:
+                    raise ValueError(f"在构造普攻管理器时，未找到CID为{CID}的角色！")
+            char_obj = self.char_obj_dict[CID]
+            output = char_obj.personal_action_replace_strategy(action=action)
         return output

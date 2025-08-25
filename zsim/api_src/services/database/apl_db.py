@@ -27,8 +27,8 @@ class APLDatabase:
     async def _init_database(self):
         """初始化数据库表"""
         async with aiosqlite.connect(SQLITE_PATH) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS apl_configs (
+            await db.execute(
+                """CREATE TABLE IF NOT EXISTS apl_configs (
                     id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
                     author TEXT,
@@ -37,7 +37,8 @@ class APLDatabase:
                     latest_change_time TEXT,
                     content TEXT NOT NULL
                 )
-            """)
+                """
+            )
             await db.commit()
 
     def get_apl_templates(self) -> list[dict[str, Any]]:

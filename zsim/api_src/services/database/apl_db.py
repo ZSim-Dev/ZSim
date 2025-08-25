@@ -21,8 +21,14 @@ class APLDatabase:
         """初始化APL数据库"""
         # 确保数据库目录存在
         os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
-        # 初始化数据库表
-        asyncio.get_event_loop().run_until_complete(self._init_database())
+        # 不在这里初始化数据库，而是在首次使用时异步初始化
+        self._initialized = False
+
+    async def _ensure_initialized(self):
+        """确保数据库已初始化"""
+        if not self._initialized:
+            await self._init_database()
+            self._initialized = True
 
     async def _init_database(self):
         """初始化数据库表"""
@@ -67,6 +73,7 @@ class APLDatabase:
 
     async def _get_apl_config_async(self, config_id: str) -> dict[str, Any] | None:
         """异步获取特定APL配置"""
+        await self._ensure_initialized()
         async with aiosqlite.connect(SQLITE_PATH) as db:
             async with db.execute(
                 "SELECT title, author, comment, create_time, latest_change_time, content FROM apl_configs WHERE id = ?",
@@ -102,6 +109,7 @@ class APLDatabase:
 
     async def _create_apl_config_async(self, config_id: str, config_data: dict[str, Any]) -> None:
         """异步创建新的APL配置"""
+        await self._ensure_initialized()
         from datetime import datetime
 
         # 提取通用信息
@@ -148,6 +156,7 @@ class APLDatabase:
 
     async def _update_apl_config_async(self, config_id: str, config_data: dict[str, Any]) -> bool:
         """异步更新APL配置"""
+        await self._ensure_initialized()
         from datetime import datetime
 
         # 提取通用信息
@@ -205,6 +214,7 @@ class APLDatabase:
 
     async def _delete_apl_config_async(self, config_id: str) -> bool:
         """异步删除APL配置"""
+        await self._ensure_initialized()
         async with aiosqlite.connect(SQLITE_PATH) as db:
             cursor = await db.execute("DELETE FROM apl_configs WHERE id = ?", (config_id,))
             await db.commit()

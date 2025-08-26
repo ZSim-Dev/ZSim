@@ -62,7 +62,7 @@ class CalAnomaly:
         self.data: MulData = MulData(
             enemy_obj=self.enemy_obj,
             dynamic_buff=self.dynamic_buff,
-            judge_node=anomaly_obj,  # type: ignore
+            judge_node=anomaly_obj,
             character_obj=char_obj,
         )
         # 虚拟角色等级
@@ -104,7 +104,7 @@ class CalAnomaly:
             stun_vulnerability,
             special_mul,
             imp_mul,
-            stun_mul
+            stun_mul,
         )
 
     @staticmethod
@@ -149,9 +149,7 @@ class CalAnomaly:
         # 计算属性/类型的穿透
         if self.element_type == 0:
             # 穿透率
-            addon_pen_ratio = (
-                float(self.dmg_sp[0, 6]) + self.data.dynamic.strike_ignore_defense
-            )
+            addon_pen_ratio = float(self.dmg_sp[0, 6]) + self.data.dynamic.strike_ignore_defense
             # 受击方有效防御
         else:
             addon_pen_ratio = float(self.dmg_sp[0, 6])
@@ -209,7 +207,9 @@ class CalAnomaly:
     def cal_anomaly_dmg(self) -> np.float64:
         """计算异常伤害期望"""
 
-        return np.float64(np.prod(self.final_multipliers)/(self.dmg_sp[0,9] * self.dmg_sp[0,10]))
+        return np.float64(
+            np.prod(self.final_multipliers) / (self.dmg_sp[0, 9] * self.dmg_sp[0, 10])
+        )
 
 
 class CalDisorder(CalAnomaly):
@@ -224,9 +224,7 @@ class CalDisorder(CalAnomaly):
         异常伤害快照以 array 形式储存，顺序为：
         [基础伤害区、增伤区、异常精通区、等级、异常增伤区、异常暴击区、穿透率、穿透值、抗性穿透]
         """
-        super().__init__(
-            disorder_obj, enemy_obj, dynamic_buff, sim_instance=sim_instance
-        )
+        super().__init__(disorder_obj, enemy_obj, dynamic_buff, sim_instance=sim_instance)
         self.final_multipliers[0] = self.cal_disorder_base_dmg(
             np.float64(self.final_multipliers[0])
         )
@@ -242,7 +240,9 @@ class CalDisorder(CalAnomaly):
         disorder_base_dmg: np.float64
         # 计算紊乱基础倍率增幅
         disorder_basic_mul_map = self.data.dynamic.disorder_basic_mul_map
-        disorder_base_ratio_increase = disorder_basic_mul_map[self.element_type] + disorder_basic_mul_map["all"]
+        disorder_base_ratio_increase = (
+            disorder_basic_mul_map[self.element_type] + disorder_basic_mul_map["all"]
+        )
         # 计算紊乱基础伤害
         match self.element_type:
             case 0:  # 强击紊乱

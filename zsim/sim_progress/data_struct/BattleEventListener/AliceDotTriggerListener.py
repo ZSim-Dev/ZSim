@@ -53,7 +53,7 @@ class AliceDotTriggerListener(BaseListener):
         dot.start(timenow=self.sim_instance.tick)
         event_list = self.sim_instance.schedule_data.event_list
         enemy.dynamic.dynamic_dot_list.append(dot)
-        event_list.append(dot.skill_node_data)
+        event_list.append(dot.anomaly_data)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
             print("【爱丽丝事件】检测到畏缩状态更新，核心被动Dot激活！")

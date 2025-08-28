@@ -28,6 +28,7 @@ class AliceNAEnhancementListener(BaseListener):
     def listener_active(self, **kwargs):
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
-            print("【爱丽丝事件】监听到强击事件触发！爱丽丝获得1次强化A5次数~")
+            print("【爱丽丝事件】监听到强击事件触发！爱丽丝获得1次强化A5次数")
+        from zsim.sim_progress.Character.Alice import Alice
         assert isinstance(self.char, Alice)
         self.char.na_enhancement_state = True

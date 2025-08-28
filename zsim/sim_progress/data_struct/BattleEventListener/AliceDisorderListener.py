@@ -26,7 +26,7 @@ class AliceDisorderListener(BaseListener):
             return
         from ...anomaly_bar.CopyAnomalyForOutput import Disorder, PolarityDisorder
 
-        if not isinstance(signal, Disorder | PolarityDisorder):
+        if not isinstance(event, Disorder | PolarityDisorder):
             print(
                 f"【爱丽丝紊乱监听器警告】检测到紊乱结算信号(DISORDER_SETTLED)，但是与之匹配传入的不是紊乱或是极性紊乱类型，而是{type(event)}类型"
             )
@@ -39,5 +39,6 @@ class AliceDisorderListener(BaseListener):
             print(
                 f"【爱丽丝事件】紊乱监听器监听到紊乱结算，即将为爱丽丝回复{self.update_value}点剑仪值！"
             )
+        from zsim.sim_progress.Character.Alice import Alice
         assert isinstance(self.char, Alice)
         self.char.update_blade_etiquette(update_obj=self.update_value)

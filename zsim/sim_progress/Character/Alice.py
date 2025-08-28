@@ -6,7 +6,6 @@ from .utils.filters import _skill_node_filter
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode
-    from zsim.simulator.simulator_class import Simulator
 
 
 class Alice(Character):
@@ -39,6 +38,7 @@ class Alice(Character):
     @property
     def victory_state(self) -> bool:
         """决胜状态是否处于激活状态"""
+        from zsim.simulator.simulator_class import Simulator
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         # 攻击次数尚未耗尽，或是时间为0tick(未发生过更新)，此时的决胜状态都判定为False
         if self.victory_state_update_tick == 0 or self.victory_state_attack_counter == 0:
@@ -52,11 +52,12 @@ class Alice(Character):
 
     @property
     def blade_etquitte_bar(self) -> int:
-        # 剑仪条格子数
+        # 剑仪条格子数（向下取整）
         return floor(self.blade_etiquette / 100)
 
     def special_resources(self, *args, **kwargs) -> None:
         """爱丽丝的特殊资源模块"""
+        from zsim.simulator.simulator_class import Simulator
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         # 输入类型检查
         skill_nodes: list[SkillNode] = _skill_node_filter(*args, **kwargs)
@@ -73,7 +74,7 @@ class Alice(Character):
                                 f"【爱丽丝事件】【6画】检测到爱丽丝释放了{node.skill.skill_text}，激活了决胜状态"
                             )
                 # 更新强化A5状态
-                if node.skill_tag == "1401_A5_PLUS":
+                if node.skill_tag == "1401_NA_5_PLUS":
                     self.na_enhancement_state = False
                     if ALICE_REPORT:
                         self.sim_instance.schedule_data.change_process_state()
@@ -86,8 +87,10 @@ class Alice(Character):
                 # 队友的skill_node判断；
                 pass
 
-    def update_blade_etiquette(self, update_obj: SkillNode | float | int) -> None:
+    def update_blade_etiquette(self, update_obj: "SkillNode | float | int") -> None:
         # 更新剑仪值的函数
+        from zsim.simulator.simulator_class import Simulator
+        from zsim.sim_progress.Preload import SkillNode
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         if update_obj is None:
             raise ValueError("【剑仪值更新警告】在调用剑仪值更新函数时，必须传入update_obj参数")
@@ -122,7 +125,7 @@ class Alice(Character):
             )
 
         # 初始化本体固有监听器（紊乱倍率、物理积蓄效率）
-        for listener_id in ["Alice_2", "Alice_3", "Alice_4"]:
+        for listener_id in ["Alice_2", "Alice_3", "Alice_4", "Alice_5"]:
             listener_manager.listener_factory(
                 listener_owner=self, initiate_signal=listener_id, sim_instance=sim_insatnce
             )

@@ -670,11 +670,13 @@ class Enemy:
 
         @assault.setter
         def assault(self, value: bool):
+            # 由于监听器可能需要更新，所以这里要先赋值，再广播；
+            self._assault = value
             if value:
                 # 检查更新值并且广播给各监听器（目前只为爱丽丝核心被动Dot触发器服务）
                 sim_instance = self.enemy.sim_instance
                 sim_instance.listener_manager.broadcast_event(signal=LBS.ASSAULT_STATE_ON, event=self.enemy.anomaly_bars_dict[0])
-            self._assault = value
+
 
         def __str__(self):
             return f"失衡: {self.stun}, 失衡条: {self.stun_bar:.2f}, 冻结: {self.frozen}, 霜寒: {self.frostbite}, 畏缩: {self.assault}, 感电: {self.shock}, 灼烧: {self.burn}, 侵蚀：{self.corruption}, 烈霜霜寒：{self.frost_frostbite}"

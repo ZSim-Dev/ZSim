@@ -15,12 +15,14 @@ class AliceCoreSkillAssaultDot(Dot):
         if sim_instance is None:
             raise ValueError("构造dot实例时必须传入有效的sim_instance实例")
 
+        from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
         # 正确性验证
         if any([bar is None,
                 bar is not None and not isinstance(bar, AnomalyBar),
                 bar.element_type != 0]):
             raise ValueError("构造爱丽丝的核心被动Dot实例时，必须传入有效的 物理属性 anomlay_bar 实例")
         self.anomaly_data = bar
+        self.anomaly_data.rename_tag = "爱丽丝强击Dot"
         self.anomaly_data.scaling_factor = 0.025     # 缩放比例
 
     @dataclass

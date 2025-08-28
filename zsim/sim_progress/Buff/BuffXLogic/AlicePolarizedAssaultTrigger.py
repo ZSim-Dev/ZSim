@@ -1,9 +1,7 @@
 from .. import Buff, JudgeTools, check_preparation
 from define import ALICE_REPORT
 from copy import deepcopy
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from zsim.sim_progress.Preload import SkillNode
+from zsim.sim_progress.Preload import SkillNode
 
 
 class AlicePolarizedAssaultTriggerRecord:
@@ -67,6 +65,7 @@ class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
         tick = sim_instance.tick
         enemy = sim_instance.schedule_data.enemy
         copyed_anomaly_bar = deepcopy(enemy.anomaly_bars_dict[0])
+        copyed_anomaly_bar.activated_by = self.record.trigger_origin
         event = PolarizedAssaultEvent(
             execute_tick=tick,
             anomlay_bar=copyed_anomaly_bar,

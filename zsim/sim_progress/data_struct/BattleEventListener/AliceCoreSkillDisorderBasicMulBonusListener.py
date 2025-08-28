@@ -26,7 +26,7 @@ class AliceCoreSkillDisorderBasicMulBonusListener(BaseListener):
             self.char = char_obj
         if signal not in [LBS.DISORDER_SPAWN]:
             return
-        if not isinstance(signal, Disorder | PolarityDisorder):
+        if not isinstance(event, Disorder | PolarityDisorder):
             print(
                 f"【爱丽丝紊乱监听器警告】检测到紊乱触发信号(DISORDER_SPAWN)，但是与之匹配传入的不是紊乱或是极性紊乱类型，而是{type(event)}类型"
             )

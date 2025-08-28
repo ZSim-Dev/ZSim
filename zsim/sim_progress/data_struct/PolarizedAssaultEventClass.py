@@ -25,6 +25,9 @@ class PolarizedAssaultEvent:
         self.execute_tick = execute_tick        # 被执行时间
         self.schedule_priority = 999        # 该事件永远在被执行tick的末轮递归中执行
         self.anomaly_bar: "AnomalyBar" = anomlay_bar        # 强击异常条的深拷贝
+        assert not self.anomaly_bar.settled, "【极性强击事件警告】构造极性强击事件时，传入的异常条必须是未结算的异常条！"
+        self.anomaly_bar.anomaly_settled()
+        self.anomaly_bar.rename_tag = "极性强击"
         self.char: "Character" = char_instance
         if self.char.NAME != "爱丽丝":
             raise ValueError(f"【极性强击事件警告】构造极性强击事件时，传入的Char实例并非爱丽丝，而是{self.char.NAME}")
@@ -63,13 +66,14 @@ class PolarizedAssaultEvent:
         if not active_anomaly_list:
             return
         anomaly_bar = active_anomaly_list[0]
-        if not anomaly_bar.settled:
-            anomaly_bar.anomaly_settled()
+        anomaly_bar_new = deepcopy(anomaly_bar)
+        if not anomaly_bar_new.settled:
+            anomaly_bar_new.anomaly_settled()
         """
         由于爱丽丝的极性强击不影响原有的异常条状态，
         所以这里必须用深拷贝规避结算紊乱函数对于异常条的破坏性修改
         """
-        anomaly_bar_new = deepcopy(anomaly_bar)
+
         from zsim.sim_progress.Update.UpdateAnomaly import spawn_output
         disorder: "Disorder" = spawn_output(
             anomaly_bar=anomaly_bar_new,
@@ -81,7 +85,3 @@ class PolarizedAssaultEvent:
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
             print(f"【爱丽丝事件】极性强击结算的同时结算了一次【{ETM[disorder.element_type]}】属性的紊乱！")
-
-
-
-

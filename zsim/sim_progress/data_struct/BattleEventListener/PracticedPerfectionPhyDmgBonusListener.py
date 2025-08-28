@@ -31,11 +31,11 @@ class PracticedPerfectionPhyDmgBonusListener(BaseListener):
             assert isinstance(self.owner, Character), (
                 "【十方锻星物理增伤监听器警告】监听器绑定的角色不是Character类型，请检查初始化"
             )
-            assert self.owner.weapon_ID == 14140, (
-                "【十方锻星物理增伤监听器警告】监听器绑定的角色不是十方锻星武器，请检查初始化"
+            assert self.owner.weapon_ID == "十方锻星", (
+                f"【十方锻星物理增伤监听器警告】监听器绑定的武器是{self.owner.weapon_ID}，并非十方锻星，请检查初始化"
             )
-            assert self.owner.weapon_level == Literal[1, 2, 3, 4, 5], (
-                "【十方锻星物理增伤监听器警告】监听器绑定的角色武器精炼等级不是1-5，请检查初始化"
+            assert int(self.owner.weapon_level) in [1, 2, 3, 4, 5], (
+                f"【十方锻星物理增伤监听器警告】监听器绑定的角色武器精炼等级为{self.owner.weapon_level}，不是合法的精炼等级，请检查初始化"
             )
             self.buff_index = f"Buff-武器-精{int(self.owner.weapon_level)}十方锻星-物理伤害增加"
 

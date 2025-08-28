@@ -35,13 +35,14 @@ class AliceCoreSkillPhyBuildupBonusListener(BaseListener):
                 )
                 if event.activated_by.char_name != "爱丽丝":
                     return
-            self.listener_active()
+            self.listener_active(signal=signal)
 
     def listener_active(self, **kwargs):
         """监听器的激活函数，为爱丽丝添加积蓄效率Buff"""
+        signal = kwargs.get("signal")
         from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
 
         buff_add_strategy(self.buff_index, benifit_list=["爱丽丝"], sim_instance=self.sim_instance)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
-            print("【爱丽丝事件】检测到爱丽丝触发强击，为爱丽丝添加 物理积蓄效率提高 的Buff")
+            print(f"【爱丽丝事件】检测到爱丽丝触发{"强击" if signal == LBS.ASSAULT_SPAWN else "极性强击"}，为爱丽丝添加 物理积蓄效率提高 的Buff")

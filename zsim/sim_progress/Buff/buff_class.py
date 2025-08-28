@@ -862,7 +862,7 @@ class Buff:
         return new_obj
 
 
-def spawn_buff_from_index(index: str, sim_instance: Simulator):
+def spawn_buff_from_index(index: str, sim_instance: "Simulator"):
     """
     注意：本函数基本上是为了Pytest服务的，所以涉及反复打开CSV，基本没有任何性能优化可言
     正常的主程序运行不要调用本函数！！！！

@@ -105,9 +105,12 @@ class MultiplierData:
                 report_to_log("[WARNING] dynamic_buff 中依然找不到动态buff列表", level=4)
                 enemy_buff = []
         enabled_buff: tuple = tuple(char_buff + enemy_buff)
-        dynamic_statement: dict = cal_buff_total_bonus(
-            enabled_buff, node, sim_instance=self.enemy_obj.sim_instance, char_name=self.char_name
-        )
+        try:
+            dynamic_statement: dict = cal_buff_total_bonus(
+                enabled_buff=enabled_buff, judge_obj=node, sim_instance=self.enemy_obj.sim_instance, char_name=self.char_name
+            )
+        except TypeError:
+            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}")
         return dynamic_statement
 
     class StaticStatement:

@@ -142,6 +142,7 @@ class APLClass:
             else:
                 output = f"{CID}_Assault_Aid"
         else:
+            output = action
             if CID not in self.char_obj_dict:
                 assert self.sim_instance.char_data is not None, "Preload_data is not initialized"
                 for _char_obj in self.sim_instance.char_data.char_obj_list:
@@ -150,6 +151,6 @@ class APLClass:
                         break
                 else:
                     raise ValueError(f"在构造普攻管理器时，未找到CID为{CID}的角色！")
-            char_obj = self.char_obj_dict[CID]
-            output = char_obj.personal_action_replace_strategy(action=action)
-        return output
+        char_obj = self.char_obj_dict[CID]
+        final_output = char_obj.personal_action_replace_strategy(action=output)
+        return final_output

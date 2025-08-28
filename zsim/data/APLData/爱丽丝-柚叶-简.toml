@@ -3,14 +3,14 @@ title = "爱丽丝-柚叶-简"
 comment = "开发组为爱丽丝-柚叶-简 提供的默认APL"
 author = "虎皮"
 create_time = "2025-08-20T16:24:38.457+08:00"
-latest_change_time = "2025-08-20T16:25:38.457+08:00"
+latest_change_time = "2025-08-26T20:01:55.855+08:00"
 
 [characters]
 required = [ "爱丽丝", "柚叶", "简",]
 optional = []
 
 [apl_logic]
-logic = ""
+logic = "# 测试用APL\n# 爱丽丝3蓄\n1401|action+=|1401_SNA_3|attribute.1401:special_resource>=3\n# 爱丽丝在不严重溢出剑仪值时用强化E（南十字）\n1401|action+=|1401_E_EX_1|attribute.1401:energy>=40|attribute.1401:special_resource<=2\n# 爱丽丝在不严重溢出剑仪值时开大\n1401|action+=|1401_Q|attribute.1401:decibel>=3000|attribute.1401:special_resource<=1\n# 底层逻辑：爱丽丝平A\n1401|action+=|auto_NA"
 
 [characters."爱丽丝"]
 cinema = []

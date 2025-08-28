@@ -168,6 +168,10 @@ TRIGGER_REPORT: bool = _config["char_report"]["Trigger"]
 YUZUHA_REPORT: bool = _config["char_report"]["Yuzuha"]
 ALICE_REPORT: bool = _config["char_report"]["Alice"]
 
+# Cal计算debug
+CHECK_SKILL_MUL: bool = _config["debug"]["check_skill_mul"]
+CHECK_SKILL_MUL_TAG: list[str] = _config["debug"]["check_skill_mul_tag"]
+
 # 开发变量
 NEW_SIM_BOOT: bool = _config.get("dev", {}).get("new_sim_boot", True)
 

@@ -116,6 +116,14 @@ class APLClass:
     def spawn_action_directly(self, CID: int, action: str):
         """在没有被快速支援、或是其他技能拦截的情况下，直接生成动作"""
         assert self.preload_data is not None
+        if CID not in self.char_obj_dict:
+            assert self.sim_instance.char_data is not None, "Preload_data is not initialized"
+            for _char_obj in self.sim_instance.char_data.char_obj_list:
+                if _char_obj.CID == CID:
+                    self.char_obj_dict[CID] = _char_obj
+                    break
+            else:
+                raise ValueError(f"在构造普攻管理器时，未找到CID为{CID}的角色！")
         if action == "auto_NA":
             if CID not in self.na_manager_dict:
                 assert self.preload_data.char_data is not None
@@ -143,14 +151,6 @@ class APLClass:
                 output = f"{CID}_Assault_Aid"
         else:
             output = action
-            if CID not in self.char_obj_dict:
-                assert self.sim_instance.char_data is not None, "Preload_data is not initialized"
-                for _char_obj in self.sim_instance.char_data.char_obj_list:
-                    if _char_obj.CID == CID:
-                        self.char_obj_dict[CID] = _char_obj
-                        break
-                else:
-                    raise ValueError(f"在构造普攻管理器时，未找到CID为{CID}的角色！")
         char_obj = self.char_obj_dict[CID]
         final_output = char_obj.personal_action_replace_strategy(action=output)
         return final_output

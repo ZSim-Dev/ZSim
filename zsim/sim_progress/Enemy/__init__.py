@@ -82,7 +82,7 @@ class Enemy:
         # 难度
         self.difficulty: float = difficulty
         # 初始化动态属性
-        self.dynamic = self.EnemyDynamic()
+        self.dynamic = self.EnemyDynamic(self)
         # 初始化敌人基础属性
         self.base_max_HP: float = float(self.data_dict["70级最大生命值"])
         self.max_HP: float = (
@@ -396,7 +396,7 @@ class Enemy:
         else:
             pass
 
-    def update_anomaly(self, element: str | int = "ALL", *, times: int = 1) -> None:
+    def update_max_anomaly(self, element: str | int = "ALL", *, times: int = 1) -> None:
         """更新怪物异常值，触发一次异常后调用。"""
 
         # 参数类型检查
@@ -630,13 +630,14 @@ class Enemy:
             return None
 
     class EnemyDynamic:
-        def __init__(self):
+        def __init__(self, enemy_instance):
+            self.enemy: Enemy = enemy_instance
             self.stun = False  # 失衡状态
             self.stun_update_tick = 0  # 上次更新失衡状态的时间
             self.frozen = False  # 冻结状态
             self.frostbite = False  # 霜寒状态
             self.frost_frostbite = False  # 烈霜霜寒状态
-            self.assault = False  # 畏缩状态
+            self._assault = False  # 畏缩状态
             self.shock = False  # 感电状态
             self.burn = False  # 灼烧状态
             self.corruption = False  # 侵蚀状态
@@ -662,6 +663,20 @@ class Enemy:
             self.shock_tick = 0
             self.burn_tick = 0
             self.corruption_tick = 0
+
+        @property
+        def assault(self) -> bool:
+            return self._assault
+
+        @assault.setter
+        def assault(self, value: bool):
+            # 由于监听器可能需要更新，所以这里要先赋值，再广播；
+            self._assault = value
+            if value:
+                # 检查更新值并且广播给各监听器（目前只为爱丽丝核心被动Dot触发器服务）
+                sim_instance = self.enemy.sim_instance
+                sim_instance.listener_manager.broadcast_event(signal=LBS.ASSAULT_STATE_ON, event=self.enemy.anomaly_bars_dict[0])
+
 
         def __str__(self):
             return f"失衡: {self.stun}, 失衡条: {self.stun_bar:.2f}, 冻结: {self.frozen}, 霜寒: {self.frostbite}, 畏缩: {self.assault}, 感电: {self.shock}, 灼烧: {self.burn}, 侵蚀：{self.corruption}, 烈霜霜寒：{self.frost_frostbite}"

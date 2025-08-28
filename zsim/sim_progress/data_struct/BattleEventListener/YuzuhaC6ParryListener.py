@@ -43,6 +43,6 @@ class YuzuhaC6ParryListener(BaseListener):
                     f"【柚叶6画】检测到 柚叶 通过技能 {event.skill_tag} 招架/格挡了敌人的攻击，为 柚叶 恢复1点甜度点"
                 )
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         assert self.char is not None
         self.char.update_sugar_points(value=1)

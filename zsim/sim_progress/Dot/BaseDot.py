@@ -111,5 +111,5 @@ class Dot:
         self.dy.effect_times = 1
         self.dy.ready = False
 
-    def exit_judge(self, **kwargs) -> None:
+    def exit_judge(self, **kwargs) -> bool:
         pass

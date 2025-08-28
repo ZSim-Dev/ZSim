@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 import numpy as np
 
-from zsim.define import INVALID_ELEMENT_ERROR, ElementType
+from zsim.define import INVALID_ELEMENT_ERROR, ElementType, CHECK_SKILL_MUL, CHECK_SKILL_MUL_TAG
 from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
 from zsim.sim_progress.Character import Character
 from zsim.sim_progress.data_struct import cal_buff_total_bonus
@@ -27,7 +27,7 @@ class MultiplierData:
     def __new__(
         cls,
         enemy_obj: Enemy,
-        dynamic_buff: dict,
+        dynamic_buff: dict[str, list],
         character_obj: Character | None = None,
         judge_node: SkillNode | AnomalyBar | None = None,
     ):
@@ -105,9 +105,12 @@ class MultiplierData:
                 report_to_log("[WARNING] dynamic_buff 中依然找不到动态buff列表", level=4)
                 enemy_buff = []
         enabled_buff: tuple = tuple(char_buff + enemy_buff)
-        dynamic_statement: dict = cal_buff_total_bonus(
-            enabled_buff, node, sim_instance=self.enemy_obj.sim_instance, char_name=self.char_name
-        )
+        try:
+            dynamic_statement: dict = cal_buff_total_bonus(
+                enabled_buff=enabled_buff, judge_obj=node, sim_instance=self.enemy_obj.sim_instance, char_name=self.char_name
+            )
+        except TypeError:
+            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}")
         return dynamic_statement
 
     class StaticStatement:
@@ -597,8 +600,8 @@ class Calculator:
             # 属性为精通
             elif base_attr == 3:
                 attr = (
-                    data.static.am * (1 + data.dynamic.anomaly_mastery)
-                    + data.dynamic.field_anomaly_mastery
+                    data.static.ap * (1 + data.dynamic.field_anomaly_proficiency)
+                    + data.dynamic.anomaly_proficiency
                 )
             elif base_attr == 4:
                 assert data.char_instance is not None
@@ -1104,19 +1107,19 @@ class Calculator:
         @staticmethod
         def cal_base_damage(data: MultiplierData) -> float:
             """基础伤害区 = 攻击力 * 对应属性的异常伤害倍率"""
-            atk = data.static.atk * (1 + data.dynamic.field_atk_percentage) + data.dynamic.atk
+            base_attr = data.static.atk * (1 + data.dynamic.field_atk_percentage) + data.dynamic.atk
             assert isinstance(data.judge_node, SkillNode)
             element_type = data.judge_node.element_type
             if element_type == 0:
-                base_damage = 7.13 * atk
+                base_damage = 7.13 * base_attr
             elif element_type == 1:
-                base_damage = 0.5 * atk
+                base_damage = 0.5 * base_attr
             elif element_type == 2 or element_type == 5:
-                base_damage = 5 * atk
+                base_damage = 5 * base_attr
             elif element_type == 3:
-                base_damage = 1.25 * atk
+                base_damage = 1.25 * base_attr
             elif element_type in [4, 6]:
-                base_damage = 0.625 * atk
+                base_damage = 0.625 * base_attr
             else:
                 assert False, INVALID_ELEMENT_ERROR
             return base_damage
@@ -1289,22 +1292,28 @@ class Calculator:
         """计算伤害期望"""
         multipliers: np.ndarray = self.regular_multipliers.get_array_expect()
         dmg_expect = np.prod(multipliers)
-        # if any([__tag in self.skill_tag for __tag in
-        #         ["1091"]]):
-        #     tag_list = [
-        #         "基础乘区",
-        #         "增伤区",
-        #         "双暴区",
-        #         "防御区",
-        #         "抗性区",
-        #         "易伤区",
-        #         "失衡易伤区",
-        #         "特殊乘区",
-        #         "贯穿伤害区"
-        #     ]
-        #     print(self.skill_node.skill.skill_text, f"第{self.skill_node.loading_mission.hitted_count if self.skill_node.loading_mission else 1}次命中", "：",
-        #           [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers)])
+        self.check_skill_node_mul(multipliers)
         return np.float64(dmg_expect)
+
+    def check_skill_node_mul(self, multipliers):
+        """检查技能节点的乘区"""
+        if not CHECK_SKILL_MUL:
+            return
+        if any([__tag in self.skill_tag for __tag in
+                CHECK_SKILL_MUL_TAG]):
+            tag_list = [
+                "基础乘区",
+                "增伤区",
+                "双暴区",
+                "防御区",
+                "抗性区",
+                "易伤区",
+                "失衡易伤区",
+                "特殊乘区",
+                "贯穿伤害区"
+            ]
+            print(self.skill_node.skill.skill_text, f"第{self.skill_node.loading_mission.hitted_count if self.skill_node.loading_mission else 1}次命中", "：",
+                  [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers)])
 
     def cal_dmg_crit(self) -> np.float64:
         """计算暴击伤害"""

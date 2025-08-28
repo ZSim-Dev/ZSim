@@ -42,6 +42,6 @@ class YuzuhaC2QTEListener(BaseListener):
                     f"【柚叶2画】检测到队友 {skill_node.char_name} 通过连携技 {skill_node.skill_tag} 入场，为柚叶恢复1点甜度点"
                 )
 
-    def listener_active(self):
+    def listener_active(self, **kwargs):
         assert self.char is not None
         self.char.update_sugar_points(value=1)

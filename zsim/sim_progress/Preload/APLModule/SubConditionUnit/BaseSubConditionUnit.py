@@ -47,6 +47,7 @@ class BaseSubConditionUnit(ABC):
     def spawn_result(self, value=None, **kwargs):
         """根据self.operation_type中的匿名函数来输出结果的函数"""
         # value = check_number_type(value)
+        # assert value is not None, f"优先级为 {self.priority} 的子条件单元检查结果为 None， {self.check_stat}"
         result = self.operation_type(value, self.check_value)
         # if self.priority == 11 and result:
         #     import inspect

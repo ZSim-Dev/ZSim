@@ -21,6 +21,7 @@ from zsim.sim_progress.data_struct import (
     SingleHit,
     SPUpdateData,
     StunForcedTerminationEvent,
+    PolarizedAssaultEvent
 )
 from zsim.sim_progress.Load.LoadDamageEvent import (
     ProcessFreezLikeDots,
@@ -29,7 +30,7 @@ from zsim.sim_progress.Load.LoadDamageEvent import (
 from zsim.sim_progress.Load.loading_mission import LoadingMission
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Update import update_anomaly
-
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from .CalAnomaly import CalAbloom, CalAnomaly, CalDisorder, CalPolarityDisorder
 from .Calculator import Calculator, MultiplierData  # noqa: F401
 
@@ -91,6 +92,7 @@ class ScheduledEvent:
             SkillNode: "preload_tick",
             QuickAssistEvent: "execute_tick",
             SchedulePreload: "execute_tick",
+            PolarizedAssaultEvent: "execute_tick",
         }
         self.sim_instance: Simulator = sim_instance
 
@@ -154,9 +156,11 @@ class ScheduledEvent:
                 elif isinstance(event, Abloom):
                     self.abloom_event(event)
                 elif isinstance(event, PolarityDisorder):
+                    self.sim_instance.listener_manager.broadcast_event(event=event, signal=LBS.DISORDER_SETTLED)
                     self.polarity_disorder_event(event)
                 elif isinstance(event, Disorder):
                     # print(f'检测到{event.element_type}属性的紊乱，快照为：{event.current_ndarray}')
+                    self.sim_instance.listener_manager.broadcast_event(event=event, signal=LBS.DISORDER_SETTLED)
                     self.disorder_event(event)
                 elif isinstance(event, AnB):
                     self.anomaly_event(event)
@@ -177,6 +181,8 @@ class ScheduledEvent:
                     self.preload_event(event)
                 elif isinstance(event, StunForcedTerminationEvent):
                     self.stun_forced_termination_event(event)
+                elif isinstance(event, PolarizedAssaultEvent):
+                    self.polarized_assault_event(event)
                 else:
                     raise NotImplementedError(f"{type(event)}，目前不应存在于 event_list")
                 # 代码运行到这一行意味着事件已经被处理完毕，所以要将其从event_list中删除
@@ -191,7 +197,7 @@ class ScheduledEvent:
         """检查所有残留事件是否到期，只要有一个残留事件已经到期，直接返回False，激活递归。"""
         for event in self.data.event_list:
             # 获取事件类型对应的tick属性名
-            execute_tick = self.get_executee_tick(event)
+            execute_tick = self.get_execute_tick(event)
             if execute_tick is None:
                 return False
             if execute_tick > self.tick:  # 严格大于当前tick才视为未到期
@@ -200,7 +206,7 @@ class ScheduledEvent:
                 return False
         return True
 
-    def get_executee_tick(self, event) -> int | None:
+    def get_execute_tick(self, event) -> int | None:
         """获取事件的执行tick，获取不到则返回None"""
         tick_attr = self.execute_tick_key_map.get(type(event), None)
         if tick_attr is None:
@@ -370,6 +376,7 @@ class ScheduledEvent:
         # TODO：异常伤害无法被enemy接收到，Enemy的血量更新是有问题的。
         Report.report_dmg_result(
             tick=self.tick,
+            skill_tag=event.rename_tag if event.rename else None,
             element_type=event.element_type,
             dmg_expect=round(dmg_anomaly, 2),
             is_anomaly=True,
@@ -491,11 +498,18 @@ class ScheduledEvent:
             return
         event.execute_myself()
 
+    def polarized_assault_event(self, event: PolarizedAssaultEvent):
+        """用于处理极性强击事件的函数"""
+        if self.tick < event.execute_tick:
+            self.data.event_list.append(event)
+            return
+        event.execute()
+
     def select_processable_event(self):
         """筛选当前可执行的事件，并且按照优先级排序，获取不到优先级的默认为0，"""
         _output_event_list = []
         for _event in self.data.event_list:
-            execute_tick = self.get_executee_tick(_event)
+            execute_tick = self.get_execute_tick(_event)
             if execute_tick is None or execute_tick <= self.tick:
                 """说明事件不存在execute_tick或已到期，需要被立刻执行。"""
                 schedule_priority = getattr(_event, "schedule_priority", 0)

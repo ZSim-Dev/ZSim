@@ -18,6 +18,9 @@ class PhysicalAnomaly(AnomalyBar):
             "所有异常时间延长百分比",
         ]
 
+    def __hash__(self):
+        return hash(self.UUID)
+
 
 @dataclass
 class FireAnomaly(AnomalyBar):

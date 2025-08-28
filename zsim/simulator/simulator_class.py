@@ -23,7 +23,7 @@ from zsim.sim_progress.Preload import PreloadClass
 from zsim.sim_progress.RandomNumberGenerator import RNG
 from zsim.sim_progress.Report import start_report_threads, stop_report_threads
 from zsim.sim_progress.ScheduledEvent import ScheduledEvent as ScE
-from zsim.sim_progress.Update.Update_Buff import update_dynamic_bufflist
+from zsim.sim_progress.Update.Update_Buff import update_time_related_effect
 from zsim.simulator.dataclasses import (
     CharacterData,
     GlobalStats,
@@ -214,7 +214,7 @@ class Simulator:
         while True:
             # Tick Update
             # report_to_log(f"[Update] Tick step to {tick}")
-            update_dynamic_bufflist(
+            update_time_related_effect(
                 self.global_stats.DYNAMIC_BUFF_DICT,
                 self.tick,
                 self.load_data.exist_buff_dict,

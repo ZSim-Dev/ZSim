@@ -1278,5 +1278,17 @@
     "Buff-武器-精5狸法七变化-全队异常精通": {
         "module": ".BuffXLogic.MetanukiMorphosisAPBonus",
         "class": "MetanukiMorphosisAPBonus"
-    }
+    },
+  "Buff-角色-爱丽丝-额外能力-异常掌控转精通": {
+    "module": ".BuffXLogic.AliceAdditionalAbilityApBonus",
+    "class": "AliceAdditionalAbilityApBonus"
+  },
+  "Buff-角色-爱丽丝-极性强击触发器": {
+    "module": ".BuffXLogic.AlicePolarizedAssaultTrigger",
+    "class": "AlicePolarizedAssaultTrigger"
+  },
+  "Buff-角色-爱丽丝-影画-6画-额外攻击触发器": {
+    "module": ".BuffXLogic.AliceCinema6Trigger",
+    "class": "AliceCinema6Trigger"
+  }
 }

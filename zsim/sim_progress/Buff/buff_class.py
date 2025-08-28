@@ -9,6 +9,7 @@ import pandas as pd
 
 from zsim.define import CONFIG_PATH, EFFECT_FILE_PATH, EXIST_FILE_PATH, JUDGE_FILE_PATH
 from zsim.sim_progress.Report import report_to_log
+from .BuffXLogic._buff_record_base_class import BuffRecordBaseClass as BRBC
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
@@ -237,6 +238,9 @@ class Buff:
                     return None
             else:
                 label_rule = int(label_rule)
+                assert self.label is not None, (
+                    f"在初始化{self.index}时，label_rule为{label_rule}，但label为None"
+                )
                 if label_rule != 0 and label_rule > len(self.label.keys()):
                     raise ValueError(
                         f"{self.index}在初始化时填入的label_rule为{label_rule}，大于其label中填入的参数数量！self.ft.label = {self.label}"
@@ -260,7 +264,7 @@ class Buff:
         def __init__(self):
             self.exist = False  # buff是否参与了计算,即是否允许被激活
             self.active = False  # buff当前的激活状态
-            self.count = 0  # buff当前层数
+            self.count: int | float = 0  # buff当前层数
             self.ready = True  # buff的可叠层状态,如果是True,就意味着是内置CD结束了,可以叠层,如果不是True,就不能叠层.
             self.startticks = 0  # buff上一次触发的时间(tick)
             self.endticks = 0  # buff计划课中,buff的结束时间
@@ -302,8 +306,8 @@ class Buff:
         它们会在各自的分支中被调用。
         """
 
-        def __init__(self, buff_instance):
-            self.buff = buff_instance
+        def __init__(self, buff_instance: "Buff"):
+            self.buff: "Buff" = buff_instance
             self.xjudge = None  # 判断逻辑
             self.xstart = None  # 复杂的开始逻辑
             self.xhit = None  # 复杂的命中更新逻辑
@@ -311,7 +315,7 @@ class Buff:
             self.xeffect = None  # 生效逻辑
             self.xexit = None  # 退出逻辑
 
-        def special_judge_logic(self, **kwargs):
+        def special_judge_logic(self, **kwargs) -> bool | None:
             pass
 
         def special_start_logic(self, **kwargs):
@@ -376,7 +380,7 @@ class Buff:
             self.real_count = 0  # 莱特组队被动专用的字段，用于记录实层。
             self.last_update_tick = 0  # 部分复杂buff需要的上一次更新时间
             self.last_update_resource = 0  # 部分复杂buff需要的上一次更新时的资源数量
-            self.record = None
+            self.record: "BRBC | None" = None
 
         def reset_myself(self):
             """重置Buff.history"""
@@ -494,7 +498,7 @@ class Buff:
         # report_to_log(
         #     f'[Buff INFO]:{timenow}:{self.ft.name}第{buff_0.history.end_times}次结束;duration:{buff_0.history.last_duration}', level=3)
 
-    def simple_start(self, timenow: int, sub_exist_buff_dict: dict, **kwargs):
+    def simple_start(self, timenow: int, sub_exist_buff_dict: dict[str, "Buff"], **kwargs):
         """
         sub_exist_buff_dict = exist_buff_dict[角色名]
         角色名指的是当前的前台角色。
@@ -506,7 +510,7 @@ class Buff:
         no_end = kwargs.get("no_end", False)
         no_count = kwargs.get("no_count", False)
         specified_count = kwargs.get("specified_count", None)  # 外部定制层数——层数不独立结算的Buff
-        _simple_start_buff_0 = sub_exist_buff_dict[self.ft.index]
+        _simple_start_buff_0: "Buff" = sub_exist_buff_dict[self.ft.index]
         individule_settled_count = kwargs.get("individule_settled_count", 0)
         if no_count and any([individule_settled_count, specified_count]):
             raise ValueError("在传入no_count参数时，同时传入了其他控制层数的参数。")
@@ -682,9 +686,11 @@ class Buff:
             raise TypeError(f"{buff_0}不是Buff类！")
         if not self.ft.simple_start_logic:
             # EXAMPLE：Buff触发时，随机获得层数。
+            assert self.logic.xstart is not None, (
+                f"{self.ft.index} 的simple_start_logic参数不为True时，其logic.xstart不能为空"
+            )
             self.logic.xstart()
             self.update_to_buff_0(buff_0)
-
             return
         if self.ft.maxduration == 0:  # 瞬时buff
             if not self.ft.hitincrease:  # 命中不叠层
@@ -767,6 +773,7 @@ class Buff:
             # report_to_log(f"[Buff INFO]:{timenow}:{buff_0.ft.index}第{buff_0.history.active_times}次触发", level=3)
         else:
             # EXAMPLE：普攻结束后，随机获得1~10层的攻击力Buff。
+            assert self.logic.xend is not None, f"{self.ft.index}的buff没有初始化xend方法"
             self.logic.xend()
             self.dy.is_changed = True
         if self.dy.is_changed:
@@ -792,6 +799,7 @@ class Buff:
             # 已经触发了buff
             endticks = self.dy.endticks
         if not self.ft.simple_hit_logic:
+            assert self.logic.xhit is not None, f"{self.ft.index}的buff没有初始化xhit方法"
             self.logic.xhit()
             self.dy.is_changed = True
             self.update_to_buff_0(buff_0)
@@ -854,7 +862,7 @@ class Buff:
         return new_obj
 
 
-def spawn_buff_from_index(index: str):
+def spawn_buff_from_index(index: str, sim_instance: "Simulator"):
     """
     注意：本函数基本上是为了Pytest服务的，所以涉及反复打开CSV，基本没有任何性能优化可言
     正常的主程序运行不要调用本函数！！！！
@@ -873,9 +881,4 @@ def spawn_buff_from_index(index: str):
     trigger_dict = find_row_as_dict(index, EXIST_FILE_PATH)
     judge_dict = find_row_as_dict(index, JUDGE_FILE_PATH)
     # 创建Buff实例
-    return Buff(trigger_dict, judge_dict)
-
-
-if __name__ == "__main__":
-    buff_0 = spawn_buff_from_index("Buff-音擎-精1霰落星殿-暴伤")
-    print(buff_0.ft.index)
+    return Buff(trigger_dict, judge_dict, sim_instance=sim_instance)

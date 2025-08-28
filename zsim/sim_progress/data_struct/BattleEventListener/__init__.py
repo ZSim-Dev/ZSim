@@ -17,7 +17,7 @@ class ListenerManger:
 
     def __init__(self, sim_instance: "Simulator"):
         self.sim_instance = sim_instance
-        self._listeners_group: defaultdict[str | int, dict[str, BaseListener]] = defaultdict(dict)
+        self._listeners_group: defaultdict[str | int, dict[str, BaseListener]] = defaultdict(dict)  # 监听器组 的ID 可能是角色的CID(int)，也可能是文本“enemy”
         self.__listener_map: dict[str, str] = {
             "Hugo_1": "HugoCorePassiveBuffListener",
             "Hormone_Punk_1": "HormonePunkListener",
@@ -27,6 +27,16 @@ class ListenerManger:
             "CinderCobalt_1": "CinderCobaltListener",
             "Yuzuha_1": "YuzuhaC2QTEListener",
             "Yuzuha_2": "YuzuhaC6ParryListener",
+            "Alice_1": "AliceDisorderListener",
+            "Alice_2": "AliceCoreSkillDisorderBasicMulBonusListener",
+            "Alice_3": "AliceCoreSkillPhyBuildupBonusListener",
+            "Alice_4": "AliceNAEnhancementListener",
+            "Alice_5": "AliceDotTriggerListener",
+            "Alice_Cinema_1_A": "AliceCinema1DefReduceListener",
+            "Alice_Cinema_1_B": "AliceCinema1BladeEtquitteRecoverListener",
+            "Alice_Cinema_2_A": "AliceCinema2DisorderDmgBonus",
+            "PracticedPerfection_1": "PracticedPerfectionPhyDmgBonusListener",
+            "Fanged_Metal_1": "FangedMetalListener"
         }
 
     def add_listener(self, listener_owner: "Character | Enemy | None", listener: BaseListener):
@@ -82,10 +92,14 @@ class ListenerManger:
                     listener_obj = getattr(module, listener_class_name)(
                         listener_id, sim_instance=sim_instance
                     )
+                    if listener_obj.owner is None:
+                        listener_obj.owner = listener_owner
                     self.add_listener(listener_owner=listener_owner, listener=listener_obj)
                     return listener_obj
                 except ModuleNotFoundError:
                     raise ValueError("在初始化阶段调用监听器工厂函数时，找不到对应的监听器模块！")
+        else:
+            raise ValueError(f"在初始化阶段调用监听器工厂函数时，未找到ID为 {initiate_signal} 的监听器类！")
 
     def get_listener(
         self, listener_owner: "Character | Enemy | None", listener_id: str

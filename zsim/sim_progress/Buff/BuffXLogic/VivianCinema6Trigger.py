@@ -65,15 +65,12 @@ class VivianCinema6Trigger(Buff.BuffLogic):
         self.check_record_module()
         self.get_prepared(char_CID=1331, enemy=1)
         skill_node = kwargs.get("skill_node", None)
-        if skill_node is None:
-            return
         from zsim.sim_progress.Preload import SkillNode
 
         if not isinstance(skill_node, SkillNode):
             raise TypeError(
                 f"{self.buff_instance.ft.index}的xjudge函数获取到的skill_node不是SkillNode类型！"
             )
-
         if skill_node.skill_tag != "1331_SNA_2":
             return False
         if not self.record.enemy.dynamic.is_under_anomaly:
@@ -134,6 +131,8 @@ class VivianCinema6Trigger(Buff.BuffLogic):
         else:
             active_anomaly_bar = get_result[0]
             copyed_anomaly = AnomalyBar.create_new_from_existing(active_anomaly_bar)
+            if not copyed_anomaly.settled:
+                copyed_anomaly.anomaly_settled()
             # copyed_anomaly = self.record.last_update_anomaly
             event_list = JudgeTools.find_event_list(sim_instance=self.buff_instance.sim_instance)
             mul_data = Mul(self.record.enemy, self.record.dynamic_buff_list, self.record.char)

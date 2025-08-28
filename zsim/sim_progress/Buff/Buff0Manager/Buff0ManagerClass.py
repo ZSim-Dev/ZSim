@@ -2,6 +2,8 @@ import copy
 import itertools
 from typing import TYPE_CHECKING
 from collections import defaultdict
+
+import numpy as np
 import pandas as pd
 from zsim.define import (
     BUFF_0_REPORT,
@@ -92,7 +94,7 @@ class Buff0Manager:
                         else self.sim_instance.schedule_data.enemy
                     )
                     self.sim_instance.listener_manager.listener_factory(
-                        listener_owner=_obj, initiate_signal=_buff_0.ft.listener_id
+                        listener_owner=_obj, initiate_signal=_buff_0.ft.listener_id, sim_instance=self.sim_instance
                     )
 
     def __process_label(self):
@@ -331,7 +333,10 @@ class Buff0Manager:
         def select_buff_into_exist_buff_dict(self):
             for buff_name, buff_info_tuple in self.__buff_0_pool.items():
                 buff_from = buff_info_tuple[0]["from"]
-                adding_code = str(int(buff_info_tuple[0]["add_buff_to"])).zfill(4)
+                try:
+                    adding_code = str(int(buff_info_tuple[0]["add_buff_to"])).zfill(4)
+                except ValueError:
+                    raise ValueError(f"{buff_name}的 add_buff_to 参数填写不完整！")
                 if buff_from in self.buff_0_manager.char_name_box:
                     """如果buff来自于角色，那么buff_from就一定指向这个buff的真正来源，也就是buff的拥有者（并非buff的受益者）"""
                     current_name_box = self.buff_0_manager.name_order_box[buff_from]

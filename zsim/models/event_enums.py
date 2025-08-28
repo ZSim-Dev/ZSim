@@ -32,3 +32,8 @@ class ListenerBroadcastSignal(Enum):
     STUN = "stun_event"  # 失衡事件
     PARRY = "parry_event"  # 招架事件
     BLOCK = "block_event"  # 格挡事件（其他具备格挡功能的技能响应进攻事件）
+    DISORDER_SPAWN = "disorder_event_spawn"     # 紊乱事件产生
+    DISORDER_SETTLED = "disorder_event_settled"       # 紊乱事件结算
+    ASSAULT_STATE_ON = "assistant_state_on"     # 畏缩状态上升沿或者刷新——等价于“队伍中任意角色对敌人施加物理异常状态”
+    ASSAULT_SPAWN = "assault_spawn"     # 强击触发
+    POLARIZED_ASSAULT_SPAWN = "polarized_assault"     # 极性强击触发

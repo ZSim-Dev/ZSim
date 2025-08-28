@@ -1,7 +1,9 @@
 {
     "debug": {
         "enabled": true,
-        "level": 4
+        "level": 4,
+        "check_skill_mul": true,
+        "check_skill_mul_tag": ["1401_Cinema_6"]
     },
     "stop_tick": 10800,
     "watchdog": {
@@ -30,7 +32,8 @@
         "default_apl_dir": "./zsim/data/APLData",
         "custom_apl_dir": "./zsim/data/APLData/custom",
         "Yanagi": "./zsim/data/DefaultConfig/1221.json",
-        "Hugo": "./zsim/data/DefaultConfig/1291.json"
+        "Hugo": "./zsim/data/DefaultConfig/1291.json",
+        "Alice": "./zsim/data/DefaultConfig/1401.json"
     },
     "swap_cancel_mode": {
         "enabled": true,
@@ -80,7 +83,9 @@
         "Hugo": false,
         "Yixuan": false,
         "Trigger": false,
-        "Yuzuha": true
+        "Jufufu": false,
+        "Yuzuha": false,
+        "Alice": false
     },
     "na_mode_level": {
         "Hugo": 3

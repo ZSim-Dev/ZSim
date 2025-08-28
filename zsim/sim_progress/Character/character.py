@@ -831,6 +831,9 @@ class Character:
     def __deepcopy__(self, memo):
         return self
 
+    def personal_action_replace_strategy(self, action: str):
+        return action
+
     def POST_INIT_DATA(self, sim_insatnce: "Simulator"):
         pass
 

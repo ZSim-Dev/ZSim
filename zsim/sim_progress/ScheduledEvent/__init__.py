@@ -376,6 +376,7 @@ class ScheduledEvent:
         # TODO：异常伤害无法被enemy接收到，Enemy的血量更新是有问题的。
         Report.report_dmg_result(
             tick=self.tick,
+            skill_tag=event.rename_tag if event.rename else None,
             element_type=event.element_type,
             dmg_expect=round(dmg_anomaly, 2),
             is_anomaly=True,

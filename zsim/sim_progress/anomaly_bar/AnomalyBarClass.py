@@ -48,6 +48,11 @@ class AnomalyBar:
     ndarray_box: list[tuple] | None = None
     scaling_factor: float = 1.0     # 缩放比例，在计算伤害时会乘以该比例
     settled: bool = False       # 快照是否被结算过
+    rename_tag: str | None = None      # 重命名标签
+
+    @property
+    def rename(self) -> bool:
+        return self.rename_tag is not None
 
     def __post_init__(self):
         self.UUID = uuid.uuid4()

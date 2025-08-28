@@ -20,6 +20,7 @@ class Alice(Character):
         self.victory_state_max_attack_count: int = 6  # 六画的决胜状态的最大攻击次数
         self.cinema_6_additional_attack_skill_tag: str = "1401_Cinema_6"  # 6画额外攻击的技能tag
         self._na_enhancement_state: bool = False  # 强化平A可用状态
+        self.decibel = 1000.0 if self.cinema < 2 else 2000.0         # 爱丽丝喧响值
 
     @property
     def na_enhancement_state(self) -> bool:
@@ -54,6 +55,13 @@ class Alice(Character):
     def blade_etquitte_bar(self) -> int:
         # 剑仪条格子数（向下取整）
         return floor(self.blade_etiquette / 100)
+
+    def reset_myself(self):
+        # 重置能量、喧响值
+        self.sp: float = 40.0
+        self.decibel: float = 1000.0 if self.cinema < 2 else 2000.0
+        # 重置动态属性
+        self.dynamic.reset()
 
     def special_resources(self, *args, **kwargs) -> None:
         """爱丽丝的特殊资源模块"""

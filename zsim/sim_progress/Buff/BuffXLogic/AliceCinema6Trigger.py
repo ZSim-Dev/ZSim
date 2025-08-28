@@ -47,16 +47,16 @@ class AliceCinema6Trigger(Buff.BuffLogic):
         skill_node = kwargs.get("skill_node")
         if skill_node is None:
             return False
+        from zsim.sim_progress.Preload import SkillNode
         assert isinstance(skill_node, SkillNode), "skill_node必须为SkillNode类型"
-
         # 首先过滤掉自己的技能
         if skill_node.char_name == self.record.char.NAME:
             return False
 
         # 当爱丽丝不处于决胜状态时，不触发
         if not self.record.char.victory_state:
+            # print(self.record.char.victory_state_update_tick, self.record.char.victory_state_attack_counter)
             return False
-
         # 过滤掉并非处于命中帧的技能
         if not skill_node.is_hit_now(tick=self.buff_instance.sim_instance.tick):
             return False

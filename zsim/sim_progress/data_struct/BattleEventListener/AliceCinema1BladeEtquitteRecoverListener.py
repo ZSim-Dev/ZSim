@@ -39,9 +39,9 @@ class AliceCinema1BladeEtquitteRecoverListener(BaseListener):
 
     def listener_active(self, **kwargs):
         if self.char is not None:
-            self.char.update_blade_etiquette(update_obj=self.blade_etquitte_value)
             if ALICE_REPORT:
                 self.sim_instance.schedule_data.change_process_state()
                 print(
                     f"【爱丽丝事件】【1画】监听到极性强击信号，即将为爱丽丝回复{self.blade_etquitte_value}点剑仪值！"
                 )
+            self.char.update_blade_etiquette(update_obj=self.blade_etquitte_value)

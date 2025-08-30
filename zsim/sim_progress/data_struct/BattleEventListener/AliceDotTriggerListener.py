@@ -52,6 +52,15 @@ class AliceDotTriggerListener(BaseListener):
         )
         dot.start(timenow=self.sim_instance.tick)
         event_list = self.sim_instance.schedule_data.event_list
+        from zsim.sim_progress.Dot.BaseDot import Dot
+
+        for dots in enemy.dynamic.dynamic_dot_list:
+            assert isinstance(dots, Dot)
+            if dots.ft.index == dot.ft.index:
+                dots.end(timenow=self.sim_instance.tick)
+                enemy.dynamic.dynamic_dot_list.remove(dots)
+                break
+
         enemy.dynamic.dynamic_dot_list.append(dot)
         event_list.append(dot.anomaly_data)
         if ALICE_REPORT:

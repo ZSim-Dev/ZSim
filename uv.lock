@@ -1828,7 +1828,7 @@ wheels = [
 
 [[package]]
 name = "zzz-simulator"
-version = "0.3.4"
+version = "0.3.4a2"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },

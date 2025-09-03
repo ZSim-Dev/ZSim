@@ -9,24 +9,24 @@
 ### Install
 
 ```bash
-$ yarn
+$ pnpm
 ```
 
 ### Development
 
 ```bash
-$ yarn dev
+$ pnpm dev
 ```
 
 ### Build
 
 ```bash
 # For windows
-$ yarn build:win
+$ pnpm build:win
 
 # For macOS
-$ yarn build:mac
+$ pnpm build:mac
 
 # For Linux
-$ yarn build:linux
+$ pnpm build:linux
 ```

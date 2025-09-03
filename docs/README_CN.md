@@ -139,6 +139,6 @@ uv run pytest -v --cov=zsim --cov-report=html
 - `ZSIM_API_HOST` - API服务器主机地址（默认："127.0.0.1"）
 
 ### IPC模式行为
-- **auto**: 兼容旧版本的模式，现在默认使用HTTP行为（向后兼容）
-- **uds**: 使用Unix域套接字进行本地通信（仅限非Windows系统）
-- **http**: 使用HTTP/TCP进行通信（默认模式）
+- **auto**：在类Unix操作系统上使用uds，在Windows上使用http
+- **uds**：使用Unix域套接字进行本地通信（仅适用于类Unix系统）
+- **http**：使用HTTP/TCP进行通信（默认模式）

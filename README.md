@@ -144,6 +144,6 @@ Go check [develop guide](https://github.com/ZZZSimulator/ZSim/wiki/%E8%B4%A1%E7%
 - `ZSIM_API_HOST` - API server host address (default: "127.0.0.1")
 
 ### IPC Mode Behavior
-- **auto**: Legacy mode, now defaults to HTTP behavior (for backwards compatibility)
-- **uds**: Uses Unix Domain Socket for local communication (non-Windows only)
+- **auto**: Uses uds on Unix like OS, and http on windows
+- **uds**: Uses Unix Domain Socket for local communication (Unix like only)
 - **http**: Uses HTTP/TCP for communication (default mode)

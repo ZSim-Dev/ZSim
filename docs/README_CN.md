@@ -73,6 +73,7 @@ uv run zsim run
 ```bash
 # 首先安装UV包管理器
 uv sync
+
 # WebUI开发
 uv run zsim run 
 # FastAPI后端
@@ -82,6 +83,34 @@ uv run zsim api
 cd electron-app
 yarn install
 ```
+
+### 运行应用
+
+#### 快速启动（推荐）
+```bash
+# 一键启动开发服务器，包含前端和后端
+cd electron-app
+yarn dev
+```
+
+#### 单独组件
+```bash
+# Streamlit WebUI
+uv run zsim run
+
+# FastAPI后端
+uv run zsim api
+
+# Electron桌面应用（生产构建）
+cd electron-app
+yarn build
+```
+
+**注意**：`yarn dev` 命令提供了最便捷的开发体验：
+- 自动启动Vue.js前端和FastAPI后端
+- 将所有后端控制台输出转发到开发终端
+- 提供前端热重载功能
+- 启用完整的调试能力
 
 ### 测试结构
 - 单元测试位于 `tests/` 目录

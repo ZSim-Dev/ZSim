@@ -36,61 +36,51 @@ async function getIpcConfig(): Promise<IpcConfig> {
   try {
     return await ipcRenderer.invoke('get-ipc-config');
   } catch (error) {
-    console.warn('Failed to get IPC config from main process, using default:', error);
     return {
       mode: 'http',
       port: 8000,
-      udsPath: '/tmp/zsim_api.sock'
+      udsPath: '/tmp/zsim_api.sock',
     };
   }
 }
 
-async function httpRequest(method: string, p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
+async function httpRequest(
+  method: string,
+  p: string,
+  opts: RequestOptions = {}
+): Promise<IpcResponse> {
   const ipcConfig = await getIpcConfig();
-  const headers = { 'content-type': 'application/json', ...(opts.headers || {}) } as Record<string, string>;
-  
-  console.log(`[HTTP] Attempting ${method} request with IPC mode: ${ipcConfig.mode}`);
-  
-  try {
-    if (ipcConfig.mode === 'uds') {
-      // UDS模式 - 通过IPC调用主进程的HTTP请求功能
-      const requestConfig = {
-        method,
-        path: p,
-        headers,
-        body: opts.body,
-        query: opts.query,
-        udsPath: ipcConfig.udsPath
-      };
-      
-      console.log(`[UDS] Making request via IPC to unix socket: ${ipcConfig.udsPath}${p}`);
-      
-      const result = await ipcRenderer.invoke('make-uds-request', requestConfig);
-      return result as IpcResponse;
-    } else {
-      // HTTP模式
-      const base = `http://127.0.0.1:${ipcConfig.port}`;
-      const url = buildUrl(base, p, opts.query);
-      
-      console.log(`[HTTP] Making request to: ${url}`);
-      
-      const res = await fetch(url, {
-        method,
-        headers,
-        body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
-      });
-      
-      const text = await res.text();
-      const outHeaders: Record<string, string> = {};
-      res.headers.forEach((v, k) => (outHeaders[k] = v));
-      
-      console.log(`[HTTP] Response received: ${res.status} ${res.status < 400 ? 'OK' : 'ERROR'}`);
-      
-      return { status: res.status, headers: outHeaders, body: text };
-    }
-  } catch (error) {
-    console.error(`[${ipcConfig.mode.toUpperCase()}] Request failed:`, error);
-    throw error;
+  const headers = { 'content-type': 'application/json', ...(opts.headers || {}) };
+
+  if (ipcConfig.mode === 'uds') {
+    // UDS模式 - 通过IPC调用主进程的HTTP请求功能
+    const requestConfig = {
+      method,
+      path: p,
+      headers,
+      body: opts.body,
+      query: opts.query,
+      udsPath: ipcConfig.udsPath,
+    };
+
+    const result = await ipcRenderer.invoke('make-uds-request', requestConfig);
+    return result;
+  } else {
+    // HTTP模式
+    const base = `http://127.0.0.1:${ipcConfig.port}`;
+    const url = buildUrl(base, p, opts.query);
+
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+    });
+
+    const text = await res.text();
+    const outHeaders: Record<string, string> = {};
+    res.headers.forEach((v, k) => (outHeaders[k] = v));
+
+    return { status: res.status, headers: outHeaders, body: text };
   }
 }
 
@@ -109,8 +99,7 @@ const apiClient = {
   },
   async delete(p: string, opts: RequestOptions = {}): Promise<IpcResponse> {
     return await this.request('DELETE', p, opts);
-  }
+  },
 };
 
 contextBridge.exposeInMainWorld('apiClient', apiClient);
-console.log('[Preload] apiClient exposed to window.apiClient');

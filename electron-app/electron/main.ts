@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { spawn, ChildProcess, spawnSync } from 'node:child_process';
 import net from 'node:net';
-import { platform } from 'node:os';
 import http from 'node:http';
 import { URLSearchParams } from 'node:url';
+import { existsSync } from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,7 +34,7 @@ let win: BrowserWindow | null;
 let backendProcess: ChildProcess | null;
 let backendPort: number = 8000; // 存储后端端口
 let backendIpcMode: 'http' | 'uds' = 'http'; // 存储后端IPC模式
-let backendUdsPath: string = '/tmp/zsim_api.sock'; // 存储后端UDS路径
+const backendUdsPath: string = '/tmp/zsim_api.sock'; // 存储后端UDS路径
 
 function findPythonExecutable(): string {
   // 优先尝试使用 uv run python
@@ -115,28 +115,22 @@ async function startBackendServer() {
   
   console.log('[Backend] Using script:', backendScript);
   
-  // 确定IPC模式
-  const currentPlatform = platform();
-  let ipcMode: 'http' | 'uds' = 'http';
+  // 确定IPC模式 - 在Unix类系统上默认使用UDS，Windows上使用HTTP
+  let ipcMode: 'http' | 'uds' = 'uds';
   
-  if (currentPlatform === 'win32') {
-    // Windows系统只能使用HTTP
+  // Windows系统不支持UDS，回退到HTTP
+  if (process.platform === 'win32') {
     ipcMode = 'http';
-  } else {
-    // 非Windows系统优先使用UDS
-    ipcMode = 'uds';
   }
   
   backendIpcMode = ipcMode;
   
-  let envVars: Record<string, string> = {};
+  let envVars: NodeJS.ProcessEnv;
   
   if (ipcMode === 'uds') {
     // UDS模式
-    const udsPath = '/tmp/zsim_api.sock';
-    backendUdsPath = udsPath;
-    envVars = { ...process.env, ZSIM_IPC_MODE: 'uds', ZSIM_UDS_PATH: udsPath };
-    console.log(`[Backend] Using UDS mode with path: ${udsPath}`);
+    envVars = { ...process.env, ZSIM_IPC_MODE: 'uds', ZSIM_UDS_PATH: backendUdsPath };
+    console.log(`[Backend] Using UDS mode with socket: ${backendUdsPath}`);
   } else {
     // HTTP模式
     const availablePort = await findAvailablePort();
@@ -170,17 +164,23 @@ async function startBackendServer() {
   console.log(`[Backend] Working directory: ${cwd}`);
   
   backendProcess = spawn(backendCommand, backendArgs, {
-    env: { ...envVars, ...process.env } as typeof process.env,
+    env: envVars as typeof process.env,
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd,
   });
 
   backendProcess?.stdout?.on('data', (data) => {
-    console.log(`[Backend] ${data.toString().trim()}`);
+    const message = data.toString().trim();
+    if (message && !message.includes('INFO:')) {
+      console.log(`[Backend] ${message}`);
+    }
   });
 
   backendProcess?.stderr?.on('data', (data) => {
-    console.error(`[Backend] ${data.toString().trim()}`);
+    const message = data.toString().trim();
+    if (message && !message.includes('INFO:')) {
+      console.error(`[Backend] ${message}`);
+    }
   });
 
   backendProcess?.on('close', (code) => {
@@ -196,9 +196,9 @@ async function startBackendServer() {
   return new Promise<void>((resolve) => {
     setTimeout(() => {
       if (ipcMode === 'uds') {
-        console.log(`[Backend] Server started with UDS: ${backendUdsPath}`);
+        console.log(`[Backend] UDS server started on ${backendUdsPath}`);
       } else {
-        console.log(`[Backend] Server started on port ${backendPort}`);
+        console.log(`[Backend] HTTP server started on port ${backendPort}`);
       }
       resolve();
     }, 3000); // 等待 3 秒让服务器启动
@@ -214,6 +214,28 @@ function stopBackendServer() {
 }
 
 function createWindow() {
+  // 尝试多个可能的preload路径
+  let preloadPath = path.join(__dirname, 'preload.cjs'); // 默认路径
+  const possiblePaths = [
+    path.join(__dirname, 'preload.cjs'),
+    path.join(process.env.APP_ROOT || '', 'dist-electron', 'preload.cjs'),
+    path.join(process.env.APP_ROOT || process.cwd(), 'dist-electron', 'preload.cjs')
+  ];
+  
+  // 找到第一个存在的路径
+  for (const testPath of possiblePaths) {
+    if (existsSync(testPath)) {
+      preloadPath = testPath;
+      break;
+    }
+  }
+  
+  // 只在开发环境下输出调试信息
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Main] Preload script path:', preloadPath);
+    console.log('[Main] Preload script exists:', existsSync(preloadPath));
+  }
+  
   win = new BrowserWindow({
     width: 900,
     height: 670,
@@ -222,8 +244,10 @@ function createWindow() {
     show: false,
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: preloadPath,
       sandbox: false,
+      nodeIntegration: false, // 保持false，使用preload脚本更安全
+      contextIsolation: true, // 确保contextBridge工作
     },
   });
 
@@ -266,12 +290,6 @@ app.whenReady().then(async () => {
 
   // 处理获取IPC配置的请求
   ipcMain.handle('get-ipc-config', async () => {
-    console.log('[Main] Handling get-ipc-config request');
-    console.log('[Main] Backend process exists:', !!backendProcess);
-    console.log('[Main] IPC mode:', backendIpcMode);
-    console.log('[Main] Port:', backendPort);
-    console.log('[Main] UDS path:', backendUdsPath);
-    
     if (!backendProcess) {
       throw new Error('Backend server not running');
     }
@@ -287,13 +305,6 @@ app.whenReady().then(async () => {
   // 处理UDS请求
   ipcMain.handle('make-uds-request', async (_, requestConfig) => {
     const { method, path, headers, body, query, udsPath } = requestConfig;
-    
-    console.log(`[Main] Making UDS request to: ${udsPath}${path}`);
-    console.log(`[Main] Request method: ${method}`);
-    console.log(`[Main] Request path: ${path}`);
-    console.log(`[Main] Request headers:`, headers);
-    console.log(`[Main] Request body:`, body);
-    console.log(`[Main] Request query:`, query);
     
     return new Promise((resolve, reject) => {
       let requestPath = path;
@@ -330,8 +341,6 @@ app.whenReady().then(async () => {
             }
           });
           
-          console.log(`[Main] UDS response received: ${res.statusCode} ${res.statusCode && res.statusCode < 400 ? 'OK' : 'ERROR'}`);
-          
           resolve({
             status: res.statusCode || 500,
             headers: outHeaders,
@@ -356,7 +365,6 @@ app.whenReady().then(async () => {
   // 启动后端服务器
   try {
     await startBackendServer();
-    console.log(`[Main] Backend server started successfully`);
   } catch (error) {
     console.error('[Main] Failed to start backend server:', error);
   }

@@ -1,3 +1,3 @@
-export { useLocales } from './use-locales';
-export type { LocaleKeys } from './use-locales';
+export { useLocales } from './useLocales';
+export type { LocaleKeys } from './useLocales';
 export { useLanguage } from './useLanguage';

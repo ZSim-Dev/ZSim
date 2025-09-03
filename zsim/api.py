@@ -5,11 +5,11 @@
 请确保在运行此文件时，FastAPI能够正确加载所有路由和服务。
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 import os
 import platform
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="ZSim API",
@@ -18,7 +18,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:*", "http://127.0.0.1:*"],
+    allow_origins=["*"],  # 允许所有源，开发环境更方便
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,8 +44,9 @@ async def health_check():
 
 
 if __name__ == "__main__":
-    import uvicorn
     import socket
+
+    import uvicorn
 
     def get_free_port():
         """获取一个可用的端口号"""
@@ -58,12 +59,9 @@ if __name__ == "__main__":
     # 获取IPC模式，支持 http 和 uds
     ipc_mode = os.getenv("ZSIM_IPC_MODE", "auto").lower()
 
-    # 自动检测模式：如果不在Windows上，优先使用UDS
+    # 在Unix类系统上默认使用uds，Windows上使用http
     if ipc_mode == "auto":
-        if platform.system() == "Windows":
-            ipc_mode = "http"
-        else:
-            ipc_mode = "uds"
+        ipc_mode = "uds" if platform.system() != "Windows" else "http"
 
     if ipc_mode == "uds" and platform.system() != "Windows":
         # UDS模式
@@ -72,7 +70,6 @@ if __name__ == "__main__":
         if os.path.exists(uds_path):
             os.unlink(uds_path)
 
-        print(f"Starting FastAPI UDS server on {uds_path}")
         uvicorn.run(
             "zsim.api:app",
             uds=uds_path,
@@ -88,7 +85,6 @@ if __name__ == "__main__":
 
         host = os.getenv("ZSIM_API_HOST", "127.0.0.1")
 
-        print(f"Starting FastAPI HTTP server on {host}:{port}")
         uvicorn.run(
             "zsim.api:app",
             host=host,

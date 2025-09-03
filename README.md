@@ -86,7 +86,7 @@ uv run zsim api
 
 # For Electron App development, also install Node.js dependencies
 cd electron-app
-yarn install
+pnpm install
 ```
 
 ### Running the Application
@@ -95,7 +95,7 @@ yarn install
 ```bash
 # One-click development server with both frontend and backend
 cd electron-app
-yarn dev
+pnpm dev
 ```
 
 #### Individual Components
@@ -108,10 +108,10 @@ uv run zsim api
 
 # Electron Desktop App (production build)
 cd electron-app
-yarn build
+pnpm build
 ```
 
-**Note**: The `yarn dev` command provides the most convenient development experience by:
+**Note**: The `pnpm dev` command provides the most convenient development experience by:
 - Automatically starting both the Vue.js frontend and FastAPI backend
 - Forwarding all backend console output to the development terminal
 - Providing hot reload for the frontend

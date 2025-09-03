@@ -81,7 +81,7 @@ uv run zsim api
 
 # Electron应用开发，还需安装Node.js依赖
 cd electron-app
-yarn install
+pnpm install
 ```
 
 ### 运行应用
@@ -90,7 +90,7 @@ yarn install
 ```bash
 # 一键启动开发服务器，包含前端和后端
 cd electron-app
-yarn dev
+pnpm dev
 ```
 
 #### 单独组件
@@ -103,10 +103,10 @@ uv run zsim api
 
 # Electron桌面应用（生产构建）
 cd electron-app
-yarn build
+pnpm build
 ```
 
-**注意**：`yarn dev` 命令提供了最便捷的开发体验：
+**注意**：`pnpm dev` 命令提供了最便捷的开发体验：
 - 自动启动Vue.js前端和FastAPI后端
 - 将所有后端控制台输出转发到开发终端
 - 提供前端热重载功能

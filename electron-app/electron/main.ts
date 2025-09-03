@@ -171,15 +171,21 @@ async function startBackendServer() {
 
   backendProcess?.stdout?.on('data', (data) => {
     const message = data.toString().trim();
-    if (message && !message.includes('INFO:')) {
-      console.log(`[Backend] ${message}`);
+    if (message) {
+      // 在开发环境中转发所有输出，在生产环境中过滤INFO消息
+      if (process.env.NODE_ENV === 'development' || !message.includes('INFO:')) {
+        console.log(`[Backend] ${message}`);
+      }
     }
   });
 
   backendProcess?.stderr?.on('data', (data) => {
     const message = data.toString().trim();
-    if (message && !message.includes('INFO:')) {
-      console.error(`[Backend] ${message}`);
+    if (message) {
+      // 在开发环境中转发所有输出，在生产环境中过滤INFO消息
+      if (process.env.NODE_ENV === 'development' || !message.includes('INFO:')) {
+        console.error(`[Backend] ${message}`);
+      }
     }
   });
 

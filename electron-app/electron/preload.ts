@@ -35,7 +35,7 @@ function buildUrl(base: string, p: string, query?: Record<string, unknown>): str
 async function getIpcConfig(): Promise<IpcConfig> {
   try {
     return await ipcRenderer.invoke('get-ipc-config');
-  } catch (error) {
+  } catch {
     return {
       mode: 'http',
       port: 8000,

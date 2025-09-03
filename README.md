@@ -78,6 +78,7 @@ uv run zsim run
 ```bash
 # Install UV package manager first
 uv sync
+
 # For WebUI develop
 uv run zsim run 
 # For FastAPI backend
@@ -87,6 +88,34 @@ uv run zsim api
 cd electron-app
 yarn install
 ```
+
+### Running the Application
+
+#### Quick Start (Recommended)
+```bash
+# One-click development server with both frontend and backend
+cd electron-app
+yarn dev
+```
+
+#### Individual Components
+```bash
+# Streamlit WebUI
+uv run zsim run
+
+# FastAPI Backend
+uv run zsim api
+
+# Electron Desktop App (production build)
+cd electron-app
+yarn build
+```
+
+**Note**: The `yarn dev` command provides the most convenient development experience by:
+- Automatically starting both the Vue.js frontend and FastAPI backend
+- Forwarding all backend console output to the development terminal
+- Providing hot reload for the frontend
+- Enabling full debugging capabilities
 
 ### Testing Structure
 - Unit tests in `tests/` directory
@@ -104,3 +133,17 @@ uv run pytest -v --cov=zsim --cov-report=html
 ## TODO LIST
 
 Go check [develop guide](https://github.com/ZZZSimulator/ZSim/wiki/%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97-Develop-Guide) for more details.
+
+## Environment Variables
+
+### FastAPI Backend
+- `ZSIM_DISABLE_ROUTES` - Set to "1" to disable API routes (default: enabled)
+- `ZSIM_IPC_MODE` - IPC communication mode: "auto", "uds", or "http" (default: "http")
+- `ZSIM_UDS_PATH` - UDS socket file path when using UDS mode (default: "/tmp/zsim_api.sock")
+- `ZSIM_API_PORT` - API server port, set to 0 for automatic port selection (default: 0)
+- `ZSIM_API_HOST` - API server host address (default: "127.0.0.1")
+
+### IPC Mode Behavior
+- **auto**: Legacy mode, now defaults to HTTP behavior (for backwards compatibility)
+- **uds**: Uses Unix Domain Socket for local communication (non-Windows only)
+- **http**: Uses HTTP/TCP for communication (default mode)

@@ -73,6 +73,7 @@ uv run zsim run
 ```bash
 # 首先安装UV包管理器
 uv sync
+
 # WebUI开发
 uv run zsim run 
 # FastAPI后端
@@ -82,6 +83,34 @@ uv run zsim api
 cd electron-app
 yarn install
 ```
+
+### 运行应用
+
+#### 快速启动（推荐）
+```bash
+# 一键启动开发服务器，包含前端和后端
+cd electron-app
+yarn dev
+```
+
+#### 单独组件
+```bash
+# Streamlit WebUI
+uv run zsim run
+
+# FastAPI后端
+uv run zsim api
+
+# Electron桌面应用（生产构建）
+cd electron-app
+yarn build
+```
+
+**注意**：`yarn dev` 命令提供了最便捷的开发体验：
+- 自动启动Vue.js前端和FastAPI后端
+- 将所有后端控制台输出转发到开发终端
+- 提供前端热重载功能
+- 启用完整的调试能力
 
 ### 测试结构
 - 单元测试位于 `tests/` 目录
@@ -99,3 +128,17 @@ uv run pytest -v --cov=zsim --cov-report=html
 ## 待办事项
 
 详见[贡献指南](https://github.com/ZZZSimulator/ZSim/wiki/%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97-Develop-Guide)获取最新开发计划。
+
+## 环境变量
+
+### FastAPI后端
+- `ZSIM_DISABLE_ROUTES` - 设置为"1"以禁用API路由（默认：启用）
+- `ZSIM_IPC_MODE` - IPC通信模式："auto"、"uds"或"http"（默认："http"）
+- `ZSIM_UDS_PATH` - 使用UDS模式时的socket文件路径（默认："/tmp/zsim_api.sock"）
+- `ZSIM_API_PORT` - API服务器端口，设置为0可自动选择端口（默认：0）
+- `ZSIM_API_HOST` - API服务器主机地址（默认："127.0.0.1"）
+
+### IPC模式行为
+- **auto**: 兼容旧版本的模式，现在默认使用HTTP行为（向后兼容）
+- **uds**: 使用Unix域套接字进行本地通信（仅限非Windows系统）
+- **http**: 使用HTTP/TCP进行通信（默认模式）

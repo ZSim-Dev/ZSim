@@ -80,4 +80,10 @@ dev = [
     "objprint>=0.3.0",
     "pytest-cov>=5.0.0",
     "pytest-asyncio>=1.1.0",
+    "mypy>=1.17.1",
+]
+
+[project.optional-dependencies]
+windows = [
+    "pywin32>=308",
 ]

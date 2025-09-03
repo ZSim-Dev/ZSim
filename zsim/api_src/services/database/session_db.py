@@ -96,7 +96,8 @@ class SessionDB:
             await db.execute(
                 """UPDATE sessions
                 SET session_name = ?, create_time = ?, status = ?, session_run = ?, session_result = ?
-                WHERE session_id = ?""",
+                WHERE session_id = ?
+                """,
                 (
                     session.session_name,
                     session.create_time.isoformat(),

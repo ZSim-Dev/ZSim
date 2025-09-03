@@ -4,43 +4,61 @@ import { useLanguage } from './hooks';
 declare global {
   interface Window {
     apiClient: {
-      request(method: string, p: string, opts?: {
-        headers?: Record<string, string>;
-        query?: Record<string, unknown>;
-        body?: unknown;
-      }): Promise<{
+      request(
+        method: string,
+        p: string,
+        opts?: {
+          headers?: Record<string, string>;
+          query?: Record<string, unknown>;
+          body?: unknown;
+        },
+      ): Promise<{
         status: number;
         headers: Record<string, string>;
         body: string;
       }>;
-      get(p: string, opts?: {
-        headers?: Record<string, string>;
-        query?: Record<string, unknown>;
-      }): Promise<{
+      get(
+        p: string,
+        opts?: {
+          headers?: Record<string, string>;
+          query?: Record<string, unknown>;
+        },
+      ): Promise<{
         status: number;
         headers: Record<string, string>;
         body: string;
       }>;
-      post(p: string, body?: unknown, opts?: {
-        headers?: Record<string, string>;
-        query?: Record<string, unknown>;
-      }): Promise<{
+      post(
+        p: string,
+        body?: unknown,
+        opts?: {
+          headers?: Record<string, string>;
+          query?: Record<string, unknown>;
+        },
+      ): Promise<{
         status: number;
         headers: Record<string, string>;
         body: string;
       }>;
-      put(p: string, body?: unknown, opts?: {
-        headers?: Record<string, string>;
-        query?: Record<string, unknown>;
-      }): Promise<{
+      put(
+        p: string,
+        body?: unknown,
+        opts?: {
+          headers?: Record<string, string>;
+          query?: Record<string, unknown>;
+        },
+      ): Promise<{
         status: number;
         headers: Record<string, string>;
         body: string;
       }>;
-      delete(p: string, opts?: {
-        headers?: Record<string, string>;
-        query?: Record<string, unknown>;
-      }): Promise<{
+      delete(
+        p: string,
+        opts?: {
+          headers?: Record<string, string>;
+          query?: Record<string, unknown>;
+        },
+      ): Promise<{
         status: number;
         headers: Record<string, string>;
         body: string;
@@ -68,20 +86,20 @@ const App = () => {
   useEffect(() => {
     const checkApiClient = async () => {
       console.log('[App] Checking window.apiClient...');
-      
+
       // 等待preload脚本加载，最多等待10秒
       const maxAttempts = 50;
       let attempts = 0;
-      
+
       const checkInterval = setInterval(() => {
         attempts++;
         console.log(`[App] Attempt ${attempts}: window.apiClient =`, typeof window.apiClient);
-        
+
         if (typeof window !== 'undefined' && window.apiClient) {
           clearInterval(checkInterval);
           console.log('[App] window.apiClient is available:', window.apiClient);
           setApiStatus('API 客户端已就绪');
-          
+
           // 测试IPC配置获取
           (async () => {
             try {
@@ -105,7 +123,7 @@ const App = () => {
         }
       }, 200);
     };
-    
+
     checkApiClient();
   }, []);
 
@@ -116,7 +134,7 @@ const App = () => {
         setApiStatus('API 客户端未加载');
         return;
       }
-      
+
       try {
         const response = await window.apiClient.get('/health');
         setApiStatus(`API 连接成功 (${response.status})`);
@@ -132,8 +150,9 @@ const App = () => {
   }, []);
 
   // DEMO
-  const asideMenuList = useMemo<MenuItem[]>(() => [
-    { label: t('aside.name.session-management'), key: 'session-management' },
+  const asideMenuList = useMemo<MenuItem[]>(
+    () => [
+      { label: t('aside.name.session-management'), key: 'session-management' },
       { label: t('aside.name.character-configuration'), key: 'character-configuration' },
       { label: t('aside.name.simulator'), key: 'simulator' },
       { label: t('aside.name.data-analysis'), key: 'data-analysis' },
@@ -142,7 +161,7 @@ const App = () => {
       { label: t('aside.name.apl-specification'), key: 'apl-specification' },
       { label: t('aside.name.contribution-guide'), key: 'contribution-guide' },
     ],
-    [t]
+    [t],
   );
 
   // DEMO
@@ -231,24 +250,27 @@ const App = () => {
             <span className="mr-[16px]">API 状态: {apiStatus}</span>
             {apiResponse && typeof apiResponse === 'object' && 'message' in apiResponse ? (
               <span className="text-[12px] text-[#999]">
-                后端: {((apiResponse as { message?: string }).message) || '未知'}
+                后端: {(apiResponse as { message?: string }).message || '未知'}
               </span>
             ) : null}
           </div>
-          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]"
+          <div
+            className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]"
             onClick={() => {
               const testApi = async () => {
                 if (!window.apiClient) {
                   setApiStatus('API 客户端未加载');
                   return;
                 }
-                
+
                 try {
                   const response = await window.apiClient.get('/health');
                   setApiStatus(`API 连接成功 (${response.status})`);
                   setApiResponse(JSON.parse(response.body));
                 } catch (error) {
-                  setApiStatus(`API 连接失败: ${error instanceof Error ? error.message : String(error)}`);
+                  setApiStatus(
+                    `API 连接失败: ${error instanceof Error ? error.message : String(error)}`,
+                  );
                   console.error('API test failed:', error);
                 }
               };
@@ -257,20 +279,23 @@ const App = () => {
           >
             创建会话
           </div>
-          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#28A745] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80"
+          <div
+            className="px-[10px] h-[32px] rounded-[8px] bg-[#28A745] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80"
             onClick={() => {
               const testApi = async () => {
                 if (!window.apiClient) {
                   setApiStatus('API 客户端未加载');
                   return;
                 }
-                
+
                 try {
                   const response = await window.apiClient.get('/health');
                   setApiStatus(`API 连接成功 (${response.status})`);
                   setApiResponse(JSON.parse(response.body));
                 } catch (error) {
-                  setApiStatus(`API 连接失败: ${error instanceof Error ? error.message : String(error)}`);
+                  setApiStatus(
+                    `API 连接失败: ${error instanceof Error ? error.message : String(error)}`,
+                  );
                   console.error('API test failed:', error);
                 }
               };

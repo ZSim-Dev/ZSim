@@ -47,7 +47,7 @@ async function getIpcConfig(): Promise<IpcConfig> {
 async function httpRequest(
   method: string,
   p: string,
-  opts: RequestOptions = {}
+  opts: RequestOptions = {},
 ): Promise<IpcResponse> {
   const ipcConfig = await getIpcConfig();
   const headers = { 'content-type': 'application/json', ...(opts.headers || {}) };

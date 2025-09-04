@@ -3,7 +3,6 @@ import itertools
 from typing import TYPE_CHECKING
 from collections import defaultdict
 
-import numpy as np
 import pandas as pd
 from zsim.define import (
     BUFF_0_REPORT,

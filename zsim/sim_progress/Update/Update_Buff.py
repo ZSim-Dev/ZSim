@@ -138,7 +138,7 @@ def update_dot(enemy: Enemy, timetick):
             exit_result = _.exit_judge(enemy=enemy)
             # 不是所有的dot的退出函数都有返回，这里必须处理退出函数不返回内容的情况
             if exit_result is None:
-                raise ValueError(f"复杂退出逻辑Dot的退出函数必须返回有效布尔值")
+                raise ValueError("复杂退出逻辑Dot的退出函数必须返回有效布尔值")
             if exit_result:
                 _.end(timetick)
                 enemy.dynamic.dynamic_dot_list.remove(_)

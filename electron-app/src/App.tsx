@@ -104,7 +104,7 @@ const App = () => {
   }, [asideMenuList]);
 
   // DEMO
-  const [activedMenu, setActivedMenu] = useState('session-management');
+  const [activeMenu, setActiveMenu] = useState('session-management');
 
   return (
     <div className="w-screen h-screen bg-[#F1F1F1] overflow-hidden">
@@ -124,12 +124,12 @@ const App = () => {
                 flex items-center gap-[8px] text-[#6B6B6B]
                 select-none cursor-pointer
                 ${
-                  menu.key === activedMenu
+                  menu.key === activeMenu
                     ? 'border-[#0000001A] bg-white'
                     : 'border-transparent hover:bg-[#38302E0D] active:bg-[#38302E17]'
                 }
               `}
-              onClick={() => setActivedMenu(menu.key)}
+              onClick={() => setActiveMenu(menu.key)}
             >
               <div className="w-[16px] h-[16px] rounded-sm bg-[#6B6B6B40]" />
               <div>{menu.label}</div>
@@ -152,7 +152,7 @@ const App = () => {
       >
         {/* 模块.1 */}
         <div className="w-full shrink-0 p-[24px] pb-0 text-[24px] font-[400]">
-          {asideMenuMap.get(activedMenu)}
+          {asideMenuMap.get(activeMenu)}
         </div>
 
         {/* 模块.2 */}

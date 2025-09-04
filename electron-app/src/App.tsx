@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useLanguage } from './hooks';
 import { useApiStatus } from './hooks/useApiStatus';
 import LanguageSwitch from './components/LanguageSwitch';
+import IZsim from '~icons/zsim/zsim';
 
 type MenuItem = {
   label: string;
@@ -44,7 +45,14 @@ const App = () => {
       {/* 侧栏 */}
       <div className="w-[192px] h-full overflow-hidden absolute top-0 left-0 flex flex-col text-[14px]">
         {/* 侧边顶部 */}
-        <div className="shrink-0 w-full h-[72px] p-[16px] text-[28px] font-[700]">ZSim</div>
+        <div className="flex items-center p-4 gap-x-3">
+          <div className="size-10 bg-gradient-to-b from-[#494949] to-[#000000] rounded-lg flex items-center justify-center shadow-[0rem_0.5rem_1rem_-0.25rem_#0000004D]">
+            <IZsim className="size-7" />
+          </div>
+          <div className="font-ibm-plex-sans-hebrew text-[1.75rem] leading-9 font-bold tracking-normal bg-gradient-to-br from-[#656565] to-[#262626] bg-clip-text text-transparent">
+            ZSim
+          </div>
+        </div>
 
         {/* 侧边列表 */}
         <div className="flex-1 w-full overflow-auto flex flex-col">

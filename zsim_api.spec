@@ -3,11 +3,23 @@
 """
 ZSim API PyInstaller configuration file
 Used to package zsim/api.py into a standalone executable
+
+Supports both current platform builds and cross-compilation:
+- Current platform: uv run pyinstaller zsim_api.spec
+- Cross-platform: TARGET_PLATFORM=windows/linux/macos uv run pyinstaller zsim_api.spec
 """
 
 import os
+import platform
 from pathlib import Path
 import toml
+
+# Get target platform from environment variable or detect current platform
+TARGET_PLATFORM = os.environ.get('TARGET_PLATFORM', platform.system().lower())
+if TARGET_PLATFORM == 'darwin':
+    TARGET_PLATFORM = 'macos'
+
+print(f"Building for target platform: {TARGET_PLATFORM}")
 
 # Get project root directory
 project_root = Path(os.getcwd())
@@ -97,26 +109,40 @@ a = Analysis(
 # Packaging configuration
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-# Executable configuration
-exe = EXE(
-    pyz,
-    a.scripts,
-    [],
-    exclude_binaries=True,
-    name='zsim_api',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
+# Platform-specific executable configuration
+exe_kwargs = {
+    'pyz': pyz,
+    'a.scripts': a.scripts,
+    'exclude_binaries': True,
+    'name': 'zsim_api',
+    'debug': False,
+    'bootloader_ignore_signals': False,
+    'strip': False,
+    'upx': True,
+    'upx_exclude': [],
+    'runtime_tmpdir': None,
+    'console': True,
+    'disable_windowed_traceback': False,
+    'argv_emulation': False,
+    'target_arch': None,
+    'codesign_identity': None,
+    'entitlements_file': None,
+}
+
+# Platform-specific adjustments
+if TARGET_PLATFORM == 'windows':
+    exe_kwargs.update({
+        'win_no_prefer_redirects': False,
+        'win_private_assemblies': False,
+    })
+elif TARGET_PLATFORM == 'macos':
+    exe_kwargs.update({
+        'argv_emulation': False,
+    })
+elif TARGET_PLATFORM == 'linux':
+    pass  # Linux uses default settings
+
+exe = EXE(**exe_kwargs)
 
 # Create collection with directory structure
 coll = COLLECT(
@@ -187,3 +213,6 @@ if zsim_dir.exists():
             # Copy file
             shutil.copy2(str(file_path), target_path)
             print(f"Copied configuration file: {file_path} -> {target_path}")
+
+print(f"✅ Successfully configured build for {TARGET_PLATFORM}")
+print(f"📦 Executable will be created in: dist/zsim_api/")

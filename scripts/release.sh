@@ -121,19 +121,11 @@ if [[ "$MULTI_PLATFORM" == "true" ]]; then
     else
         echo "❌ 错误: 多平台构建仅在 macOS 上支持"
         echo "🖥️ 回退到构建当前平台版本..."
-        make backend
-        make electron-build
+        make build
     fi
 else
-    if [[ "$UNAME_S" == "Darwin" ]]; then
-        echo "🍎 检测到 macOS，但未启用多平台构建，构建当前平台版本..."
-        make backend
-        make electron-build
-    else
-        echo "🖥️ 检测到 $UNAME_S，构建当前平台版本..."
-        make backend
-        make electron-build
-    fi
+    echo "🖥️ 检测到 $UNAME_S，构建当前平台版本..."
+    make build
 fi
 echo "✅ 构建完成"
 echo ""

@@ -16,13 +16,43 @@ else
     OS_FLAG := win
 endif
 
-# Build backend API
+# Build backend API for current platform
 backend:
-	@echo "Starting to build ZSim API..."
+	@echo "Starting to build ZSim API for $(OS)..."
 	@uv run pyinstaller --noconfirm zsim_api.spec
 	@echo "Setting executable permissions..."
 	@chmod +x dist/zsim_api
 	@echo "Backend API build completed!"
+
+# Build backend API for specific platforms
+backend-windows:
+	@echo "Starting to build ZSim API for Windows..."
+	@TARGET_PLATFORM=windows uv run pyinstaller --noconfirm zsim_api.spec
+	@echo "Windows backend API build completed!"
+
+backend-linux:
+	@echo "Starting to build ZSim API for Linux..."
+	@TARGET_PLATFORM=linux uv run pyinstaller --noconfirm zsim_api.spec
+	@echo "Setting executable permissions..."
+	@chmod +x dist/zsim_api
+	@echo "Linux backend API build completed!"
+
+backend-macos:
+	@echo "Starting to build ZSim API for macOS..."
+	@TARGET_PLATFORM=macos uv run pyinstaller --noconfirm zsim_api.spec
+	@echo "Setting executable permissions..."
+	@chmod +x dist/zsim_api
+	@echo "macOS backend API build completed!"
+
+# Build backend API for all platforms
+backend-all:
+	@echo "Starting to build ZSim API for all platforms..."
+	@TARGET_PLATFORM=windows uv run pyinstaller --noconfirm zsim_api.spec
+	@TARGET_PLATFORM=linux uv run pyinstaller --noconfirm zsim_api.spec
+	@TARGET_PLATFORM=macos uv run pyinstaller --noconfirm zsim_api.spec
+	@echo "Setting executable permissions..."
+	@chmod +x dist/zsim_api
+	@echo "All platforms backend API build completed!"
 
 # Build Electron desktop application for current platform
 electron-build:
@@ -43,8 +73,8 @@ cross-build-windows:
 		exit 1; \
 	fi
 	@echo "Starting to build Electron desktop application for Windows..."
-	@echo "First, building the backend API..."
-	@make backend
+	@echo "First, building the backend API for Windows..."
+	@make backend-windows
 	@echo "Copying backend binary files to Electron resource directory..."
 	@mkdir -p electron-app/resources
 	@cp -r dist/zsim_api electron-app/resources/
@@ -58,8 +88,8 @@ cross-build-linux:
 		exit 1; \
 	fi
 	@echo "Starting to build Electron desktop application for Linux..."
-	@echo "First, building the backend API..."
-	@make backend
+	@echo "First, building the backend API for Linux..."
+	@make backend-linux
 	@echo "Copying backend binary files to Electron resource directory..."
 	@mkdir -p electron-app/resources
 	@cp -r dist/zsim_api electron-app/resources/
@@ -69,8 +99,8 @@ cross-build-linux:
 
 cross-build-macos:
 	@echo "Starting to build Electron desktop application for macOS..."
-	@echo "First, building the backend API..."
-	@make backend
+	@echo "First, building the backend API for macOS..."
+	@make backend-macos
 	@echo "Copying backend binary files to Electron resource directory..."
 	@mkdir -p electron-app/resources
 	@cp -r dist/zsim_api electron-app/resources/
@@ -85,8 +115,8 @@ cross-build-all:
 		exit 1; \
 	fi
 	@echo "Starting to build Electron desktop application for all platforms..."
-	@echo "First, building the backend API..."
-	@make backend
+	@echo "First, building the backend API for all platforms..."
+	@make backend-all
 	@echo "Copying backend binary files to Electron resource directory..."
 	@mkdir -p electron-app/resources
 	@cp -r dist/zsim_api electron-app/resources/
@@ -181,7 +211,13 @@ help:
 	@echo "ZSim Build System"
 	@echo "================"
 	@echo ""
-	@echo "Available targets:"
+	@echo "Available targets:
+  backend               - Build backend API for current platform
+  backend-windows        - Build backend API for Windows
+  backend-linux          - Build backend API for Linux
+  backend-macos          - Build backend API for macOS
+  backend-all           - Build backend API for all platforms
+  electron-build        - Build Electron desktop application for current platform"
 	@echo "  backend               - Build backend API"
 	@echo "  electron-build        - Build Electron desktop application for current platform"
 	@echo "  build                 - Build backend API and frontend application"
@@ -189,7 +225,11 @@ help:
 	@echo "  dev                   - Start frontend development server"
 	@echo "  help                  - Display this help information"
 	@echo ""
-	@echo "Cross-compilation (macOS only):"
+	@echo "Cross-compilation (macOS only):
+  cross-build-windows   - Build Windows version
+  cross-build-linux     - Build Linux version
+  cross-build-macos     - Build macOS version
+  cross-build-all       - Build all three platforms"
 	@echo "  cross-build-windows   - Build Windows version"
 	@echo "  cross-build-linux     - Build Linux version"
 	@echo "  cross-build-macos     - Build macOS version"

@@ -1,11 +1,11 @@
-import React from 'react';
+import { FC } from "react";
 import { useLanguage } from '../hooks/useLanguage';
 
 interface LanguageSwitchProps {
   className?: string;
 }
 
-export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ className = '' }) => {
+export const LanguageSwitch: FC<LanguageSwitchProps> = ({ className = '' }) => {
   const { language, setLanguage } = useLanguage();
 
   return (

@@ -1,4 +1,4 @@
-import React, { createContext, useEffect } from 'react';
+import { createContext, createElement, FC, PropsWithChildren, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 
@@ -27,11 +27,7 @@ const localeToLanguage = (locale: LocaleKeys): Language => {
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export interface LanguageProviderProps {
-  children: React.ReactNode;
-}
-
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+export const LanguageProvider: FC<PropsWithChildren> = ({ children }) => {
   const { i18n, t } = useTranslation();
 
   const currentLang = (i18n.language || 'zh').split('-')[0];
@@ -55,7 +51,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
   }, [i18n]);
 
-  return React.createElement(
+  return createElement(
     LanguageContext.Provider,
     { value: { language, locale, setLanguage, setLocale, t } },
     children,

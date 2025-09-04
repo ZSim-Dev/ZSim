@@ -12,7 +12,7 @@ import dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .define import __version__
+from zsim.define import __version__
 
 dotenv.load_dotenv()
 

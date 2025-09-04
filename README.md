@@ -74,6 +74,27 @@ uv run zsim run
 5. **Database** - SQLite-based storage for character/enemy configurations
 6. **Electron App** - Desktop application built with Vue.js and Electron that communicates with the FastAPI backend
 
+### Build System
+
+The project uses a comprehensive Make-based build system for managing development, building, and release processes.
+
+#### Available Make Targets
+
+```bash
+# Build components
+make build              # Full build (clean + backend + electron)
+make backend            # Build backend API only
+make electron-build     # Build Electron desktop application only
+
+# Development
+make dev                # Start frontend development server
+make clean              # Clean all build files
+make check              # Check dependencies
+
+# Utilities
+make help                # Display help information
+```
+
 ### Setup and Installation
 ```bash
 # Install UV package manager first

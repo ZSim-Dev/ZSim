@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 from .BaseListenerClass import BaseListener
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 

@@ -1,9 +1,7 @@
-import math
 from typing import TYPE_CHECKING
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from .BaseListenerClass import BaseListener
 from zsim.define import ALICE_REPORT
-from ...anomaly_bar.CopyAnomalyForOutput import Disorder, PolarityDisorder
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator

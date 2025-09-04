@@ -6,6 +6,7 @@ from .utils.filters import _skill_node_filter
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode
+    from zsim.simulator.simulator_class import Simulator
 
 
 class Alice(Character):

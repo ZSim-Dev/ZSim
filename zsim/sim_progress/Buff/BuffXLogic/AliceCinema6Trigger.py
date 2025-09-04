@@ -3,7 +3,7 @@ from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from zsim.sim_progress.Preload import SkillNode
+    pass
 
 
 class AliceCinema6TriggerRecord(BRBC):

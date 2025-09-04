@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
-import { spawn, ChildProcess, spawnSync } from 'node:child_process';
+import { spawn, ChildProcess } from 'node:child_process';
 import net from 'node:net';
 import http from 'node:http';
 import { URLSearchParams } from 'node:url';
@@ -35,34 +35,6 @@ let backendProcess: ChildProcess | null;
 let backendPort: number = 8000; // 存储后端端口
 let backendIpcMode: 'http' | 'uds' = 'http'; // 存储后端IPC模式
 const backendUdsPath: string = '/tmp/zsim_api.sock'; // 存储后端UDS路径
-
-function findPythonExecutable(): string {
-  // 优先尝试使用 uv run python
-  const uvPython = 'uv run python';
-
-  // 尝试 python3 和 python 命令
-  const pythonCommands = ['python3', 'python'];
-
-  // 在开发环境中，优先使用 uv run python
-  if (process.env.NODE_ENV === 'development') {
-    return uvPython;
-  }
-
-  // 在生产环境中，尝试找到合适的 python 命令
-  for (const cmd of pythonCommands) {
-    try {
-      const result = spawnSync(cmd, ['--version'], { stdio: 'pipe' });
-      if (result.status === 0) {
-        return cmd;
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  // 默认返回 python
-  return 'python';
-}
 
 function findAvailablePort(startPort: number = 8000, maxPort: number = 8100): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -97,70 +69,103 @@ function findAvailablePort(startPort: number = 8000, maxPort: number = 8100): Pr
 }
 
 async function startBackendServer() {
-  console.log('[Backend] Starting Python API server...');
+  console.log('[Backend] Starting API server...');
 
-  // 在开发环境中，使用相对路径到项目根目录
-  // 在生产环境中，使用相对于 electron-app 的路径
-  let backendScript: string;
-
-  if (process.env.NODE_ENV === 'development') {
-    // 开发环境：从 electron-app 目录回到项目根目录，然后到 zsim/api.py
-    const projectRoot = path.join(__dirname, '..', '..');
-    backendScript = path.join(projectRoot, 'zsim', 'api.py');
-  } else {
-    // 生产环境：从 electron-app 目录回到项目根目录，然后到 zsim/api.py
-    const projectRoot = path.join(__dirname, '..');
-    backendScript = path.join(projectRoot, 'zsim', 'api.py');
-  }
-
-  console.log('[Backend] Using script:', backendScript);
-
-  // 确定IPC模式 - 在Unix类系统上默认使用UDS，Windows上使用HTTP
-  let ipcMode: 'http' | 'uds' = 'uds';
-
-  // Windows系统不支持UDS，回退到HTTP
-  if (process.platform === 'win32') {
-    ipcMode = 'http';
-  }
-
-  backendIpcMode = ipcMode;
-
-  let envVars: NodeJS.ProcessEnv;
-
-  if (ipcMode === 'uds') {
-    // UDS模式
-    envVars = { ...process.env, ZSIM_IPC_MODE: 'uds', ZSIM_UDS_PATH: backendUdsPath };
-    console.log(`[Backend] Using UDS mode with socket: ${backendUdsPath}`);
-  } else {
-    // HTTP模式
-    const availablePort = await findAvailablePort();
-    backendPort = availablePort;
-    envVars = { ...process.env, ZSIM_API_PORT: availablePort.toString(), ZSIM_IPC_MODE: 'http' };
-    console.log(`[Backend] Using HTTP mode with port: ${availablePort}`);
-  }
-
-  // 找到合适的Python命令
-  const pythonCommand = findPythonExecutable();
+  // 在开发环境中，使用Python源码
+  // 在生产环境中，使用打包好的二进制文件
   let backendCommand: string;
   let backendArgs: string[];
+  let envVars: NodeJS.ProcessEnv;
 
-  if (process.env.NODE_ENV === 'development' && pythonCommand.startsWith('uv run')) {
-    // 开发环境：拆分 uv run python 命令
+  if (process.env.NODE_ENV === 'development') {
+    // 开发环境：使用Python源码
+    const projectRoot = path.join(__dirname, '..', '..');
+    const backendScript = path.join(projectRoot, 'zsim', 'api.py');
+
+    console.log('[Backend] Using Python script:', backendScript);
+
+    // 确定IPC模式 - 在Unix类系统上默认使用UDS，Windows上使用HTTP
+    let ipcMode: 'http' | 'uds' = 'uds';
+    if (process.platform === 'win32') {
+      ipcMode = 'http';
+    }
+
+    backendIpcMode = ipcMode;
+
+    if (ipcMode === 'uds') {
+      // UDS模式
+      envVars = { ...process.env, ZSIM_IPC_MODE: 'uds', ZSIM_UDS_PATH: backendUdsPath };
+      console.log(`[Backend] Using UDS mode with socket: ${backendUdsPath}`);
+    } else {
+      // HTTP模式
+      const availablePort = await findAvailablePort();
+      backendPort = availablePort;
+      envVars = { ...process.env, ZSIM_API_PORT: availablePort.toString(), ZSIM_IPC_MODE: 'http' };
+      console.log(`[Backend] Using HTTP mode with port: ${availablePort}`);
+    }
+
+    // 使用uv run python
     backendCommand = 'uv';
     backendArgs = ['run', 'python', backendScript];
   } else {
-    // 生产环境：直接使用 python 命令
-    backendCommand = pythonCommand;
-    backendArgs = [backendScript];
+    // 生产环境：使用打包好的二进制文件
+    // 尝试多个可能的路径
+    const possiblePaths = [
+      path.join(__dirname, '..', 'resources', 'zsim_api', 'zsim_api'), // 开发环境路径
+      path.join(__dirname, '..', 'dist', 'zsim_api', 'zsim_api'), // 开发环境路径
+      path.join(process.resourcesPath, 'resources', 'zsim_api', 'zsim_api'), // 生产环境路径
+      path.join(process.resourcesPath, 'zsim_api', 'zsim_api'), // 备用生产环境路径
+    ];
+
+    let binaryPath: string | undefined;
+    for (const testPath of possiblePaths) {
+      if (existsSync(testPath)) {
+        binaryPath = testPath;
+        break;
+      }
+    }
+
+    if (!binaryPath) {
+      throw new Error(`Backend binary not found. Tried: ${possiblePaths.join(', ')}`);
+    }
+
+    console.log('[Backend] Using binary:', binaryPath);
+
+    // 确定IPC模式 - 在Unix类系统上默认使用UDS，Windows上使用HTTP
+    let ipcMode: 'http' | 'uds' = 'uds';
+    if (process.platform === 'win32') {
+      ipcMode = 'http';
+    }
+
+    backendIpcMode = ipcMode;
+
+    if (ipcMode === 'uds') {
+      // UDS模式
+      envVars = { ...process.env, ZSIM_IPC_MODE: 'uds', ZSIM_UDS_PATH: backendUdsPath };
+      console.log(`[Backend] Using UDS mode with socket: ${backendUdsPath}`);
+    } else {
+      // HTTP模式
+      const availablePort = await findAvailablePort();
+      backendPort = availablePort;
+      envVars = { ...process.env, ZSIM_API_PORT: availablePort.toString(), ZSIM_IPC_MODE: 'http' };
+      console.log(`[Backend] Using HTTP mode with port: ${availablePort}`);
+    }
+
+    // 直接使用二进制文件
+    backendCommand = binaryPath;
+    backendArgs = [];
   }
 
   console.log(`[Backend] Starting with: ${backendCommand} ${backendArgs.join(' ')}`);
 
-  // 设置正确的工作目录为项目根目录
-  const cwd =
-    process.env.NODE_ENV === 'development'
-      ? path.join(__dirname, '..', '..')
-      : path.join(__dirname, '..');
+  // 设置正确的工作目录
+  let cwd: string;
+  if (process.env.NODE_ENV === 'development') {
+    cwd = path.join(__dirname, '..', '..');
+  } else {
+    // 生产环境：设置为包含 zsim_api 二进制文件的目录
+    cwd = path.dirname(backendCommand);
+  }
 
   console.log(`[Backend] Working directory: ${cwd}`);
 
@@ -202,7 +207,7 @@ async function startBackendServer() {
   // 等待后端启动完成
   return new Promise<void>(resolve => {
     setTimeout(() => {
-      if (ipcMode === 'uds') {
+      if (backendIpcMode === 'uds') {
         console.log(`[Backend] UDS server started on ${backendUdsPath}`);
       } else {
         console.log(`[Backend] HTTP server started on port ${backendPort}`);

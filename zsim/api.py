@@ -8,8 +8,13 @@
 import os
 import platform
 
+import dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from zsim.define import __version__
+
+dotenv.load_dotenv()
 
 app = FastAPI(
     title="ZSim API",
@@ -18,7 +23,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允许所有源，开发环境更方便
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,10 +48,29 @@ async def health_check():
     return {"message": "ZSim API is running!"}
 
 
+@app.get("/version")
+async def get_version():
+    """
+    Get the current version of the ZSim API.
+
+    Returns:
+        dict: A dictionary containing the version string.
+    """
+    return {"version": __version__}
+
+
 if __name__ == "__main__":
+    import logging
+    import multiprocessing
     import socket
+    import sys
 
     import uvicorn
+
+    multiprocessing.freeze_support()
+
+    # 添加调试信息
+    logging.info(f"API version: {__version__}")
 
     def get_free_port():
         """获取一个可用的端口号"""
@@ -69,27 +93,49 @@ if __name__ == "__main__":
         # 清理旧的socket文件
         if os.path.exists(uds_path):
             os.unlink(uds_path)
-
-        uvicorn.run(
-            "zsim.api:app",
-            uds=uds_path,
-            log_level="info",
-            reload=True,
-            access_log=True,
-        )
+        if getattr(sys, "frozen", False):
+            uvicorn.run(
+                app,
+                uds=uds_path,
+                log_level="info",
+                access_log=True,
+                workers=1,
+            )
+        else:
+            uvicorn.run(
+                "zsim.api:app",
+                uds=uds_path,
+                log_level="info",
+                reload=True,
+                access_log=True,
+            )
     else:
         # HTTP模式
-        port = int(os.getenv("ZSIM_API_PORT", 0))
+        try:
+            port = int(os.getenv("ZSIM_API_PORT", 0))
+        except ValueError:
+            logging.error("Invalid port number in ZSIM_API_PORT environment variable.")
+            port = 0
         if port == 0:
             port = get_free_port()
 
         host = os.getenv("ZSIM_API_HOST", "127.0.0.1")
+        if getattr(sys, "frozen", False):
+            uvicorn.run(
+                app,
+                host=host,
+                port=port,
+                log_level="info",
+                access_log=True,
+                workers=1,
+            )
 
-        uvicorn.run(
-            "zsim.api:app",
-            host=host,
-            port=port,
-            log_level="info",
-            reload=True,
-            access_log=True,
-        )
+        else:
+            uvicorn.run(
+                "zsim.api:app",
+                host=host,
+                port=port,
+                log_level="info",
+                reload=True,
+                access_log=True,
+            )

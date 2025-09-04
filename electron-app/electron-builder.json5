@@ -5,8 +5,15 @@
     output: 'release/${version}',
     buildResources: 'build',
   },
-  files: ['dist', 'dist-electron'],
+  files: ['dist', 'dist-electron', 'resources/**'],
   asarUnpack: ['resources/**'],
+  extraResources: [
+    {
+      from: 'resources',
+      to: 'resources',
+      filter: ['**/*']
+    }
+  ],
   win: {
     executableName: 'ZSim',
     target: [

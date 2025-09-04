@@ -2,8 +2,11 @@
   "name": "zsim",
   "productName": "ZSim",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.3.4-alpha.3",
   "type": "module",
+  "description": "Zenless Zone Zero battle simulator and damage calculator",
+  "author": "ZSim Team",
+  "homepage": "https://github.com/ZSim-Dev/ZSim",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -69,6 +69,27 @@ uv run zsim run
 5. **数据库** - 基于SQLite的角色/敌人配置存储
 6. **Electron应用** - 使用Vue.js和Electron构建的桌面应用，与FastAPI后端通信
 
+### 构建系统
+
+项目使用基于 Make 的综合构建系统来管理开发、构建和发布流程。
+
+#### 可用的 Make 目标
+
+```bash
+# 构建组件
+make build              # 完整构建（清理 + 后端 + Electron）
+make backend            # 仅构建后端API
+make electron-build     # 仅构建Electron桌面应用
+
+# 开发
+make dev                # 启动前端开发服务器
+make clean              # 清理所有构建文件
+make check              # 检查依赖
+
+# 工具
+make help                # 显示帮助信息
+```
+
 ### 设置和安装
 ```bash
 # 首先安装UV包管理器

@@ -154,7 +154,7 @@ uv run pytest -v --cov=zsim --cov-report=html
 
 ### FastAPI后端
 - `ZSIM_DISABLE_ROUTES` - 设置为"1"以禁用API路由（默认：启用）
-- `ZSIM_IPC_MODE` - IPC通信模式："auto"、"uds"或"http"（默认："http"）
+- `ZSIM_IPC_MODE` - IPC通信模式："auto"、"uds"或"http"（默认："auto"）
 - `ZSIM_UDS_PATH` - 使用UDS模式时的socket文件路径（默认："/tmp/zsim_api.sock"）
 - `ZSIM_API_PORT` - API服务器端口，设置为0可自动选择端口（默认：0）
 - `ZSIM_API_HOST` - API服务器主机地址（默认："127.0.0.1"）

@@ -159,7 +159,7 @@ Go check [develop guide](https://github.com/ZZZSimulator/ZSim/wiki/%E8%B4%A1%E7%
 
 ### FastAPI Backend
 - `ZSIM_DISABLE_ROUTES` - Set to "1" to disable API routes (default: enabled)
-- `ZSIM_IPC_MODE` - IPC communication mode: "auto", "uds", or "http" (default: "http")
+- `ZSIM_IPC_MODE` - IPC communication mode: "auto", "uds", or "http" (default: "auto")
 - `ZSIM_UDS_PATH` - UDS socket file path when using UDS mode (default: "/tmp/zsim_api.sock")
 - `ZSIM_API_PORT` - API server port, set to 0 for automatic port selection (default: 0)
 - `ZSIM_API_HOST` - API server host address (default: "127.0.0.1")

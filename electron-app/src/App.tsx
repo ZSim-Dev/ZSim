@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from './hooks';
+import LanguageSwitch from './components/LanguageSwitch';
 
 type MenuItem = {
   label: string;
@@ -7,7 +8,7 @@ type MenuItem = {
 };
 
 const App = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const [apiStatus, setApiStatus] = useState<string>('初始化中...');
   const [apiResponse, setApiResponse] = useState<unknown>(null);
 
@@ -137,26 +138,7 @@ const App = () => {
         </div>
 
         {/* 侧边底部 */}
-        <div className="shrink-0 w-full h-[64px] p-[16px] pb-[24px] flex gap-[4px]">
-          <div
-            className={`
-              px-[10px] h-[32px] rounded-[8px] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80
-              ${language === 'zh' ? 'bg-[#FA7319]' : 'bg-[#333]'}
-            `}
-            onClick={() => setLanguage('zh')}
-          >
-            中文
-          </div>
-          <div
-            className={`
-              px-[10px] h-[32px] rounded-[8px] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80
-              ${language === 'en' ? 'bg-[#FA7319]' : 'bg-[#333]'}
-            `}
-            onClick={() => setLanguage('en')}
-          >
-            English
-          </div>
-        </div>
+        <LanguageSwitch className="shrink-0 w-full h-[64px] p-[16px] pb-[24px]" />
       </div>
 
       {/* 模块 */}

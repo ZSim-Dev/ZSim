@@ -66,12 +66,8 @@ electron-build:
 	@cd electron-app && pnpm build:$(OS_FLAG)
 	@echo "Electron desktop application build completed!"
 
-# Cross-compilation targets (macOS only)
+# Cross-compilation targets
 cross-build-windows:
-	@if [ "$(UNAME_S)" != "Darwin" ]; then \
-		echo "❌ Error: Windows cross-compilation is only supported on macOS"; \
-		exit 1; \
-	fi
 	@echo "Starting to build Electron desktop application for Windows..."
 	@echo "First, building the backend API for Windows..."
 	@make backend-windows
@@ -83,10 +79,6 @@ cross-build-windows:
 	@echo "Windows Electron desktop application build completed!"
 
 cross-build-linux:
-	@if [ "$(UNAME_S)" != "Darwin" ]; then \
-		echo "❌ Error: Linux cross-compilation is only supported on macOS"; \
-		exit 1; \
-	fi
 	@echo "Starting to build Electron desktop application for Linux..."
 	@echo "First, building the backend API for Linux..."
 	@make backend-linux
@@ -211,13 +203,13 @@ help:
 	@echo "ZSim Build System"
 	@echo "================"
 	@echo ""
-	@echo "Available targets:
-  backend               - Build backend API for current platform
-  backend-windows        - Build backend API for Windows
-  backend-linux          - Build backend API for Linux
-  backend-macos          - Build backend API for macOS
-  backend-all           - Build backend API for all platforms
-  electron-build        - Build Electron desktop application for current platform"
+	@echo "Available targets:"
+	@echo "  backend               - Build backend API for current platform"
+	@echo "  backend-windows        - Build backend API for Windows"
+	@echo "  backend-linux          - Build backend API for Linux"
+	@echo "  backend-macos          - Build backend API for macOS"
+	@echo "  backend-all           - Build backend API for all platforms"
+	@echo "  electron-build        - Build Electron desktop application for current platform"
 	@echo "  backend               - Build backend API"
 	@echo "  electron-build        - Build Electron desktop application for current platform"
 	@echo "  build                 - Build backend API and frontend application"
@@ -225,11 +217,7 @@ help:
 	@echo "  dev                   - Start frontend development server"
 	@echo "  help                  - Display this help information"
 	@echo ""
-	@echo "Cross-compilation (macOS only):
-  cross-build-windows   - Build Windows version
-  cross-build-linux     - Build Linux version
-  cross-build-macos     - Build macOS version
-  cross-build-all       - Build all three platforms"
+	@echo "Cross-compilation:"
 	@echo "  cross-build-windows   - Build Windows version"
 	@echo "  cross-build-linux     - Build Linux version"
 	@echo "  cross-build-macos     - Build macOS version"

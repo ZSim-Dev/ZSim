@@ -61,3 +61,9 @@ htmlcov/
 # 生成文件
 zsim/data/APLData/custom/*
 *out*
+
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json

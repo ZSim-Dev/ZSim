@@ -7,18 +7,12 @@ all: build
 build:
 	@echo "开始构建 ZSim API..."
 	@uv run pyinstaller zsim_api.spec
-	@echo "复制启动脚本..."
-	@if [ -f start_api.sh ]; then \
-		cp start_api.sh dist/zsim_api/; \
-		chmod +x dist/zsim_api/start_api.sh; \
-	fi
 	@echo "设置可执行权限..."
 	@chmod +x dist/zsim_api
 	@echo "构建完成！"
 	@echo "使用方法:"
 	@echo "  cd dist/zsim_api"
 	@echo "  ./zsim_api          # 直接运行"
-	@echo "  ./start_api.sh      # 使用启动脚本运行"
 
 # 清理构建文件
 clean:
@@ -29,8 +23,8 @@ clean:
 # 运行API
 run:
 	@echo "启动 ZSim API..."
-	@if [ -f dist/zsim_api/start_api.sh ]; then \
-		cd dist/zsim_api && ./start_api.sh; \
+	@if [ -f dist/zsim_api ]; then \
+		cd dist/zsim_api && ./zsim_api; \
 	else \
 		echo "请先运行 'make build' 构建项目"; \
 		exit 1; \
@@ -47,13 +41,7 @@ check:
 		echo "✗ zsim_api.spec 文件不存在"; \
 		exit 1; \
 	fi
-	@if [ -f start_api.sh ]; then \
-		echo "✓ start_api.sh 启动脚本存在"; \
-	else \
-		echo "✗ start_api.sh 启动脚本不存在"; \
-		exit 1; \
-	fi
-
+	
 # 显示帮助
 help:
 	@echo "ZSim API 构建系统"
@@ -71,4 +59,3 @@ help:
 	@echo ""
 	@echo "构建后运行:"
 	@echo "  cd dist/zsim_api && ./zsim_api"
-	@echo "  cd dist/zsim_api && ./start_api.sh"

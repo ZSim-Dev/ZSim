@@ -27,10 +27,10 @@ on:
 
 jobs:
   release:
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [macos-latest]
     
     steps:
     - name: Checkout code
@@ -83,8 +83,8 @@ jobs:
 
     - name: Build application
       run: |
-        echo "Building application..."
-        make release RELEASE_TYPE=${{ github.event.inputs.release_type }}
+        echo "Building application for all platforms..."
+        make release-all RELEASE_TYPE=${{ github.event.inputs.release_type }}
 
     - name: Get new version
       id: new_version
@@ -142,35 +142,19 @@ jobs:
         git push origin main
         git push origin "v${{ steps.new_version.outputs.new_backend_version }}"
 
-    - name: Upload Windows artifacts
-      if: matrix.os == 'windows-latest'
+    - name: Upload all artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: windows-build
+        name: all-platforms-build
         path: |
           electron-app/release/*.exe
-          electron-app/release/*.blockmap
-
-    - name: Upload macOS artifacts
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: macos-build
-        path: |
           electron-app/release/*.dmg
-          electron-app/release/*.zip
-
-    - name: Upload Linux artifacts
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: linux-build
-        path: |
           electron-app/release/*.AppImage
           electron-app/release/*.deb
+          electron-app/release/*.zip
+          electron-app/release/*.blockmap
 
     - name: Create Release
-      if: matrix.os == 'ubuntu-latest'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: "v${{ steps.new_version.outputs.new_backend_version }}"

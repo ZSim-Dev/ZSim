@@ -1,7 +1,20 @@
-.PHONY: build clean run check help frontend frontend-build electron-build
+.PHONY: build clean run check help frontend frontend-build electron-build cross-build release-all
 
 # Default target
 all: build
+
+# Detect operating system
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    OS := linux
+    OS_FLAG := linux
+else ifeq ($(UNAME_S),Darwin)
+    OS := macos
+    OS_FLAG := mac
+else
+    OS := windows
+    OS_FLAG := win
+endif
 
 # Build backend API
 backend:
@@ -11,17 +24,80 @@ backend:
 	@chmod +x dist/zsim_api
 	@echo "Backend API build completed!"
 
-# Build Electron desktop application
+# Build Electron desktop application for current platform
 electron-build:
-	@echo "Starting to build Electron desktop application..."
+	@echo "Starting to build Electron desktop application for $(OS)..."
 	@echo "First, building the backend API..."
 	@make backend
 	@echo "Copying backend binary files to Electron resource directory..."
 	@mkdir -p electron-app/resources
 	@cp -r dist/zsim_api electron-app/resources/
 	@cd electron-app && pnpm install
-	@cd electron-app && pnpm build:$(shell uname -s | tr '[:upper:]' '[:lower:]')
+	@cd electron-app && pnpm build:$(OS_FLAG)
 	@echo "Electron desktop application build completed!"
+
+# Cross-compilation targets (macOS only)
+cross-build-windows:
+	@if [ "$(UNAME_S)" != "Darwin" ]; then \
+		echo "❌ Error: Windows cross-compilation is only supported on macOS"; \
+		exit 1; \
+	fi
+	@echo "Starting to build Electron desktop application for Windows..."
+	@echo "First, building the backend API..."
+	@make backend
+	@echo "Copying backend binary files to Electron resource directory..."
+	@mkdir -p electron-app/resources
+	@cp -r dist/zsim_api electron-app/resources/
+	@cd electron-app && pnpm install
+	@cd electron-app && pnpm build:win
+	@echo "Windows Electron desktop application build completed!"
+
+cross-build-linux:
+	@if [ "$(UNAME_S)" != "Darwin" ]; then \
+		echo "❌ Error: Linux cross-compilation is only supported on macOS"; \
+		exit 1; \
+	fi
+	@echo "Starting to build Electron desktop application for Linux..."
+	@echo "First, building the backend API..."
+	@make backend
+	@echo "Copying backend binary files to Electron resource directory..."
+	@mkdir -p electron-app/resources
+	@cp -r dist/zsim_api electron-app/resources/
+	@cd electron-app && pnpm install
+	@cd electron-app && pnpm build:linux
+	@echo "Linux Electron desktop application build completed!"
+
+cross-build-macos:
+	@echo "Starting to build Electron desktop application for macOS..."
+	@echo "First, building the backend API..."
+	@make backend
+	@echo "Copying backend binary files to Electron resource directory..."
+	@mkdir -p electron-app/resources
+	@cp -r dist/zsim_api electron-app/resources/
+	@cd electron-app && pnpm install
+	@cd electron-app && pnpm build:mac
+	@echo "macOS Electron desktop application build completed!"
+
+# Build all platforms (macOS only)
+cross-build-all:
+	@if [ "$(UNAME_S)" != "Darwin" ]; then \
+		echo "❌ Error: Cross-compilation for all platforms is only supported on macOS"; \
+		exit 1; \
+	fi
+	@echo "Starting to build Electron desktop application for all platforms..."
+	@echo "First, building the backend API..."
+	@make backend
+	@echo "Copying backend binary files to Electron resource directory..."
+	@mkdir -p electron-app/resources
+	@cp -r dist/zsim_api electron-app/resources/
+	@cd electron-app && pnpm install
+	@echo "Building for Windows..."
+	@cd electron-app && pnpm build:win
+	@echo "Building for Linux..."
+	@cd electron-app && pnpm build:linux
+	@echo "Building for macOS..."
+	@cd electron-app && pnpm build:mac
+	@echo "All platforms Electron desktop application build completed!"
 
 # Clean build files
 clean:
@@ -35,6 +111,28 @@ build: clean backend electron-build
 	@echo "Full build completed!"
 	@echo "Backend API: dist/zsim_api/"
 	@echo "Electron app: electron-app/release/"
+
+# Release build for all platforms (macOS only)
+# Usage: make release-all RELEASE_TYPE=patch
+release-all:
+	@if [ "$(UNAME_S)" != "Darwin" ]; then \
+		echo "❌ Error: Multi-platform release is only supported on macOS"; \
+		exit 1; \
+	fi
+	@echo "Starting multi-platform release build..."
+	@echo "Release type: $(RELEASE_TYPE)"
+	@echo "Updating backend version..."
+	uv version --bump $(RELEASE_TYPE); \
+	@echo "Updating frontend version..."
+	@cd electron-app && if [ "$(RELEASE_TYPE)" = "alpha" ] || [ "$(RELEASE_TYPE)" = "beta" ]; then \
+		pnpm version prerelease --preid $(RELEASE_TYPE) --no-git-tag-version; \
+	else \
+		pnpm version $(RELEASE_TYPE) --no-git-tag-version; \
+	fi
+	@echo "Cleaning and rebuilding..."
+	make clean
+	make cross-build-all
+	@echo "Multi-platform release build completed!"
 
 # Release build (parameterized release support)
 # Usage: make release RELEASE_TYPE=patch
@@ -50,7 +148,8 @@ release:
 		pnpm version $(RELEASE_TYPE) --no-git-tag-version; \
 	fi
 	@echo "Cleaning and rebuilding..."
-	clean backend electron-build
+	make clean
+	make backend electron-build
 	@echo "Release build completed!"
 
 # Run frontend development server
@@ -83,25 +182,27 @@ help:
 	@echo "================"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  backend         - Build backend API"
-	@echo "  frontend        - Build frontend application"
-	@echo "  electron-build  - Build Electron desktop application"
-	@echo "  build           - Build backend API and frontend application"
-	@echo "  full-build      - Full build (includes Electron)"
-	@echo "  clean           - Clean all build files"
-	@echo "  run             - Run backend API"
-	@echo "  dev             - Start frontend development server"
-	@echo "  run-electron    - Run Electron application"
-	@echo "  check           - Check dependencies"
-	@echo "  help            - Display this help information"
+	@echo "  backend               - Build backend API"
+	@echo "  electron-build        - Build Electron desktop application for current platform"
+	@echo "  build                 - Build backend API and frontend application"
+	@echo "  clean                 - Clean all build files"
+	@echo "  dev                   - Start frontend development server"
+	@echo "  help                  - Display this help information"
 	@echo ""
-	@echo "Release build:"
-	@echo "  release         - Parameterized release (make release RELEASE_TYPE=patch)"
+	@echo "Cross-compilation (macOS only):"
+	@echo "  cross-build-windows   - Build Windows version"
+	@echo "  cross-build-linux     - Build Linux version"
+	@echo "  cross-build-macos     - Build macOS version"
+	@echo "  cross-build-all       - Build all three platforms"
+	@echo ""
+	@echo "Release builds:"
+	@echo "  release               - Parameterized release for current platform"
+	@echo "  release-all           - Multi-platform release (macOS only)"
 	@echo ""
 	@echo "Usage examples:"
-	@echo "  make build              # Build backend and frontend"
-	@echo "  make run                # Run backend API"
-	@echo "  make dev                # Start frontend development environment"
-	@echo "  make full-build         # Full build"
-	@echo "  make clean              # Clean all build files"
+	@echo "  make build                    # Build for current platform"
+	@echo "  make cross-build-all          # Build all platforms (macOS only)"
 	@echo "  make release RELEASE_TYPE=patch  # Release patch version"
+	@echo "  make release-all RELEASE_TYPE=minor  # Multi-platform release"
+	@echo "  make dev                      # Start frontend development environment"
+	@echo "  make clean                    # Clean all build files"

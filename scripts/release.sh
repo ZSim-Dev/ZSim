@@ -9,6 +9,7 @@ set -e
 RELEASE_TYPE="patch"
 DRAFT=false
 PRERELEASE=false
+MULTI_PLATFORM=false
 
 # 解析命令行参数
 while [[ $# -gt 0 ]]; do
@@ -25,13 +26,18 @@ while [[ $# -gt 0 ]]; do
             PRERELEASE=true
             shift
             ;;
+        --multi-platform)
+            MULTI_PLATFORM=true
+            shift
+            ;;
         --help)
-            echo "用法: $0 [patch|minor|major|alpha|beta] [--draft] [--prerelease]"
+            echo "用法: $0 [patch|minor|major|alpha|beta] [--draft] [--prerelease] [--multi-platform]"
             echo ""
             echo "参数说明:"
             echo "  patch|minor|major|alpha|beta  发布类型"
             echo "  --draft                    创建草稿发布"
             echo "  --prerelease               标记为预发布"
+            echo "  --multi-platform           构建多平台版本（仅macOS）"
             echo "  --help                     显示帮助信息"
             exit 0
             ;;
@@ -48,6 +54,7 @@ echo "📋 发布配置:"
 echo "   - 发布类型: $RELEASE_TYPE"
 echo "   - 草稿发布: $DRAFT"
 echo "   - 预发布: $PRERELEASE"
+echo "   - 多平台构建: $MULTI_PLATFORM"
 echo ""
 
 # 检查当前工作目录是否为 git 仓库
@@ -104,8 +111,30 @@ echo ""
 # 构建应用
 echo "🔨 构建应用..."
 make clean
-make backend
-make electron-build
+
+# 检测系统并选择构建模式
+UNAME_S=$(uname -s)
+if [[ "$MULTI_PLATFORM" == "true" ]]; then
+    if [[ "$UNAME_S" == "Darwin" ]]; then
+        echo "🍎 检测到 macOS，启用交叉编译构建所有平台..."
+        make cross-build-all
+    else
+        echo "❌ 错误: 多平台构建仅在 macOS 上支持"
+        echo "🖥️ 回退到构建当前平台版本..."
+        make backend
+        make electron-build
+    fi
+else
+    if [[ "$UNAME_S" == "Darwin" ]]; then
+        echo "🍎 检测到 macOS，但未启用多平台构建，构建当前平台版本..."
+        make backend
+        make electron-build
+    else
+        echo "🖥️ 检测到 $UNAME_S，构建当前平台版本..."
+        make backend
+        make electron-build
+    fi
+fi
 echo "✅ 构建完成"
 echo ""
 

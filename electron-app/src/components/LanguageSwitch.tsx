@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../hooks';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface LanguageSwitchProps {
   className?: string;

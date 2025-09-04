@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useLanguage } from './hooks';
+import { useLanguage } from './hooks/useLanguage';
 import { useApiStatus } from './hooks/useApiStatus';
 import LanguageSwitch from './components/LanguageSwitch';
 import IZsim from '~icons/zsim/zsim';

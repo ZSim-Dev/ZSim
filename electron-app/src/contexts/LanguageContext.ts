@@ -61,5 +61,3 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     children,
   );
 };
-
-export { LanguageProvider as default };

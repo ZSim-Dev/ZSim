@@ -1,29 +1,36 @@
-class Node:
-    def __init__(self, data=None):
-        self.data = data
-        self.next = None
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
 
 
-class NodeIterator:
-    def __init__(self, head):
-        self.current = head
+class Node(Generic[T]):
+    def __init__(self, data: T | None = None):
+        self.data: T | None = data
+        self.next: "Node[T] | None" = None
 
-    def __next__(self):
+
+class NodeIterator(Generic[T]):
+    def __init__(self, head: Node[T] | None):
+        self.current: Node[T] | None = head
+
+    def __next__(self) -> T:
         if self.current is None:
             raise StopIteration
-        data = self.current.preload_data
+        data = self.current.data
         self.current = self.current.next
+        if data is None:
+            raise StopIteration
         return data
 
     def __iter__(self):
         return self
 
 
-class LinkedList:
+class LinkedList(Generic[T]):
     def __init__(self):
-        self.head = None
+        self.head: Node[T] | None = None
 
-    def add(self, data):
+    def add(self, data: T) -> None:
         """在链表尾部添加"""
         new_node = Node(data)
         if self.head is None:
@@ -34,7 +41,7 @@ class LinkedList:
                 current = current.next
             current.next = new_node
 
-    def insert(self, data):
+    def insert(self, data: T) -> None:
         """在链表头部插入"""
         new_node = Node(data)
         new_node.next = self.head
@@ -43,15 +50,15 @@ class LinkedList:
     def __iter__(self):
         return NodeIterator(self.head)
 
-    def __str__(self):
+    def __str__(self) -> str:
         elements = []
         current = self.head
         while current:
-            elements.append(current.preload_data)
+            elements.append(current.data)
             current = current.next
         return str(elements)
 
-    def __len__(self):
+    def __len__(self) -> int:
         count = 0
         current = self.head
         while current:
@@ -59,7 +66,7 @@ class LinkedList:
             current = current.next
         return count
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Node[T]:
         current = self.head
         if current is None:
             raise IndexError("Index out of range")
@@ -67,28 +74,28 @@ class LinkedList:
             current = current.next
             if current is None:
                 raise IndexError("Index out of range")
-        return current.preload_data
+        return current
 
-    def print_list(self):
+    def print_list(self) -> None:
         current = self.head
         while current:
-            print(f"{current.preload_data} -> ", end="")
+            print(f"{current.data} -> ", end="")
             current = current.next
         print("None")
 
-    def pop_head(self):
+    def pop_head(self) -> Node[T] | None:
         if self.head is not None:
-            removed_data = self.head.preload_data
+            removed_node = self.head
             self.head = self.head.next
-            return removed_data
+            return removed_node
         else:
             return None
 
-    def remove(self, data):
+    def remove(self, data: T) -> bool:
         current = self.head
         previous = None
         while current:
-            if current == data:
+            if current.data == data:
                 if previous:
                     previous.next = current.next
                 else:

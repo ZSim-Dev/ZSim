@@ -1,9 +1,9 @@
 import json
 import shutil
+import sys
+import tomllib
 from pathlib import Path
 from typing import Callable, Literal
-
-import toml
 
 # 属性类型：
 ElementType = Literal[0, 1, 2, 3, 4, 5, 6]
@@ -13,21 +13,44 @@ INVALID_ELEMENT_ERROR = "Invalid element type"
 NORMAL_MODE_ID_JSON = "results/id_cache.json"
 
 
-def initialize_config_files():
+results_dir = "results/"
+
+# 加载角色配置
+# 处理打包后的资源路径
+
+
+if getattr(sys, "frozen", False):
+    # 如果是打包后的可执行文件，直接从当前目录读取
+    data_dir = Path("./zsim/data")
+    CONFIG_PATH = Path("./zsim/config.json")
+else:
+    # 如果是开发环境
+    data_dir = Path("./zsim/data")
+    CONFIG_PATH = Path("zsim/config.json")
+
+# 确保数据目录存在
+data_dir.mkdir(exist_ok=True, parents=True)
+char_config_file = data_dir / "character_config.toml"
+saved_char_config = {}
+
+
+
+# 修复：将char_config_file作为参数传递给initialize_config_files
+def initialize_config_files_with_paths(char_file, data_dir, config_path):
     """
     初始化配置文件。
     如果配置文件不存在，则从 _example 文件复制生成。
     如果存在，则检查并使用模板更新现有配置。
     """
-    # TOML config
     char_config_example_path = Path("zsim/data/character_config_example.toml")
-    if not char_config_file.exists():
-        shutil.copy(char_config_example_path, char_config_file)
-        print(f"已生成配置文件：{char_config_file}")
-
-    # JSON config
     config_example_path = Path("zsim/config_example.json")
 
+    # TOML config
+    if not char_file.exists():
+        shutil.copy(char_config_example_path, char_file)
+        print(f"已生成配置文件：{char_file}")
+
+    # JSON config
     def update_json_config(template: dict, user: dict) -> bool:
         """递归更新用户配置，返回是否被更新"""
         updated = False
@@ -40,37 +63,31 @@ def initialize_config_files():
                     updated = True
         return updated
 
-    if not Path(CONFIG_PATH).exists():
-        shutil.copy(config_example_path, CONFIG_PATH)
-        print(f"已生成配置文件：{CONFIG_PATH}")
+    if not Path(config_path).exists():
+        shutil.copy(config_example_path, config_path)
+        print(f"已生成配置文件：{config_path}")
     else:
         with open(config_example_path, "r", encoding="utf-8") as f:
             template_config = json.load(f)
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             user_config = json.load(f)
 
         if update_json_config(template_config, user_config):
-            with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(user_config, f, indent=4, ensure_ascii=False)
-            print(f"配置文件 {CONFIG_PATH} 已更新。")
+            print(f"配置文件 {config_path} 已更新。")
 
 
-results_dir = "results/"
-
-# 加载角色配置
-CONFIG_PATH = "zsim/config.json"
-data_dir = Path("./zsim/data")
-data_dir.mkdir(exist_ok=True)
-char_config_file = data_dir / "character_config.toml"
-saved_char_config = {}
-initialize_config_files()
+# 使用新的函数
+initialize_config_files_with_paths(char_config_file, data_dir, CONFIG_PATH)
 if char_config_file.exists():
-    with open(char_config_file, "r", encoding="utf-8") as f:
-        saved_char_config = toml.load(f)
+    with open(char_config_file, "rb") as f:
+        saved_char_config = tomllib.load(f)
 else:
     raise FileNotFoundError(f"Character config file {char_config_file} not found.")
 
-
+# 确保配置文件目录存在
+CONFIG_PATH.parent.mkdir(exist_ok=True, parents=True)
 _config = json.load(open(CONFIG_PATH, encoding="utf-8-sig"))
 
 # 敌人配置
@@ -109,9 +126,7 @@ PARRY_BASE_PARAMETERS: dict[str, int | float] = {
 # 该字典的key为CID，value为招架动作的skill_tag
 # 注意，不同的招架策略有时候存在着影画或是其他的限制条件，
 # 所以若是在不满足这些条件的情况下强行使用这些招架策略，那么character中的审查函数会报错而中断程序运行。
-CHAR_PARRY_STRATEGY_MAP: dict = {
-    1411: "1411_Assault_Aid_A"
-}
+CHAR_PARRY_STRATEGY_MAP: dict = {1411: "1411_Assault_Aid_A"}
 
 # debug参数，用于检查APL在窗口期间的想法
 APL_THOUGHT_CHECK: bool = _config["apl_mode"].get("apl_thought_check", False)
@@ -254,10 +269,18 @@ DOCS_DIR = "docs"
 GITHUB_REPO_OWNER = "ZZZSimulator"
 GITHUB_REPO_NAME = "ZSim"
 
-with open("pyproject.toml", "r", encoding="utf-8") as f:
-    pyproject_config = toml.load(f)
-    # 获取当前版本号
-    __version__ = pyproject_config.get("project", {}).get("version", "0.0.0")
+# 版本号处理
+if getattr(sys, "frozen", False):
+    # 打包环境：版本号由PyInstaller在打包时注入
+    __version__ = "1.0.0"  # 默认值，打包时会被替换
+else:
+    # 开发环境：从 pyproject.toml 读取
+    try:
+        with open("pyproject.toml", "rb") as f:
+            pyproject_config = tomllib.load(f)
+            __version__ = pyproject_config.get("project", {}).get("version", "0.0.0")
+    except FileNotFoundError:
+        __version__ = "1.0.0"
 
 if __name__ == "__main__":
     # 打印全部CONSTANT变量名

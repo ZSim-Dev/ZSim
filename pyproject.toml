@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=75.1.0", "wheel>=0.41.2", "cx_Freeze>=6.15.0"]
+requires = ["setuptools>=75.1.0", "wheel>=0.41.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -15,19 +15,12 @@ exclude = [
     "dist*",
 ]
 
-[tool.cxfreeze]
-executables = [{ script = "zzz_simulator.py", base = "gui" }]
-
-[tool.cxfreeze.build_exe]
-excludes = [
-    "tkinter",
-    "unittest",
-    "ipykernel",
-    "pytest",
-    "pyinstaller",
-    "viztracer",
-]
-include_files = ["zsim", "docs"]
+[tool.pyinstaller]
+# ZSim API 配置
+spec_file = "zsim_api.spec"
+console = true
+clean = true
+noconfirm = true
 
 
 [project]
@@ -54,6 +47,7 @@ dependencies = [
     "uvicorn>=0.35.0",
     "aiosqlite>=0.21.0",
     "httpx>=0.28.1",
+    "dotenv>=0.9.9",
 ]
 
 [tool.ruff]
@@ -84,6 +78,4 @@ dev = [
 ]
 
 [project.optional-dependencies]
-windows = [
-    "pywin32>=308",
-]
+windows = ["pywin32>=308"]

@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useLanguage } from './hooks';
+import { useApiStatus } from './hooks/useApiStatus';
 import LanguageSwitch from './components/LanguageSwitch';
 
 type MenuItem = {
@@ -9,75 +10,7 @@ type MenuItem = {
 
 const App = () => {
   const { t } = useLanguage();
-  const [apiStatus, setApiStatus] = useState<string>('初始化中...');
-  const [apiResponse, setApiResponse] = useState<unknown>(null);
-
-  // 检查 apiClient 是否可用
-  useEffect(() => {
-    const checkApiClient = async () => {
-      console.log('[App] Checking window.apiClient...');
-
-      // 等待preload脚本加载，最多等待10秒
-      const maxAttempts = 50;
-      let attempts = 0;
-
-      const checkInterval = setInterval(() => {
-        attempts++;
-        console.log(`[App] Attempt ${attempts}: window.apiClient =`, typeof window.apiClient);
-
-        if (typeof window !== 'undefined' && window.apiClient) {
-          clearInterval(checkInterval);
-          console.log('[App] window.apiClient is available:', window.apiClient);
-          setApiStatus('API 客户端已就绪');
-
-          // 测试IPC配置获取
-          (async () => {
-            try {
-              if (window.electron && window.electron.ipcRenderer) {
-                console.log('[App] Testing IPC config retrieval...');
-                const config = await window.electron.ipcRenderer.invoke('get-ipc-config');
-                console.log('[App] IPC Config:', config);
-              } else {
-                console.log('[App] window.electron.ipcRenderer not available');
-              }
-            } catch (error) {
-              console.error('[App] IPC config error:', error);
-            }
-          })();
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkInterval);
-          console.error('[App] window.apiClient not available after maximum attempts');
-          setApiStatus('API 客户端加载超时');
-        } else {
-          console.log('[App] window.apiClient not available yet, waiting...');
-        }
-      }, 200);
-    };
-
-    checkApiClient();
-  }, []);
-
-  // 测试 API 连接
-  useEffect(() => {
-    const testApi = async () => {
-      if (!window.apiClient) {
-        setApiStatus('API 客户端未加载');
-        return;
-      }
-
-      try {
-        const response = await window.apiClient.get('/health');
-        setApiStatus(`API 连接成功 (${response.status})`);
-        setApiResponse(JSON.parse(response.body));
-      } catch (error) {
-        setApiStatus(`API 连接失败: ${error}`);
-        console.error('API test failed:', error);
-      }
-    };
-
-    // 延迟测试 API，确保客户端已完全加载
-    setTimeout(testApi, 1000);
-  }, []);
+  const { apiStatus, apiResponse, testApi } = useApiStatus();
 
   // DEMO
   const asideMenuList = useMemo<MenuItem[]>(
@@ -165,53 +98,12 @@ const App = () => {
               </span>
             ) : null}
           </div>
-          <div
-            className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]"
-            onClick={() => {
-              const testApi = async () => {
-                if (!window.apiClient) {
-                  setApiStatus('API 客户端未加载');
-                  return;
-                }
-
-                try {
-                  const response = await window.apiClient.get('/health');
-                  setApiStatus(`API 连接成功 (${response.status})`);
-                  setApiResponse(JSON.parse(response.body));
-                } catch (error) {
-                  setApiStatus(
-                    `API 连接失败: ${error instanceof Error ? error.message : String(error)}`,
-                  );
-                  console.error('API test failed:', error);
-                }
-              };
-              testApi();
-            }}
-          >
+          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]">
             创建会话
           </div>
           <div
             className="px-[10px] h-[32px] rounded-[8px] bg-[#28A745] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80"
-            onClick={() => {
-              const testApi = async () => {
-                if (!window.apiClient) {
-                  setApiStatus('API 客户端未加载');
-                  return;
-                }
-
-                try {
-                  const response = await window.apiClient.get('/health');
-                  setApiStatus(`API 连接成功 (${response.status})`);
-                  setApiResponse(JSON.parse(response.body));
-                } catch (error) {
-                  setApiStatus(
-                    `API 连接失败: ${error instanceof Error ? error.message : String(error)}`,
-                  );
-                  console.error('API test failed:', error);
-                }
-              };
-              testApi();
-            }}
+            onClick={testApi}
           >
             重新测试API
           </div>

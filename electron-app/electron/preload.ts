@@ -35,7 +35,7 @@ function buildUrl(base: string, p: string, query?: Record<string, unknown>): str
 async function getIpcConfig(): Promise<IpcConfig> {
   try {
     return await ipcRenderer.invoke('get-ipc-config');
-  } catch (error) {
+  } catch {
     return {
       mode: 'http',
       port: 8000,
@@ -47,7 +47,7 @@ async function getIpcConfig(): Promise<IpcConfig> {
 async function httpRequest(
   method: string,
   p: string,
-  opts: RequestOptions = {}
+  opts: RequestOptions = {},
 ): Promise<IpcResponse> {
   const ipcConfig = await getIpcConfig();
   const headers = { 'content-type': 'application/json', ...(opts.headers || {}) };

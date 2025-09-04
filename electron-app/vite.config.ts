@@ -4,7 +4,8 @@ import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
 // @ts-expect-error no @types
 import SemiPlugin from 'vite-plugin-semi-theme';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
+import { URL, fileURLToPath } from 'url';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -58,6 +59,11 @@ export default defineConfig({
       output: {
         format: 'cjs', // 默认输出格式
       },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 });

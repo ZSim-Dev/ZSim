@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+@theme {
+  --font-pingfang: 'PingFang SC', sans-serif;
+  --font-ibm-plex-sans-hebrew: 'IBM Plex Sans Hebrew', sans-serif;
+}
+
+@layer base {
+  html {
+    @apply font-pingfang;
+  }
+}

@@ -1,5 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useLanguage } from './hooks';
+import { useState, useMemo } from 'react';
+import { useLanguage } from './hooks/useLanguage';
+import { useApiStatus } from './hooks/useApiStatus';
+import LanguageSwitch from './components/LanguageSwitch';
+import IZsim from '~icons/zsim/zsim';
 
 type MenuItem = {
   label: string;
@@ -7,76 +10,8 @@ type MenuItem = {
 };
 
 const App = () => {
-  const { t, language, setLanguage } = useLanguage();
-  const [apiStatus, setApiStatus] = useState<string>('初始化中...');
-  const [apiResponse, setApiResponse] = useState<unknown>(null);
-
-  // 检查 apiClient 是否可用
-  useEffect(() => {
-    const checkApiClient = async () => {
-      console.log('[App] Checking window.apiClient...');
-
-      // 等待preload脚本加载，最多等待10秒
-      const maxAttempts = 50;
-      let attempts = 0;
-
-      const checkInterval = setInterval(() => {
-        attempts++;
-        console.log(`[App] Attempt ${attempts}: window.apiClient =`, typeof window.apiClient);
-
-        if (typeof window !== 'undefined' && window.apiClient) {
-          clearInterval(checkInterval);
-          console.log('[App] window.apiClient is available:', window.apiClient);
-          setApiStatus('API 客户端已就绪');
-
-          // 测试IPC配置获取
-          (async () => {
-            try {
-              if (window.electron && window.electron.ipcRenderer) {
-                console.log('[App] Testing IPC config retrieval...');
-                const config = await window.electron.ipcRenderer.invoke('get-ipc-config');
-                console.log('[App] IPC Config:', config);
-              } else {
-                console.log('[App] window.electron.ipcRenderer not available');
-              }
-            } catch (error) {
-              console.error('[App] IPC config error:', error);
-            }
-          })();
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkInterval);
-          console.error('[App] window.apiClient not available after maximum attempts');
-          setApiStatus('API 客户端加载超时');
-        } else {
-          console.log('[App] window.apiClient not available yet, waiting...');
-        }
-      }, 200);
-    };
-
-    checkApiClient();
-  }, []);
-
-  // 测试 API 连接
-  useEffect(() => {
-    const testApi = async () => {
-      if (!window.apiClient) {
-        setApiStatus('API 客户端未加载');
-        return;
-      }
-
-      try {
-        const response = await window.apiClient.get('/health');
-        setApiStatus(`API 连接成功 (${response.status})`);
-        setApiResponse(JSON.parse(response.body));
-      } catch (error) {
-        setApiStatus(`API 连接失败: ${error}`);
-        console.error('API test failed:', error);
-      }
-    };
-
-    // 延迟测试 API，确保客户端已完全加载
-    setTimeout(testApi, 1000);
-  }, []);
+  const { t } = useLanguage();
+  const { apiStatus, apiResponse, testApi } = useApiStatus();
 
   // DEMO
   const asideMenuList = useMemo<MenuItem[]>(
@@ -103,14 +38,21 @@ const App = () => {
   }, [asideMenuList]);
 
   // DEMO
-  const [activedMenu, setActivedMenu] = useState('session-management');
+  const [activeMenu, setActiveMenu] = useState('session-management');
 
   return (
     <div className="w-screen h-screen bg-[#F1F1F1] overflow-hidden">
       {/* 侧栏 */}
       <div className="w-[192px] h-full overflow-hidden absolute top-0 left-0 flex flex-col text-[14px]">
         {/* 侧边顶部 */}
-        <div className="shrink-0 w-full h-[72px] p-[16px] text-[28px] font-[700]">ZSim</div>
+        <div className="flex items-center p-4 gap-x-3">
+          <div className="size-10 bg-gradient-to-b from-[#494949] to-[#000000] rounded-lg flex items-center justify-center shadow-[0rem_0.5rem_1rem_-0.25rem_#0000004D]">
+            <IZsim className="size-7" />
+          </div>
+          <div className="font-ibm-plex-sans-hebrew text-[1.75rem] leading-9 font-bold tracking-normal bg-gradient-to-br from-[#656565] to-[#262626] bg-clip-text text-transparent">
+            ZSim
+          </div>
+        </div>
 
         {/* 侧边列表 */}
         <div className="flex-1 w-full overflow-auto flex flex-col">
@@ -123,12 +65,12 @@ const App = () => {
                 flex items-center gap-[8px] text-[#6B6B6B]
                 select-none cursor-pointer
                 ${
-                  menu.key === activedMenu
+                  menu.key === activeMenu
                     ? 'border-[#0000001A] bg-white'
                     : 'border-transparent hover:bg-[#38302E0D] active:bg-[#38302E17]'
                 }
               `}
-              onClick={() => setActivedMenu(menu.key)}
+              onClick={() => setActiveMenu(menu.key)}
             >
               <div className="w-[16px] h-[16px] rounded-sm bg-[#6B6B6B40]" />
               <div>{menu.label}</div>
@@ -137,26 +79,7 @@ const App = () => {
         </div>
 
         {/* 侧边底部 */}
-        <div className="shrink-0 w-full h-[64px] p-[16px] pb-[24px] flex gap-[4px]">
-          <div
-            className={`
-              px-[10px] h-[32px] rounded-[8px] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80
-              ${language === 'zh' ? 'bg-[#FA7319]' : 'bg-[#333]'}
-            `}
-            onClick={() => setLanguage('zh')}
-          >
-            中文
-          </div>
-          <div
-            className={`
-              px-[10px] h-[32px] rounded-[8px] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80
-              ${language === 'en' ? 'bg-[#FA7319]' : 'bg-[#333]'}
-            `}
-            onClick={() => setLanguage('en')}
-          >
-            English
-          </div>
-        </div>
+        <LanguageSwitch className="shrink-0 w-full h-[64px] p-[16px] pb-[24px]" />
       </div>
 
       {/* 模块 */}
@@ -170,7 +93,7 @@ const App = () => {
       >
         {/* 模块.1 */}
         <div className="w-full shrink-0 p-[24px] pb-0 text-[24px] font-[400]">
-          {asideMenuMap.get(activedMenu)}
+          {asideMenuMap.get(activeMenu)}
         </div>
 
         {/* 模块.2 */}
@@ -183,53 +106,12 @@ const App = () => {
               </span>
             ) : null}
           </div>
-          <div
-            className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]"
-            onClick={() => {
-              const testApi = async () => {
-                if (!window.apiClient) {
-                  setApiStatus('API 客户端未加载');
-                  return;
-                }
-
-                try {
-                  const response = await window.apiClient.get('/health');
-                  setApiStatus(`API 连接成功 (${response.status})`);
-                  setApiResponse(JSON.parse(response.body));
-                } catch (error) {
-                  setApiStatus(
-                    `API 连接失败: ${error instanceof Error ? error.message : String(error)}`,
-                  );
-                  console.error('API test failed:', error);
-                }
-              };
-              testApi();
-            }}
-          >
+          <div className="px-[10px] h-[32px] rounded-[8px] bg-[#FA7319] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80 mr-[8px]">
             创建会话
           </div>
           <div
             className="px-[10px] h-[32px] rounded-[8px] bg-[#28A745] flex items-center text-[14px] text-white cursor-pointer select-none hover:brightness-90 active:brightness-80"
-            onClick={() => {
-              const testApi = async () => {
-                if (!window.apiClient) {
-                  setApiStatus('API 客户端未加载');
-                  return;
-                }
-
-                try {
-                  const response = await window.apiClient.get('/health');
-                  setApiStatus(`API 连接成功 (${response.status})`);
-                  setApiResponse(JSON.parse(response.body));
-                } catch (error) {
-                  setApiStatus(
-                    `API 连接失败: ${error instanceof Error ? error.message : String(error)}`,
-                  );
-                  console.error('API test failed:', error);
-                }
-              };
-              testApi();
-            }}
+            onClick={testApi}
           >
             重新测试API
           </div>

@@ -30,9 +30,8 @@ from zsim.simulator.dataclasses import (
     InitData,
     LoadData,
     ScheduleData,
+    SimCfg,
 )
-
-from zsim.simulator.dataclasses import SimCfg
 
 if TYPE_CHECKING:
     from zsim.models.session.session_run import CommonCfg
@@ -42,10 +41,7 @@ class Confirmation(BaseModel):
     session_id: str
     status: str
     timestamp: int
-    sim_cfg: "SimCfg | None" = None
-
-
-Confirmation.model_rebuild()
+    sim_cfg: SimCfg | None = None
 
 
 class Simulator:
@@ -93,9 +89,9 @@ class Simulator:
     listener_manager: ListenerManger
     rng_instance: RNG
     in_parallel_mode: bool
-    sim_cfg: "SimCfg | None"
+    sim_cfg: SimCfg | None
 
-    def cli_init_simulator(self, sim_cfg: "SimCfg | None"):
+    def cli_init_simulator(self, sim_cfg: SimCfg | None):
         """CLI和WebUI的旧方法，重置模拟器实例为初始状态。"""
         self.__detect_parallel_mode(sim_cfg)
         self.init_data = InitData(common_cfg=None, sim_cfg=sim_cfg)
@@ -108,7 +104,7 @@ class Simulator:
         self.__init_data_struct(sim_cfg)
         start_report_threads(sim_cfg)  # 启动线程以处理日志和结果写入
 
-    def api_init_simulator(self, common_cfg: "CommonCfg", sim_cfg: "SimCfg | None"):
+    def api_init_simulator(self, common_cfg: "CommonCfg", sim_cfg: SimCfg | None):
         """api初始化模拟器实例的接口。"""
         self.__detect_parallel_mode(sim_cfg)
         self.init_data = InitData(common_cfg=common_cfg, sim_cfg=sim_cfg)
@@ -124,7 +120,7 @@ class Simulator:
         )  # 启动线程以处理日志和结果写入
 
     def api_run_simulator(
-        self, common_cfg: "CommonCfg", sim_cfg: "SimCfg | None", stop_tick: int | None = None
+        self, common_cfg: "CommonCfg", sim_cfg: SimCfg | None, stop_tick: int | None = None
     ) -> Confirmation:
         """api运行模拟器实例的接口。
 
@@ -203,7 +199,7 @@ class Simulator:
         self.load_data.buff_0_manager.initialize_buff_listener()
 
     def main_loop(
-        self, stop_tick: int = 10800, *, sim_cfg: "SimCfg | None" = None, use_api: bool = False
+        self, stop_tick: int = 10800, *, sim_cfg: SimCfg | None = None, use_api: bool = False
     ):
         """
         CLI和WebUI使用此方法直接从文件读取数据，运行模拟器。

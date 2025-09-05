@@ -19,10 +19,10 @@ class APLParser:
         try:
             # 检查文件扩展名
             if file_path.endswith(".toml"):
-                import toml
+                import tomllib
 
-                with open(file_path, "r", encoding="utf-8") as f:
-                    toml_dict: dict = toml.load(f)
+                with open(file_path, "rb") as f:
+                    toml_dict: dict = tomllib.load(f)
                     # 如果存在apl_logic表的logic，返回其内容，否则返回空字符串
                     return toml_dict.get("apl_logic", {}).get("logic", "")
             else:

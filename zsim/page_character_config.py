@@ -1,5 +1,5 @@
 import streamlit as st
-import toml
+import tomli_w
 
 
 def page_character_config():
@@ -433,8 +433,8 @@ def page_character_config():
     saved_char_config.update(_config_to_save)
     from zsim.define import char_config_file
 
-    with open(char_config_file, "w", encoding="utf-8") as f:
-        toml.dump(saved_char_config, f)
+    with open(char_config_file, "wb") as f:
+        tomli_w.dump(saved_char_config, f)
     from zsim.lib_webui.process_char_config import display_character_panels
 
     display_character_panels(name_box)

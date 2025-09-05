@@ -4,7 +4,8 @@ APL导入导出测试
 """
 
 import os
-import toml
+import tomli_w
+import tomllib
 import pytest
 import tempfile
 import shutil
@@ -83,8 +84,8 @@ class TestAPLImportExport:
         assert os.path.exists(export_file_path)
 
         # 验证导出的文件内容
-        with open(export_file_path, "r", encoding="utf-8") as f:
-            exported_data = toml.load(f)
+        with open(export_file_path, "rb") as f:
+            exported_data = tomllib.load(f)
 
         assert exported_data["title"] == "Test Export Config"
         assert exported_data["author"] == "Test Author"
@@ -110,8 +111,8 @@ class TestAPLImportExport:
         }
 
         import_file_path = os.path.join(test_custom_dir, "import_config.toml")
-        with open(import_file_path, "w", encoding="utf-8") as f:
-            toml.dump(import_data, f)
+        with open(import_file_path, "wb") as f:
+            tomli_w.dump(import_data, f)
 
         # 导入配置
         config_id = db.import_apl_config(import_file_path)

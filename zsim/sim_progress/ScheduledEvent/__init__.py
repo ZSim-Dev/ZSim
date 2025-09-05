@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from zsim.sim_progress import Buff, Preload, Report
 from zsim.sim_progress.anomaly_bar import AnomalyBar as AnB
 from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
@@ -15,13 +16,13 @@ from zsim.sim_progress.Buff import ScheduleBuffSettle
 from zsim.sim_progress.Character import Character
 from zsim.sim_progress.data_struct import (
     ActionStack,
+    PolarizedAssaultEvent,
     QuickAssistEvent,
     SchedulePreload,
     ScheduleRefreshData,
     SingleHit,
     SPUpdateData,
     StunForcedTerminationEvent,
-    PolarizedAssaultEvent
 )
 from zsim.sim_progress.Load.LoadDamageEvent import (
     ProcessFreezLikeDots,
@@ -30,11 +31,12 @@ from zsim.sim_progress.Load.LoadDamageEvent import (
 from zsim.sim_progress.Load.loading_mission import LoadingMission
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Update import update_anomaly
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
 from .CalAnomaly import CalAbloom, CalAnomaly, CalDisorder, CalPolarityDisorder
-from .Calculator import Calculator, MultiplierData  # noqa: F401
+from .Calculator import Calculator  # noqa: F401
 
 if TYPE_CHECKING:
+    from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
 
 
@@ -68,7 +70,7 @@ class ScheduledEvent:
         loading_buff: dict | None = None,
         sim_instance: Simulator,
     ):
-        self.data = data  # ScheduleData in __main__
+        self.data: "ScheduleData" = data
         self.data.dynamic_buff = dynamic_buff
         self.data.processed_times = 0
         # self.judge_required_info_dict = data.judge_required_info_dict
@@ -151,16 +153,20 @@ class ScheduledEvent:
                         )
                     else:
                         raise ValueError(
-                            f"event_start主循环正在尝试处理一个名为{event.skill_tag}的未来事件"
+                            f"event_start主循环正在尝试处理一个名为{event.mission_tag if isinstance(event, LoadingMission) else event.skill_tag}的未来事件"
                         )
                 elif isinstance(event, Abloom):
                     self.abloom_event(event)
                 elif isinstance(event, PolarityDisorder):
-                    self.sim_instance.listener_manager.broadcast_event(event=event, signal=LBS.DISORDER_SETTLED)
+                    self.sim_instance.listener_manager.broadcast_event(
+                        event=event, signal=LBS.DISORDER_SETTLED
+                    )
                     self.polarity_disorder_event(event)
                 elif isinstance(event, Disorder):
                     # print(f'检测到{event.element_type}属性的紊乱，快照为：{event.current_ndarray}')
-                    self.sim_instance.listener_manager.broadcast_event(event=event, signal=LBS.DISORDER_SETTLED)
+                    self.sim_instance.listener_manager.broadcast_event(
+                        event=event, signal=LBS.DISORDER_SETTLED
+                    )
                     self.disorder_event(event)
                 elif isinstance(event, AnB):
                     self.anomaly_event(event)
@@ -266,13 +272,23 @@ class ScheduledEvent:
                 _loading_mission = LoadingMission(_node)
                 _loading_mission.mission_start(timenow=self.sim_instance.tick)
                 _node.loading_mission = _loading_mission
-            if self.tick - 1 < _node.loading_mission.get_last_hit() <= self.tick:
+            last_hit = _node.loading_mission.get_last_hit()
+            if last_hit is not None and self.tick - 1 < last_hit <= self.tick:
                 should_update = True
         else:
             if _node.skill.anomaly_update_rule == -1:
                 should_update = True
             else:
-                if _node.loading_mission.hitted_count in _node.skill.anomaly_update_rule:
+                if (
+                    _node.loading_mission is not None
+                    and _node.skill.anomaly_update_rule is not None
+                    and (
+                        isinstance(_node.skill.anomaly_update_rule, list)
+                        and _node.loading_mission.hitted_count in _node.skill.anomaly_update_rule
+                        or isinstance(_node.skill.anomaly_update_rule, int)
+                        and _node.loading_mission.hitted_count == _node.skill.anomaly_update_rule
+                    )
+                ):
                     should_update = True
         if should_update:
             update_anomaly(
@@ -358,7 +374,7 @@ class ScheduledEvent:
             stun=round(stun, 2),
             buildup=round(snapshot[1], 2),
             **self.data.enemy.dynamic.get_status(),
-            UUID=event.UUID,
+            UUID=event.UUID if event.UUID is not None else "",
             crit_rate=cal_obj.regular_multipliers.crit_rate,
             crit_dmg=cal_obj.regular_multipliers.crit_dmg,
         )
@@ -384,7 +400,7 @@ class ScheduledEvent:
             stun=0,
             buildup=0,
             **self.data.enemy.dynamic.get_status(),
-            UUID=event.UUID,
+            UUID=event.UUID if event.UUID is not None else "",
         )
 
     def disorder_event(self, event: Disorder):
@@ -409,7 +425,7 @@ class ScheduledEvent:
             stun=round(stun, 2),
             buildup=0,
             **self.data.enemy.dynamic.get_status(),
-            UUID=event.UUID,
+            UUID=event.UUID if event.UUID is not None else "",
         )
 
     def polarity_disorder_event(self, event: PolarityDisorder):
@@ -432,7 +448,7 @@ class ScheduledEvent:
             stun=0,
             buildup=0,
             **self.data.enemy.dynamic.get_status(),
-            UUID=event.UUID,
+            UUID=event.UUID if event.UUID is not None else "",
         )
 
     def abloom_event(self, event: Abloom):
@@ -455,7 +471,7 @@ class ScheduledEvent:
             stun=0,
             buildup=0,
             **self.data.enemy.dynamic.get_status(),
-            UUID=event.UUID,
+            UUID=event.UUID if event.UUID is not None else "",
         )
 
     def refresh_event(self, event: ScheduleRefreshData):

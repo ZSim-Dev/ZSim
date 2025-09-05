@@ -5,7 +5,8 @@ from typing import Any, Sequence
 
 import pandas as pd
 import streamlit as st
-import toml
+import tomli_w
+import tomllib
 from streamlit_ace import st_ace
 
 from zsim.define import (
@@ -94,8 +95,8 @@ class APLArchive:
                 data_to_save["general"] = {"latest_change_time": now_str}
 
             # 保存到文件
-            with open(absolute_path, "w", encoding="utf-8") as f:
-                toml.dump(data_to_save, f)
+            with open(absolute_path, "wb") as f:
+                tomli_w.dump(data_to_save, f)
 
             # 刷新内部缓存
             self.refresh()
@@ -204,8 +205,8 @@ class APLArchive:
 
         # Step 5 & 6: Update the title and comment in the TOML file and save
         try:
-            with open(absolute_path, "r", encoding="utf-8") as f:
-                apl_data = toml.load(f)
+            with open(absolute_path, "rb") as f:
+                apl_data = tomllib.load(f)
 
             if "general" not in apl_data:
                 apl_data["general"] = {}
@@ -214,8 +215,8 @@ class APLArchive:
             if new_comment is not None:
                 apl_data["general"]["comment"] = new_comment
 
-            with open(absolute_path, "w", encoding="utf-8") as f:
-                toml.dump(apl_data, f)
+            with open(absolute_path, "wb") as f:
+                tomli_w.dump(apl_data, f)
 
             st.success("正在保存...")
             time.sleep(1)
@@ -241,11 +242,11 @@ class APLArchive:
                 # 如果是文件，直接处理
                 if base_path.endswith(".toml"):
                     try:
-                        with open(base_path, "r", encoding="utf-8") as f:
-                            toml_dict: dict = toml.load(f)
-                            if toml_dict.get("apl_logic", {}).get("logic") is not None:
+                        with open(base_path, "rb") as f:
+                            toml_data: dict = tomllib.load(f)
+                            if toml_data.get("apl_logic", {}).get("logic") is not None:
                                 relative_path = os.path.basename(base_path)
-                                toml_dict_map[relative_path] = toml_dict
+                                toml_dict_map[relative_path] = toml_data
                     except Exception as e:
                         st.exception(Exception(f"Error loading TOML file {base_path}: {e}"))
             elif os.path.isdir(base_path):
@@ -255,11 +256,11 @@ class APLArchive:
                         if file.endswith(".toml"):
                             file_path = os.path.join(root, file)
                             try:
-                                with open(file_path, "r", encoding="utf-8") as f:
-                                    toml_dict: dict = toml.load(f)
-                                    if toml_dict.get("apl_logic", {}).get("logic") is not None:
+                                with open(file_path, "rb") as f:
+                                    toml_data: dict = tomllib.load(f)
+                                    if toml_data.get("apl_logic", {}).get("logic") is not None:
                                         relative_path = os.path.relpath(file_path, base_path)
-                                        toml_dict_map[relative_path] = toml_dict
+                                        toml_dict_map[relative_path] = toml_data
                             except Exception as e:
                                 st.exception(Exception(f"Error loading TOML file {file_path}: {e}"))
             else:
@@ -639,8 +640,8 @@ def go_apl_editor():
             # 读取模板文件内容
             template_path = os.path.abspath(os.path.join(DEFAULT_APL_DIR, "APL template.toml"))
             try:
-                with open(template_path, "r", encoding="utf-8") as f:
-                    template_data = toml.load(f)
+                with open(template_path, "rb") as f:
+                    template_data = tomllib.load(f)
             except FileNotFoundError:
                 st.error(f"错误：找不到模板文件 '{template_path}'")
                 return
@@ -695,8 +696,8 @@ def go_apl_editor():
                     # 确保目录存在
                     os.makedirs(COSTOM_APL_DIR, exist_ok=True)
                     # 保存新文件
-                    with open(new_file_path, "w", encoding="utf-8") as f:
-                        toml.dump(new_apl_data, f)
+                    with open(new_file_path, "wb") as f:
+                        tomli_w.dump(new_apl_data, f)
 
                     st.success(f"APL '{new_title}' 已成功创建并保存至 '{safe_filename}'")
                     time.sleep(1)

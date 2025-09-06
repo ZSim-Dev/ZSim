@@ -23,3 +23,14 @@ class BuffRecordBaseClass:
         self.char_obj_list: "list[Character] | None" = None
         self.na_skill_level: "int | None" = None
         self.trans_ratio: float = 0
+        self.cd: int = 60   # 内置CD：1秒一次
+        self.last_active_tick: int = 0  # 上次触发的时间点
+
+    def check_cd(self, tick_now: int):
+        """检查内置CD是否就绪"""
+        if self.cd == 0:
+            return True
+        if tick_now - self.last_active_tick < self.cd:
+            return False
+        else:
+            return True

@@ -161,10 +161,9 @@ class NodeStack(BaseStack[NODE_T]):
             i = 1
             while i <= len(self.stack):
                 node = self.stack[-i]
-                if node.skill.labels is not None:
-                    if "additional_damage" in node.skill.labels:
-                        i += 1
-                        continue
+                if node.is_additional_damage:
+                    i += 1
+                    continue
                 return node
         return None
 

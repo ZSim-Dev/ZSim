@@ -113,15 +113,17 @@ class Alice(Character):
                     f"【剑仪值更新警告】技能{update_obj.skill_tag}的label中不包含剑仪值，请检查数据库"
                 )
                 return
-            blade_etiquette = update_obj.labels.get("blade_etiquette", 0)
+            blade_etiquette = update_obj.labels.get("blade_etiquette")
         elif isinstance(update_obj, float | int):
             blade_etiquette = update_obj
         assert isinstance(blade_etiquette, float | int), "剑仪值更新函数传入的参数类型错误"
         self.blade_etiquette = min(self.max_blade_etiquette, self.blade_etiquette + blade_etiquette)
+        if blade_etiquette == 0:
+            return
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
             print(
-                f"【爱丽丝事件】爱丽丝 {'恢复' if blade_etiquette >= 0 else '消耗'} 了 {abs(blade_etiquette):.2f} 点剑仪值，当前剑仪值为 {self.blade_etiquette:.2f}"
+                f"【爱丽丝事件】爱丽丝 {'恢复' if blade_etiquette > 0 else '消耗'} 了 {abs(blade_etiquette):.2f} 点剑仪值，当前剑仪值为 {self.blade_etiquette:.2f}"
             )
 
     def POST_INIT_DATA(self, sim_insatnce: "Simulator"):

@@ -47,8 +47,9 @@ class AnomalyBar:
     activated_by: "SkillNode | None" = None
     ndarray_box: list[tuple] | None = None
     scaling_factor: float = 1.0     # 缩放比例，在计算伤害时会乘以该比例
-    settled: bool = False       # 快照是否被结算过
+    settled: bool = False  # 快照是否被结算过
     rename_tag: str | None = None      # 重命名标签
+    schedule_priority: int = 999        # 默认情况下，异常条的处理优先级为999，位于当前tick的最后。
 
     @property
     def rename(self) -> bool:
@@ -148,7 +149,7 @@ class AnomalyBar:
         self.__get_max_duration(dynamic_buff_dict, char_cid)
         self.sim_instance.schedule_data.change_process_state()
         print(
-            f"{skill_node.char_name}的技能【{self.activated_by.skill_tag}】激活了【{ELEMENT_TYPE_MAPPING[self.element_type]}】属性的异常状态！"
+            f"{skill_node.char_name}的技能【{self.activated_by.skill_tag}】激活了【{ELEMENT_TYPE_MAPPING[self.element_type]}】属性的异常状态！\n技能为{skill_node.skill_tag}， preload_tick为{skill_node.preload_tick}， end_tick为{skill_node.end_tick}，tick_list为{skill_node.tick_list}"
         )
 
     def reset_current_info_cause_output(self):

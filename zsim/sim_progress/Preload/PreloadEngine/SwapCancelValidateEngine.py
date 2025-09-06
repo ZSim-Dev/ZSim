@@ -101,6 +101,7 @@ class SwapCancelValidateEngine(BasePreloadEngine):
 
         self.data.preload_action_list_before_confirm.append((skill_tag, True, apl_priority))
         self.active_signal = True
+
         return True
 
     def _validate_char_avaliable(
@@ -113,7 +114,31 @@ class SwapCancelValidateEngine(BasePreloadEngine):
             """角色的动作栈都尚未创建，说明角色当前没有任何动作，角色有空。"""
             return True
         """获取上一个非附加伤害的技能Node"""
-        char_latest_node = char_stack.get_effective_node()
+        """
+        在v0.3.4的开发过程中，我发现在一些极端情况下，当角色的personal_node_stack被数量较多的附加伤害技能填充时，
+        会发生一个无法有效读取角色当前正在进行的技能的问题，
+        这个问题将直接导致 合轴条件检测机制 会认为 “当前角色有空”而直接放行，从而导致“自己合轴自己”的情况发生。
+        比如爱丽丝6画会在三蓄发动时生效，队友的一些Hit会高频触发这个6画的附加伤害，
+        大量的"1401_Cinema_6"的skill_node涌入personal_node_stack，并且迅速超过上限，于是本该正在进行的技能"1401_SNA_3"因溢出而被pop移除了。
+        这样一来，get_effective_node()发现当前node_stack中全部都是附加伤害技能，就直接返回None，导致函数直接放行，
+        虽然整个SwapCancelValidateEngine内置多个校验器，但是关于角色是否“有空”的校验只有这一个，
+        这导致一旦本函数放行，后续的校验器将完全默认“角色有空”，最终导致某些场景下的错误判断。
+        
+        更新后，我在get_effective_node()的返回结果为None的情况下，进一步检查角色的dynamic.lasting_node.node是否为None。
+        如果dynamic.lasting_node.node也为None，那么说明角色当前确实没有任何动作，角色才是真正“有空的”。
+        """
+        try_get_char_latest_node = char_stack.get_effective_node()
+        if try_get_char_latest_node is None:
+            from zsim.sim_progress.Character.character import Character
+            char = self.data.char_data.find_char_obj(CID=cid)
+            assert isinstance(char, Character)
+            if char.dynamic.lasting_node.node is not None:
+                char_latest_node = char.dynamic.lasting_node.node
+            else:
+                char_latest_node = None
+        else:
+            char_latest_node = try_get_char_latest_node
+
         # char_latest_active_node = char_stack.get_on_field_node(tick)
         # if char_latest_active_node is not None:
         #     print(char_latest_node.skill_tag, char_latest_active_node.skill_tag)

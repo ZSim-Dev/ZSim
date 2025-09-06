@@ -47,8 +47,9 @@ class AnomalyBar:
     activated_by: "SkillNode | None" = None
     ndarray_box: list[tuple] | None = None
     scaling_factor: float = 1.0     # 缩放比例，在计算伤害时会乘以该比例
-    settled: bool = False       # 快照是否被结算过
+    settled: bool = False  # 快照是否被结算过
     rename_tag: str | None = None      # 重命名标签
+    schedule_priority: int = 999        # 默认情况下，异常条的处理优先级为999，位于当前tick的最后。
 
     @property
     def rename(self) -> bool:
@@ -148,7 +149,7 @@ class AnomalyBar:
         self.__get_max_duration(dynamic_buff_dict, char_cid)
         self.sim_instance.schedule_data.change_process_state()
         print(
-            f"{skill_node.char_name}的技能【{self.activated_by.skill_tag}】激活了【{ELEMENT_TYPE_MAPPING[self.element_type]}】属性的异常状态！"
+            f"{skill_node.char_name}的技能【{self.activated_by.skill_tag}】激活了【{ELEMENT_TYPE_MAPPING[self.element_type]}】属性的异常状态！\n技能为{skill_node.skill_tag}， preload_tick为{skill_node.preload_tick}， end_tick为{skill_node.end_tick}，tick_list为{skill_node.tick_list}"
         )
 
     def reset_current_info_cause_output(self):
@@ -256,7 +257,8 @@ class AnomalyBar:
     def anomaly_settled(self):
         """结算快照！"""
         if self.settled:
-            raise RuntimeError(f"【异常条结算警告】当前异常条快照已经被结算过一次了，请检查业务逻辑，找出重复结算的时间点！")
+            raise RuntimeError("【异常条结算警告】当前异常条快照已经被结算过一次了，请检查业务逻辑，找出重复结算的时间点！")
+        # assert len(self.ndarray_box) > 0, "异常条快照缓存为空！无法结算！"
         total_array = np.zeros((1, 1), dtype=np.float64)
         effective_buildup: np.float64 = np.float64(0)
         while self.ndarray_box:

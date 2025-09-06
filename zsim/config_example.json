@@ -2,7 +2,7 @@
     "debug": {
         "enabled": true,
         "level": 4,
-        "check_skill_mul": true,
+        "check_skill_mul": false,
         "check_skill_mul_tag": ["1401_Cinema_6"]
     },
     "stop_tick": 10800,

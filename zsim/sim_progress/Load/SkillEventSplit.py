@@ -14,6 +14,7 @@ def SkillEventSplit(
         skill = preloaded_action_list.pop()
         if not isinstance(skill, Preload.SkillNode):
             raise ValueError(f"本次拆分的{type(skill)}不是SkillNode类！")
+        # print(f"{timenow}tick：技能{skill.skill_tag}正式生效")
         this_mission = Load.LoadingMission(skill)
         this_mission.mission_start(timenow)
         action_stack.push(this_mission)

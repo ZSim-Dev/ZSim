@@ -106,7 +106,25 @@ class StatusSubUnit(BaseSubConditionUnit):
         def handler(cls, char_cid, found_char_dict, game_state, sim_instance):
             char = find_char(found_char_dict, game_state, char_cid)
             quick_assist_available = char.dynamic.quick_assist_manager.quick_assist_available
-            return quick_assist_available
+            from zsim.simulator.simulator_class import Simulator
+            from zsim.sim_progress.Character.character import Character
+            assert isinstance(char, Character)
+            assert isinstance(sim_instance, Simulator)
+            tick = sim_instance.tick
+            if not char.is_available(tick=tick):
+                return False
+            # 这里需要进一步审查，如果当前角色快速支援亮起但是角色本身有动作，那么这里应该返回False，即“快速支援激活但不能被响应”
+            preload_data = sim_instance.preload.preload_data
+            char_node_stack = preload_data.personal_node_stack.get(char_cid, None)
+            if char_node_stack is None:
+                return quick_assist_available
+            else:
+                for nodes in char_node_stack.stack:
+                    if not nodes.active_generation or nodes.is_additional_damage:
+                        continue
+                    if tick <= nodes.end_tick:
+                        return False
+                return quick_assist_available
 
     class WaitingAssistHandler(CheckHandler):
         @classmethod

@@ -8,13 +8,14 @@
 
 """
 
+import argparse
 import os
 import sys
-import argparse
+
 try:
     import pandas as pd
     import plotly.express as px
-    import plotly.graph_objects as go
+
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
@@ -82,13 +83,13 @@ def prepare_timeline_data(df):
     columns_to_check = ["冻结", "霜寒", "畏缩", "感电", "灼烧", "侵蚀", "烈霜霜寒"]
     gantt_data = []
     duration_stats = {}
-    
+
     for col in columns_to_check:
         if col in df.columns:
             ranges = find_consecutive_true_ranges(df, col)
             durations = [end - start + 1 for start, end in ranges]  # 持续时间包含首尾
             duration_stats[col] = durations
-            
+
             for start, end in ranges:
                 gantt_data.append({"Task": col, "Start": start, "Finish": end})
 
@@ -97,7 +98,7 @@ def prepare_timeline_data(df):
 
     gantt_df = pd.DataFrame(gantt_data)
     gantt_df["Duration"] = gantt_df["Finish"] - gantt_df["Start"] + 1  # 持续时间包含首尾
-    
+
     # 计算每种异常状态的平均持续时间
     avg_durations = {}
     for col, durations in duration_stats.items():
@@ -105,7 +106,7 @@ def prepare_timeline_data(df):
             avg_durations[col] = sum(durations) / len(durations)
         else:
             avg_durations[col] = 0
-    
+
     return gantt_df, avg_durations
 
 
@@ -130,17 +131,17 @@ def draw_anomaly_timeline(gantt_df, output_path=None):
             },
             height=350,
         )
-        
+
         # 设置透明背景
         fig.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
         )
-        
+
         # 设置网格线颜色
-        fig.update_xaxes(showgrid=True, gridwidth=3, gridcolor='rgba(128,128,128,0.2)')
-        fig.update_yaxes(showgrid=True, gridwidth=3, gridcolor='rgba(128,128,128,0.2)')
-        
+        fig.update_xaxes(showgrid=True, gridwidth=3, gridcolor="rgba(128,128,128,0.2)")
+        fig.update_yaxes(showgrid=True, gridwidth=3, gridcolor="rgba(128,128,128,0.2)")
+
         if output_path:
             # 保存为PNG图片
             try:
@@ -165,28 +166,29 @@ def main():
     parser = argparse.ArgumentParser(description="绘制异常轴图")
     parser.add_argument("result_dir", help="战斗日志所在的结果目录，例如 results/123")
     parser.add_argument("-o", "--output", help="输出图片文件路径（例如 output.png）")
-    
+
     args = parser.parse_args()
-    
+
     # 如果指定了输出路径，检查kaleido是否可用
     if args.output:
         try:
             import plotly.io as pio
+
             # 尝试导入kaleido
             pio.kaleido.scope
         except ImportError:
             print("警告: 如果要保存图片，请安装kaleido:")
             print("  pip install kaleido")
             print("否则请只在浏览器中查看图表，不使用 -o 参数")
-    
+
     # 构建damage.csv文件路径
     damage_csv_path = os.path.join(args.result_dir, "damage.csv")
-    
+
     # 检查文件是否存在
     if not os.path.exists(damage_csv_path):
         print(f"错误: 文件 {damage_csv_path} 不存在")
         sys.exit(1)
-    
+
     # 读取damage.csv文件
     try:
         df = pd.read_csv(damage_csv_path)
@@ -194,7 +196,7 @@ def main():
     except Exception as e:
         print(f"读取文件时出错: {e}")
         sys.exit(1)
-    
+
     # 准备数据
     try:
         gantt_df, avg_durations = prepare_timeline_data(df)
@@ -202,16 +204,16 @@ def main():
     except Exception as e:
         print(f"准备数据时出错: {e}")
         sys.exit(1)
-    
+
     # 输出每种异常状态的平均持续时间
     print("\n各异常状态的平均持续时间:")
     print("-" * 30)
     for anomaly, avg_duration in avg_durations.items():
         if avg_duration == 0:
             continue
-        print(f"{anomaly}: {avg_duration/60:.2f} 秒")
+        print(f"{anomaly}: {avg_duration / 60:.2f} 秒")
     print("-" * 30)
-    
+
     # 绘制图表
     try:
         draw_anomaly_timeline(gantt_df, args.output)

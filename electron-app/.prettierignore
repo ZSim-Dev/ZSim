@@ -92,3 +92,5 @@ coverage/
 # Build artifacts
 build/
 *.tsbuildinfo
+
+pnpm-lock.yaml

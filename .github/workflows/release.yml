@@ -1,0 +1,265 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - alpha
+        - beta
+      prerelease:
+        description: 'Mark as prerelease'
+        required: false
+        type: boolean
+        default: false
+      draft:
+        description: 'Create draft release'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    outputs:
+      new_backend_version: ${{ steps.new_version.outputs.new_backend_version }}
+      new_frontend_version: ${{ steps.new_version.outputs.new_frontend_version }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'pnpm'
+        cache-dependency-path: 'electron-app/pnpm-lock.yaml'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        version: "latest"
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install make (Windows only)
+      if: runner.os == 'Windows'
+      run: |
+        # Install make using chocolatey
+        choco install make
+
+    - name: Install Python dependencies
+      run: |
+        uv sync
+        uv add --group dev pyinstaller
+
+    - name: Install Node.js dependencies
+      run: |
+        cd electron-app
+        pnpm install
+
+    - name: Get current version
+      id: version
+      run: |
+        BACKEND_VERSION=$(uv version --short)
+        FRONTEND_VERSION=$(cd electron-app && node -p "require('./package.json').version")
+        echo "backend_version=$BACKEND_VERSION" >> $GITHUB_OUTPUT
+        echo "frontend_version=$FRONTEND_VERSION" >> $GITHUB_OUTPUT
+        echo "Current backend version: $BACKEND_VERSION"
+        echo "Current frontend version: $FRONTEND_VERSION"
+
+    - name: Build application
+      run: |
+        echo "Building application for ${{ runner.os }}..."
+        make release RELEASE_TYPE=${{ github.event.inputs.release_type }}
+
+    - name: Get new version
+      id: new_version
+      run: |
+        NEW_BACKEND_VERSION=$(uv version --short)
+        NEW_FRONTEND_VERSION=$(cd electron-app && node -p "require('./package.json').version")
+        echo "new_backend_version=$NEW_BACKEND_VERSION" >> $GITHUB_OUTPUT
+        echo "new_frontend_version=$NEW_FRONTEND_VERSION" >> $GITHUB_OUTPUT
+        echo "New backend version: $NEW_BACKEND_VERSION"
+        echo "New frontend version: $NEW_FRONTEND_VERSION"
+
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        echo "Generating changelog..."
+        echo "## 🎉 ZSim ${{ steps.new_version.outputs.new_backend_version }} Release" > release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📦 版本信息" >> release_notes.md
+        echo "- 后端版本: ${{ steps.new_version.outputs.new_backend_version }}" >> release_notes.md
+        echo "- 前端版本: ${{ steps.new_version.outputs.new_frontend_version }}" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 🚀 更新内容" >> release_notes.md
+        echo "#### ✨ 新功能" >> release_notes.md
+        echo "- 待添加" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "#### 🐛 问题修复" >> release_notes.md
+        echo "- 待添加" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "#### 🔧 性能优化" >> release_notes.md
+        echo "- 待添加" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📋 安装说明" >> release_notes.md
+        echo "1. 下载对应平台的安装包" >> release_notes.md
+        echo "2. 运行安装程序" >> release_notes.md
+        echo "3. 启动 ZSim 应用" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📁 下载文件" >> release_notes.md
+        echo "- Windows: \`ZSim-Setup-${{ steps.new_version.outputs.new_backend_version }}.exe\`" >> release_notes.md
+        echo "- macOS: \`ZSim-${{ steps.new_version.outputs.new_backend_version }}.dmg\`" >> release_notes.md
+        echo "- Linux: \`ZSim-${{ steps.new_version.outputs.new_backend_version }}.AppImage\`" >> release_notes.md
+
+    - name: Commit version changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add pyproject.toml electron-app/package.json
+        git commit -m "release: 版本发布 ${{ steps.new_version.outputs.new_backend_version }}
+
+    - name: Tag version
+      run: |
+        git tag -a "v${{ steps.new_version.outputs.new_backend_version }}" -m "Version ${{ steps.new_version.outputs.new_backend_version }}"
+
+    - name: Push changes
+      run: |
+        git push origin main
+        git push origin "v${{ steps.new_version.outputs.new_backend_version }}"
+
+    - name: Upload Windows artifacts
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-build
+        path: |
+          electron-app/release/*.exe
+          electron-app/release/*.blockmap
+
+    - name: Upload macOS artifacts
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-build
+        path: |
+          electron-app/release/*.dmg
+          electron-app/release/*.zip
+
+    - name: Upload Linux artifacts
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-build
+        path: |
+          electron-app/release/*.AppImage
+          electron-app/release/*.deb
+
+    - name: Upload artifacts for release
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.os }}-release-files
+        path: |
+          electron-app/release/*
+
+    - name: Clean up
+      if: always()
+      run: |
+        make clean
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: all-artifacts
+
+    - name: Create release directory
+      run: |
+        mkdir -p release-files
+        
+    - name: Organize files
+      run: |
+        # Copy Windows files
+        if [ -d "all-artifacts/windows-latest-release-files" ]; then
+          cp -r all-artifacts/windows-latest-release-files/* release-files/
+        fi
+        
+        # Copy macOS files
+        if [ -d "all-artifacts/macos-latest-release-files" ]; then
+          cp -r all-artifacts/macos-latest-release-files/* release-files/
+        fi
+        
+        # Copy Linux files
+        if [ -d "all-artifacts/ubuntu-latest-release-files" ]; then
+          cp -r all-artifacts/ubuntu-latest-release-files/* release-files/
+        fi
+        
+        # List all files
+        ls -la release-files/
+
+    - name: Generate Changelog
+      run: |
+        echo "## 🎉 ZSim ${{ needs.build.outputs.new_backend_version }} Release" > release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📦 版本信息" >> release_notes.md
+        echo "- 后端版本: ${{ needs.build.outputs.new_backend_version }}" >> release_notes.md
+        echo "- 前端版本: ${{ needs.build.outputs.new_frontend_version }}" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 🚀 更新内容" >> release_notes.md
+        echo "#### ✨ 新功能" >> release_notes.md
+        echo "- 待添加" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "#### 🐛 问题修复" >> release_notes.md
+        echo "- 待添加" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "#### 🔧 性能优化" >> release_notes.md
+        echo "- 待添加" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📋 安装说明" >> release_notes.md
+        echo "1. 下载对应平台的安装包" >> release_notes.md
+        echo "2. 运行安装程序" >> release_notes.md
+        echo "3. 启动 ZSim 应用" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### 📁 下载文件" >> release_notes.md
+        echo "- Windows: \`ZSim-Setup-${{ needs.build.outputs.new_backend_version }}.exe\`" >> release_notes.md
+        echo "- macOS: \`ZSim-${{ needs.build.outputs.new_backend_version }}.dmg\`" >> release_notes.md
+        echo "- Linux: \`ZSim-${{ needs.build.outputs.new_backend_version }}.AppImage\`" >> release_notes.md
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: "v${{ needs.build.outputs.new_backend_version }}"
+        name: "ZSim ${{ needs.build.outputs.new_backend_version }}"
+        body_path: release_notes.md
+        draft: ${{ github.event.inputs.draft == 'true' }}
+        prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+        files: |
+          release-files/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

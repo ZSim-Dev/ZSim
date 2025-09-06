@@ -37,7 +37,7 @@ class PolarizedAssaultEvent:
             raise ValueError(f"【极性强击事件警告】检测到非法的极性强击触发源：{skill_node.skill_tag}")
         else:
             if skill_node.skill_tag == "1401_Q" and self.char.cinema < 2:
-                raise ValueError(f"【极性强击事件警告】检测到低于2画的爱丽丝企图用 大招 触发极性强击")
+                raise ValueError("【极性强击事件警告】检测到低于2画的爱丽丝企图用 大招 触发极性强击")
         if self.anomaly_bar.element_type != 0:
             raise ValueError(f"【极性强击事件警告】构造极性强击事件时，必须传入物理异常条的深拷贝！当前传入的异常条属性为：{ETM[self.anomaly_bar.element_type]}")
         self.sim_instance = self.anomaly_bar.sim_instance

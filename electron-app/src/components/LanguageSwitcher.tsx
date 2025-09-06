@@ -1,8 +1,8 @@
-import React from 'react'
-import { useLanguage } from '../hooks'
+import React from 'react';
+import { useLanguage } from '../hooks';
 
 const LanguageSwitcher: React.FC = () => {
-  const { language, setLanguage } = useLanguage()
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className="flex gap-2">
@@ -27,7 +27,7 @@ const LanguageSwitcher: React.FC = () => {
         English
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default LanguageSwitcher
+export default LanguageSwitcher;

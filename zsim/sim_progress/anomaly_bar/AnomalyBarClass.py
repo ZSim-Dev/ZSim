@@ -258,7 +258,6 @@ class AnomalyBar:
         """结算快照！"""
         if self.settled:
             raise RuntimeError("【异常条结算警告】当前异常条快照已经被结算过一次了，请检查业务逻辑，找出重复结算的时间点！")
-        # assert len(self.ndarray_box) > 0, "异常条快照缓存为空！无法结算！"
         total_array = np.zeros((1, 1), dtype=np.float64)
         effective_buildup: np.float64 = np.float64(0)
         while self.ndarray_box:

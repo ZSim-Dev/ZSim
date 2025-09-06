@@ -11,15 +11,7 @@ def go_api():
         command = [
             sys.executable,
             "-m",
-            "uvicorn",
-            "zsim.api:app",
-            "--reload",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8000",
-            "--log-level",
-            "info",
+            "zsim.api",
         ]
 
         subprocess.run(command)

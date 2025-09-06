@@ -4,7 +4,8 @@ import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
 // @ts-expect-error no @types
 import SemiPlugin from 'vite-plugin-semi-theme';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
+import { URL, fileURLToPath } from 'url';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,26 +13,57 @@ export default defineConfig({
     react(),
     electron({
       main: {
-        // Shortcut of `build.lib.entry`.
         entry: 'electron/main.ts',
+        // 主进程配置为CJS格式
+        vite: {
+          build: {
+            rollupOptions: {
+              output: {
+                entryFileNames: 'main.js', // 主进程输出文件名
+              },
+            },
+          },
+        },
       },
       preload: {
-        // Shortcut of `build.rollupOptions.input`.
-        // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
         input: path.join(__dirname, 'electron/preload.ts'),
+        // 预加载脚本配置为CJS格式
+        vite: {
+          build: {
+            rollupOptions: {
+              output: {
+                format: 'cjs', // 预加载脚本输出为CJS
+                entryFileNames: 'preload.cjs', // 预加载脚本输出文件名
+              },
+            },
+          },
+        },
       },
-      // Ployfill the Electron and Node.js API for Renderer process.
-      // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-      // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
       renderer:
         process.env.NODE_ENV === 'test'
-          ? // https://github.com/electron-vite/vite-plugin-electron-renderer/issues/78#issuecomment-2053600808
-            undefined
-          : {},
+          ? undefined
+          : {
+              // 渲染进程通常保持ES模块格式
+              // 如果需要也可以设置为cjs，但不推荐
+              // format: 'cjs'
+            },
     }),
     SemiPlugin({
       theme: '@semi-bot/semi-theme-zsim',
     }),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      // 全局输出配置，会被上面的具体配置覆盖
+      output: {
+        format: 'cjs', // 默认输出格式
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
 });

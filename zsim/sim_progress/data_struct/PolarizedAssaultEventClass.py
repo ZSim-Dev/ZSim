@@ -23,7 +23,7 @@ class PolarizedAssaultEvent:
             skill_node: SkillNode: 触发极性强击事件的触发源（应该是大招或是三蓄力普攻）
         """
         self.execute_tick = execute_tick        # 被执行时间
-        self.schedule_priority = 999        # 该事件永远在被执行tick的末轮递归中执行
+        self.schedule_priority = 998        # 该事件永远在被执行tick的末轮递归中执行
         self.anomaly_bar: "AnomalyBar" = anomlay_bar        # 强击异常条的深拷贝
         assert not self.anomaly_bar.settled, "【极性强击事件警告】构造极性强击事件时，传入的异常条必须是未结算的异常条！"
         self.anomaly_bar.anomaly_settled()
@@ -48,10 +48,11 @@ class PolarizedAssaultEvent:
         event_list = self.sim_instance.schedule_data.event_list
         enemy = self.sim_instance.enemy
         self.sim_instance.listener_manager.broadcast_event(event=self.anomaly_bar, signal=LBS.POLARIZED_ASSAULT_SPAWN)
+        # if self.anomaly_bar.settled:
         event_list.append(self.anomaly_bar)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
-            print(f"【爱丽丝事件】{self.skill_node.skill.skill_text} 触发的极性强击结算了！")
+            print(f"【爱丽丝事件】{self.skill_node.skill.skill_text} 触发的极性强击事件结算！向事件列表添加一个强击异常！")
         # 更新畏缩状态
         from zsim.sim_progress.Update.UpdateAnomaly import anomaly_effect_active
         anomaly_effect_active(
@@ -65,6 +66,7 @@ class PolarizedAssaultEvent:
         active_anomaly_list = enemy.dynamic.get_active_anomaly()
         if not active_anomaly_list:
             return
+
         anomaly_bar = active_anomaly_list[0]
         anomaly_bar_new = deepcopy(anomaly_bar)
         if not anomaly_bar_new.settled:
@@ -84,4 +86,4 @@ class PolarizedAssaultEvent:
         event_list.append(disorder)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
-            print(f"【爱丽丝事件】极性强击结算的同时结算了一次【{ETM[disorder.element_type]}】属性的紊乱！")
+            print(f"【爱丽丝事件】同时，极性强击事件结算了一次【{ETM[disorder.element_type]}】属性的紊乱！")

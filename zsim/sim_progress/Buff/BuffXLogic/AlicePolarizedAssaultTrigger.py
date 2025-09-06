@@ -54,6 +54,7 @@ class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
         if self.record.trigger_origin is not None:
             raise ValueError(f"【极性强击触发器警告】存在尚未处理的触发源{self.record.trigger_origin.skill_tag}")
         self.record.trigger_origin = skill_node
+        # print(f"【测试】当前时间{tick}，{skill_node.skill_tag}即将通过判定。preload_tick: {skill_node.preload_tick}， end_tick: {skill_node.end_tick}，tick_list: {skill_node.tick_list}")
         return True
 
     def special_effect_logic(self, **kwargs):
@@ -75,5 +76,5 @@ class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
         event_list.append(event)
         if ALICE_REPORT:
             sim_instance.schedule_data.change_process_state()
-            print(f"【爱丽丝事件】{self.record.trigger_origin.skill.skill_text} 最后一个Hit命中！触发了一次极性强击！")
+            print(f"【爱丽丝事件】{self.record.trigger_origin.skill.skill_text} 最后一Hit命中，创建了一个极性强击事件！")
         self.record.trigger_origin = None

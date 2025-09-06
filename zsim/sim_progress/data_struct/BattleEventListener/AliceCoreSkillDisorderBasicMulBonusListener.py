@@ -56,5 +56,5 @@ class AliceCoreSkillDisorderBasicMulBonusListener(BaseListener):
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
             print(
-                f"【爱丽丝事件】检测到物理属性的紊乱结算，物理异常的剩余时间为{rest_tick:.1f}tick，使本次紊乱的基础倍率提升 {count * 18:.1f} %！"
+                f"【爱丽丝事件】检测到物理属性的紊乱发生，物理异常的剩余时间为{rest_tick:.1f}tick，使本次紊乱的基础倍率提升 {count * 18:.1f} %！"
             )

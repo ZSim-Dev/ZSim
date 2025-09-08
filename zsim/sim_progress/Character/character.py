@@ -887,6 +887,13 @@ class LastingNode:
             ValueError: 当尝试过早更新节点时抛出
         """
         # 若传入动作不是自己的技能
+        # from zsim.sim_progress.Preload import SkillNode
+        # assert isinstance(node, SkillNode)
+        if node.is_additional_damage and node.skill.ticks == 0:
+            # 若传入的动作是0帧的附加伤害，由于这些技能很明显是不需要角色通过某些动画动作来释放的，
+            # 所以这里就不更新lasting_node，以保证不会因为0帧技能而导致lasting_node的数据被污染。
+            return
+
         if node.char_name != self.char_instance.NAME:
             if self.node is None:
                 # 若此时自己没有技能，则直接返回

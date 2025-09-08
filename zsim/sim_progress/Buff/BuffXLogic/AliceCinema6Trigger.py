@@ -61,7 +61,10 @@ class AliceCinema6Trigger(Buff.BuffLogic):
         if not skill_node.is_hit_now(tick=self.buff_instance.sim_instance.tick):
             return False
         else:
-            return True
+            if self.record.check_cd(tick_now=self.buff_instance.sim_instance.tick):
+                return True
+            else:
+                return False
 
     def special_hit_logic(self, **kwargs):
         """爱丽丝6画额外攻击触发器的业务函数，主要负责调用角色方法，添加额外攻击的Preload事件"""
@@ -74,3 +77,4 @@ class AliceCinema6Trigger(Buff.BuffLogic):
         if not isinstance(self.record.char, Alice):
             raise TypeError("【爱丽丝6画触发器警告】初始化时获取的角色并非爱丽丝，请检查初始化逻辑")
         self.record.char.spawn_extra_attack()
+        self.record.last_active_tick = self.buff_instance.sim_instance.tick

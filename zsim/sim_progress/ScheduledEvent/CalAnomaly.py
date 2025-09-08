@@ -52,6 +52,11 @@ class CalAnomaly:
         self.element_type: ElementType = snapshot[0]
         # self.dmg_sp 以 array 形式储存，顺序为：基础伤害区、增伤区、异常精通区、等级、异常增伤区、异常暴击区、穿透率、穿透值、抗性穿透、冲击力、失衡值增幅
         self.dmg_sp: np.ndarray = snapshot[1]
+        assert self.dmg_sp.shape == (1, 11), (f"tick: {self.sim_instance.tick}  异常伤害快照形状错误，期望(1, 11)，实际{self.dmg_sp}\n"
+                                              f"其他信息：名字：{type(self.anomaly_obj).__name__}\n"
+                                              f"属性：{self.anomaly_obj.element_type}\n"
+                                              f"是否是紊乱：{self.anomaly_obj.is_disorder}\n"
+                                              f"是否已经被结算：{self.anomaly_obj.settled}")
         if anomaly_obj.activated_by is None:
             print(
                 f"【CalAnomaly Warnning】:检测到异常实例(属性类型：{anomaly_obj.element_type}）的激活源为空，改异常实例将无法享受Buff加成。"
@@ -71,6 +76,7 @@ class CalAnomaly:
         v_char_level: int = int(
             np.floor(self.dmg_sp[0, 3] + 0.0000001)
         )  # 加一个极小的数避免精度向下丢失导致的误差
+
         self.v_char_level = v_char_level
         # 等级系数
         k_level = self.cal_k_level(v_char_level)

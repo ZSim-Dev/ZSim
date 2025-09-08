@@ -67,6 +67,17 @@ class SkillNode:
             self.force_qte_trigger: bool = False
 
     @property
+    def is_additional_damage(self) -> bool:
+        """判断当前技能是否为额外伤害"""
+        if self.skill.labels is None:
+            return False
+        else:
+            if "additional_damage" in self.skill.labels:
+                return True
+            else:
+                return False
+
+    @property
     def element_type(self) -> ElementType:
         """返回当前的属性种类！（考虑染色）"""
         if self._element_type_change is None:

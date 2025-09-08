@@ -19,6 +19,10 @@ class MonitoredList(list):
     @monitor_list_operation
     def append(self, item):
         # print(f"添加了{item.ft.index}dot")
+        from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
+        if isinstance(item, AnomalyBar):
+            if not item.settled:
+                raise ValueError("不能添加未结算的异常条")
         super().append(item)  # 调用父类方法
 
     @monitor_list_operation

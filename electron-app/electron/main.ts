@@ -249,10 +249,10 @@ function createWindow() {
   }
 
   win = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1440,
+    height: 800,
     minWidth: 900,
-    minHeight: 670,
+    minHeight: 500,
     show: false,
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {

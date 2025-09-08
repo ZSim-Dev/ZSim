@@ -6,6 +6,8 @@ import react from '@vitejs/plugin-react';
 import SemiPlugin from 'vite-plugin-semi-theme';
 import tailwindcss from '@tailwindcss/vite';
 import { URL, fileURLToPath } from 'url';
+import Icons from 'unplugin-icons/vite';
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -52,6 +54,13 @@ export default defineConfig({
       theme: '@semi-bot/semi-theme-zsim',
     }),
     tailwindcss(),
+    Icons({
+      compiler: 'jsx',
+      jsx: 'react',
+      customCollections: {
+        'zsim': FileSystemIconLoader("./src/assets/svgs")
+      }
+    }),
   ],
   build: {
     rollupOptions: {

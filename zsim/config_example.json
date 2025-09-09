@@ -85,7 +85,8 @@
         "Trigger": false,
         "Jufufu": false,
         "Yuzuha": false,
-        "Alice": false
+        "Alice": false,
+        "Seed": false
     },
     "na_mode_level": {
         "Hugo": 3
@@ -109,6 +110,14 @@
         "adjust_weapon": {
             "enabled": false,
             "weapon_list": []
+        },
+        "char_report": {
+            "Vivian": false,
+            "AstraYao": false,
+            "Hugo": false,
+            "Yixuan": false,
+            "Trigger": false,
+            "Seed": false
         }
     },
     "dev": {

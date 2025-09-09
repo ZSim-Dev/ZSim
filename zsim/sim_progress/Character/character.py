@@ -149,7 +149,7 @@ class Character:
 
         self.decibel: float = 1000.0
 
-        self.speicalty: str | None
+        self.specialty: str | None
         self.element_type: int
 
         self.crit_balancing: bool = crit_balancing
@@ -436,7 +436,7 @@ class Character:
                 self.PEN_numeric = float(row_0.get("基础穿透值", 0))
                 self.base_sp_regen = float(row_0.get("基础能量自动回复", 0))
                 self.base_sp_get_ratio = float(row_0.get("基础能量获取效率", 1))
-                self.speicalty = row_0.get("角色特性", None)  # 角色特性，强攻、击破等
+                self.specialty = row_0.get("角色特性", None)  # 角色特性，强攻、击破等
                 self.aid_type = row_0.get("支援类型", None)
                 self.element_type = row_0.get("角色属性", 0)
                 if self.element_type is None or self.element_type < 0:

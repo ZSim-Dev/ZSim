@@ -1,0 +1,116 @@
+"""
+事件处理器模块
+
+该模块定义了事件处理的抽象基类和工厂类，用于管理各种类型的事件处理器。
+"""
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+
+class EventHandler(ABC):
+    """事件处理器抽象基类"""
+
+    @abstractmethod
+    def can_handle(self, event: Any) -> bool:
+        """
+        判断是否可以处理指定类型的事件
+
+        Args:
+            event: 待处理的事件对象
+
+        Returns:
+            bool: 如果可以处理该类型事件则返回True，否则返回False
+        """
+        pass
+
+    @abstractmethod
+    def handle(self, event: Any, context: dict[str, Any]) -> None:
+        """
+        处理事件
+
+        Args:
+            event: 待处理的事件对象
+            context: 事件处理上下文，包含所需的数据和环境信息
+
+        Raises:
+            NotImplementedError: 如果子类未实现此方法
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def event_type(self) -> str:
+        """
+        返回处理器支持的事件类型名称
+
+        Returns:
+            str: 事件类型名称
+        """
+        pass
+
+
+class EventHandlerFactory:
+    """事件处理器工厂类"""
+
+    def __init__(self):
+        self._handlers: dict[str, EventHandler] = {}
+
+    def register_handler(self, handler: EventHandler) -> None:
+        """
+        注册事件处理器
+
+        Args:
+            handler: 事件处理器实例
+
+        Raises:
+            ValueError: 如果已存在相同事件类型的处理器
+        """
+        event_type = handler.event_type
+        if event_type in self._handlers:
+            raise ValueError(f"事件类型 '{event_type}' 的处理器已存在")
+        self._handlers[event_type] = handler
+
+    def get_handler(self, event: Any) -> EventHandler | None:
+        """
+        获取适合处理指定事件的处理器
+
+        Args:
+            event: 待处理的事件对象
+
+        Returns:
+            EventHandler | None: 如果找到合适的处理器则返回，否则返回None
+        """
+        for handler in self._handlers.values():
+            if handler.can_handle(event):
+                return handler
+        return None
+
+    def get_handler_by_type(self, event_type: str) -> EventHandler | None:
+        """
+        根据事件类型获取处理器
+
+        Args:
+            event_type: 事件类型名称
+
+        Returns:
+            EventHandler | None: 如果找到处理器则返回，否则返回None
+        """
+        return self._handlers.get(event_type)
+
+    def list_handlers(self) -> list[str]:
+        """
+        获取所有已注册的处理器类型列表
+
+        Returns:
+            list[str]: 处理器类型名称列表
+        """
+        return list(self._handlers.keys())
+
+    def clear_handlers(self) -> None:
+        """清除所有已注册的处理器"""
+        self._handlers.clear()
+
+
+# 全局处理器工厂实例
+event_handler_factory = EventHandlerFactory()

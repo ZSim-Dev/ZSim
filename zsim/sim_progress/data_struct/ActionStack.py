@@ -1,10 +1,13 @@
 from collections import defaultdict
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from zsim.define import SWAP_CANCEL
-from zsim.sim_progress.Preload import SkillNode
 
-NODE_T = TypeVar("NODE_T", bound=SkillNode)
+if TYPE_CHECKING:
+    from zsim.sim_progress.Preload import SkillNode
+    NODE_T = TypeVar("NODE_T", bound=SkillNode)
+else:
+    NODE_T = TypeVar("NODE_T", bound="SkillNode")
 
 
 class BaseStack(Generic[NODE_T]):

@@ -1,5 +1,5 @@
 from zsim.sim_progress.RandomNumberGenerator import RNG
-from zsim.sim_progress.ScheduledEvent import Calculator, MultiplierData
+from zsim.sim_progress.ScheduledEvent import Calculator
 
 from .. import Buff, JudgeTools, check_preparation
 

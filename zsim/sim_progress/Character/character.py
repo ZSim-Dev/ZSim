@@ -351,11 +351,42 @@ class Character:
             )
 
             self.quick_assist_manager = QuickAssistManager(self.character)
-            self.on_field = False  # 角色是否在前台
+            self._on_field = False  # 角色是否在前台
+            self._switching_in_tick = 0       # 角色切到前台状态的时间点
+            self._switching_out_tick = 0  # 角色切到后台状态的时间点
 
         def reset(self):
             self.lasting_node.reset()
             self.on_field = False
+
+        @property
+        def on_field(self) -> bool:
+            return self._on_field
+
+        @on_field.setter
+        def on_field(self, value: bool):
+            tick = self.character.sim_instance.tick
+            if self.on_field and not value:
+                # 角色on_field状态的下降沿，即角色从前台切换到后台
+                self._switching_out_tick = tick
+            elif not self.on_field and value:
+                # 角色on_field状态的上升沿，即角色从后台切换到前台
+                self._switching_in_tick = tick
+            self._on_field = value
+
+        def is_off_field_within(self, max_ticks: int) -> bool:
+            """判断角色切到后台的时间是否小于等于指定时间"""
+            if self.on_field:
+                return False
+            current_tick = self.character.sim_instance.tick
+            return current_tick - self._switching_out_tick <= max_ticks
+
+        def is_on_field_within(self, max_ticks: int) -> bool:
+            """判断角色切到前台的时间是否小于等于指定时间"""
+            if not self.on_field:
+                return False
+            current_tick = self.character.sim_instance.tick
+            return current_tick - self._switching_in_tick <= max_ticks
 
     def is_available(self, tick: int):
         """查询角色当前tick是否有空"""

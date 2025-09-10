@@ -85,6 +85,50 @@ class BaseEventHandler(EventHandler):
         """从上下文中获取模拟器实例"""
         return context["sim_instance"]
 
+    def _validate_event(self, event: Any, expected_type: type | tuple[type, ...] | None = None) -> None:
+        """
+        验证事件参数
+        
+        Args:
+            event: 待验证的事件对象
+            expected_type: 期望的事件类型，如果为None则只验证非None
+            
+        Raises:
+            TypeError: 当事件类型不符合期望时
+            ValueError: 当事件为None时
+        """
+        if event is None:
+            raise ValueError("事件对象不能为None")
+        
+        if expected_type is not None and not isinstance(event, expected_type):
+            if isinstance(expected_type, tuple):
+                expected_names = [t.__name__ for t in expected_type]
+                raise TypeError(f"期望事件类型为 {expected_names} 之一，实际得到 {type(event).__name__}")
+            else:
+                raise TypeError(f"期望事件类型为 {expected_type.__name__}，实际得到 {type(event).__name__}")
+
+    def _validate_context(self, context: dict[str, Any]) -> None:
+        """
+        验证上下文数据
+        
+        Args:
+            context: 待验证的上下文字典
+            
+        Raises:
+            ValueError: 当上下文缺少必需的键时
+        """
+        if not isinstance(context, dict):
+            raise TypeError("上下文必须是字典类型")
+        
+        required_keys = {
+            'data', 'tick', 'enemy', 'dynamic_buff', 
+            'exist_buff_dict', 'action_stack', 'sim_instance'
+        }
+        
+        missing_keys = required_keys - context.keys()
+        if missing_keys:
+            raise ValueError(f"上下文缺少必需的键: {sorted(missing_keys)}")
+
     def _handle_error(self, error: Exception, operation: str, event: Any = None) -> None:
         """
         统一错误处理方法
@@ -115,6 +159,10 @@ class SkillEventHandler(BaseEventHandler):
 
     def handle(self, event: SkillNode | LoadingMission, context: dict[str, Any]) -> None:
         """处理技能事件"""
+        # 验证输入
+        self._validate_event(event, (SkillNode, LoadingMission))
+        self._validate_context(context)
+        
         data = self._get_context_data(context)
         tick = self._get_context_tick(context)
         enemy = self._get_context_enemy(context)
@@ -163,12 +211,7 @@ class SkillEventHandler(BaseEventHandler):
         """处理技能事件的具体逻辑"""
 
         # 获取技能节点和命中次数
-        if isinstance(event, LoadingMission):
-            skill_node = event.mission_node
-            hit_count = event.hitted_count
-        else:
-            skill_node = event
-            hit_count = 0
+        skill_node, hit_count = self._extract_skill_info(event)
 
         # 查找角色对象
         char_obj = self._find_character(skill_node.skill.char_name, data.char_obj_list)
@@ -182,19 +225,26 @@ class SkillEventHandler(BaseEventHandler):
         )
 
         # 处理buff结算
-        ScheduleBuffSettle(
-            tick,
-            exist_buff_dict,
-            enemy,
-            dynamic_buff,
-            action_stack,
-            skill_node=skill_node,
-            sim_instance=sim_instance,
+        self._settle_buffs(
+            tick, exist_buff_dict, enemy, dynamic_buff, action_stack, skill_node, sim_instance
         )
 
         # 处理伤害更新
-        ProcessHitUpdateDots(tick, enemy.dynamic.dynamic_dot_list, data.event_list)
-        ProcessFreezLikeDots(timetick=tick, enemy=enemy, event_list=data.event_list, event=event)
+        self._update_damage_effects(tick, enemy, data, event)
+
+    def _extract_skill_info(self, event: SkillNode | LoadingMission) -> tuple[SkillNode, int]:
+        """提取技能节点和命中次数信息
+        
+        Args:
+            event: 技能事件对象
+            
+        Returns:
+            tuple[SkillNode, int]: (技能节点, 命中次数)
+        """
+        if isinstance(event, LoadingMission):
+            return event.mission_node, event.hitted_count
+        else:
+            return event, 0
 
     def _find_character(self, char_name: str, char_obj_list: list[Character]) -> Character:
         """查找角色对象"""
@@ -327,6 +377,55 @@ class SkillEventHandler(BaseEventHandler):
                 sim_instance=sim_instance,
             )
 
+    def _settle_buffs(
+        self,
+        tick: int,
+        exist_buff_dict: dict,
+        enemy: Enemy,
+        dynamic_buff: dict,
+        action_stack: ActionStack,
+        skill_node: SkillNode,
+        sim_instance: Simulator,
+    ) -> None:
+        """处理buff结算
+        
+        Args:
+            tick: 当前tick
+            exist_buff_dict: 已存在的buff字典
+            enemy: 敌人对象
+            dynamic_buff: 动态buff字典
+            action_stack: 动作栈
+            skill_node: 技能节点
+            sim_instance: 模拟器实例
+        """
+        ScheduleBuffSettle(
+            tick,
+            exist_buff_dict,
+            enemy,
+            dynamic_buff,
+            action_stack,
+            skill_node=skill_node,
+            sim_instance=sim_instance,
+        )
+
+    def _update_damage_effects(
+        self,
+        tick: int,
+        enemy: Enemy,
+        data: ScheduleData,
+        event: SkillNode | LoadingMission,
+    ) -> None:
+        """处理伤害更新效果
+        
+        Args:
+            tick: 当前tick
+            enemy: 敌人对象
+            data: 调度数据
+            event: 技能事件对象
+        """
+        ProcessHitUpdateDots(tick, enemy.dynamic.dynamic_dot_list, data.event_list)
+        ProcessFreezLikeDots(timetick=tick, enemy=enemy, event_list=data.event_list, event=event)
+
 
 class AnomalyEventHandler(BaseEventHandler):
     """异常事件处理器"""
@@ -339,6 +438,10 @@ class AnomalyEventHandler(BaseEventHandler):
 
     def handle(self, event: AnB, context: dict[str, Any]) -> None:
         """处理异常事件"""
+        # 验证输入
+        self._validate_event(event, AnB)
+        self._validate_context(context)
+        
         enemy = self._get_context_enemy(context)
         dynamic_buff = self._get_context_dynamic_buff(context)
         exist_buff_dict = self._get_context_exist_buff_dict(context)

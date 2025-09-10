@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from zsim.sim_progress import Buff
@@ -18,6 +19,13 @@ from zsim.sim_progress.Update import update_anomaly
 if TYPE_CHECKING:
     from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
+
+# 事件处理器导入
+try:
+    from .concrete_handlers import register_all_handlers
+    from .event_handlers import event_handler_factory
+except ImportError as e:
+    raise RuntimeError(f"事件处理器模块导入失败: {e}") from e
 
 
 class ScConditionData:
@@ -82,21 +90,11 @@ class ScheduledEvent:
 
     def _ensure_handlers_registered(self) -> None:
         """确保所有事件处理器已注册"""
-        try:
-            from .concrete_handlers import register_all_handlers
-            from .event_handlers import event_handler_factory
-
-            if not event_handler_factory.list_handlers():
-                register_all_handlers()
-                print(
-                    f"DEBUG: 事件处理器注册完成，可用的处理器: {event_handler_factory.list_handlers()}"
-                )
-            else:
-                print(
-                    f"DEBUG: 事件处理器已经注册，可用的处理器: {event_handler_factory.list_handlers()}"
-                )
-        except ImportError as e:
-            raise RuntimeError(f"事件处理器导入失败: {e}") from e
+        if not event_handler_factory.list_handlers():
+            register_all_handlers()
+            logging.info("事件处理器注册完成")
+        else:
+            logging.debug("事件处理器已经注册")
 
     def _create_event_context(self) -> dict[str, Any]:
         """
@@ -166,43 +164,29 @@ class ScheduledEvent:
         Raises:
             NotImplementedError: 当事件类型不被支持时
             RuntimeError: 当事件处理器无法找到时
+            Exception: 事件处理过程中的其他错误
         """
+        # 特殊处理Buff事件
+        if isinstance(event, Buff.Buff):
+            raise NotImplementedError(f"{type(event)}，目前不应存在于 event_list")
+
+        # 事件处理上下文
+        context = self._create_event_context()
+
+        # 获取事件处理器
+        handler = event_handler_factory.get_handler(event)
+        if handler is None:
+            error_msg = f"无法找到适合处理事件类型 {type(event)} 的处理器"
+            logging.error(error_msg)
+            logging.debug(f"可用的事件处理器: {event_handler_factory.list_handlers()}")
+            raise RuntimeError(error_msg)
+
+        # 处理事件
         try:
-            # 特殊处理Buff事件
-            from zsim.sim_progress import Buff
-
-            if isinstance(event, Buff.Buff):
-                raise NotImplementedError(f"{type(event)}，目前不应存在于 event_list")
-
-            # 事件处理上下文
-            context = self._create_event_context()
-
-            try:
-                from .event_handlers import event_handler_factory
-            except ImportError as e:
-                raise RuntimeError(f"事件处理器工厂导入失败: {e}") from e
-
-            # 获取事件处理器
-            handler = event_handler_factory.get_handler(event)
-            if handler is None:
-                print(f"DEBUG: 可用的事件处理器: {event_handler_factory.list_handlers()}")
-                print(f"DEBUG: 事件类型: {type(event)}")
-                raise RuntimeError(f"无法找到适合处理事件类型 {type(event)} 的处理器")
-
-            # 处理事件
             handler.handle(event, context)
         except Exception as e:
-            # 增强错误信息
-            error_msg = f"处理事件 {type(event).__name__} 时发生错误: {e}"
-            # 记录原始异常信息
-            import logging
-
-            logging.error(error_msg, exc_info=True)
-            # 重新抛出异常，保持原始类型
-            if isinstance(e, (RuntimeError, NotImplementedError)):
-                raise
-            else:
-                raise RuntimeError(error_msg) from e
+            logging.error(f"处理事件 {type(event).__name__} 时发生错误: {e}", exc_info=True)
+            raise
 
     def check_all_event(self):
         """检查所有残留事件是否到期，只要有一个残留事件已经到期，直接返回False，激活递归。"""

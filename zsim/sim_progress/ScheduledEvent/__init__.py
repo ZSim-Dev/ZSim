@@ -16,16 +16,12 @@ from zsim.sim_progress.Load.loading_mission import LoadingMission
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Update import update_anomaly
 
+from .concrete_handlers import register_all_handlers
+from .event_handlers import event_handler_factory
+
 if TYPE_CHECKING:
     from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
-
-# 事件处理器导入
-try:
-    from .concrete_handlers import register_all_handlers
-    from .event_handlers import event_handler_factory
-except ImportError as e:
-    raise RuntimeError(f"事件处理器模块导入失败: {e}") from e
 
 
 class ScConditionData:

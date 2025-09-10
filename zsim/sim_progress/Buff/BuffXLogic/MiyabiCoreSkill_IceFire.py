@@ -1,9 +1,9 @@
+from typing import TYPE_CHECKING
+
 from zsim.sim_progress import Preload
-from zsim.sim_progress.ScheduledEvent import Calculator
-from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
+from zsim.sim_progress.ScheduledEvent.Calculator import Calculator, MultiplierData
 
 from .. import Buff, JudgeTools, check_preparation
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode

@@ -45,7 +45,7 @@ class InitData:
         """CLI/WebUI方法不传入常规配置，直接读取文件"""
         config: dict = saved_char_config
         if not config:
-            assert False, "No character init configuration found."
+            raise AssertionError("No character init configuration found.")
         try:
             self.name_box: list[str] = config["name_box"]
             self.Judge_list_set: list[
@@ -55,7 +55,7 @@ class InitData:
             self.char_1 = config[self.name_box[1]]
             self.char_2 = config[self.name_box[2]]
         except KeyError as e:
-            assert False, f"Missing key in character init configuration: {e}"
+            raise AssertionError(f"Missing key in character init configuration: {e}")
         self.__adjust_weapon_with_sim_cfg()
         for name in self.name_box:
             char = getattr(self, f"char_{self.name_box.index(name)}")

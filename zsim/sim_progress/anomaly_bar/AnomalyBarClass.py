@@ -77,7 +77,7 @@ class AnomalyBar:
         if self.max_duration is not None:
             assert duration <= self.max_duration, "该异常早就结束了！不应该触发紊乱！"
         else:
-            assert False, "该异常的max_duration为None，无法判断是否过期！"
+            raise AssertionError("该异常的max_duration为None，无法判断是否过期！")
         return duration
 
     def update_snap_shot(self, new_snap_shot: tuple, single_hit: "SingleHit"):

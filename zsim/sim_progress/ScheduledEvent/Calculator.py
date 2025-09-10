@@ -147,8 +147,8 @@ class MultiplierData:
                 sim_instance=self.enemy_obj.sim_instance,
                 char_name=self.char_name,
             )
-        except TypeError:
-            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}")
+        except TypeError as err:
+            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}") from err
         return dynamic_statement
 
     class StaticStatement:
@@ -669,7 +669,7 @@ class Calculator:
                     # if data.dynamic.sheer_atk != 0:
                     #     print(f"检测到 {data.char_instance.NAME} 的局内固定贯穿力Buff：{data.dynamic.sheer_atk}, 基础贯穿力：{base_sheer_atk}")
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             return attr
 
         @staticmethod
@@ -722,7 +722,7 @@ class Calculator:
             elif trigger_buff_level == 10:
                 trigger_dmg_bonus = 0
             else:
-                assert False, "Invalid trigger_level"
+                raise AssertionError("Invalid trigger_level")
             # 获取指定label增伤
             if (
                 data.judge_node.skill.labels is not None
@@ -927,7 +927,7 @@ class Calculator:
                     - data.dynamic.ether_res_pen_increase
                 )
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             res_mul = (
                 1
                 - element_res
@@ -962,7 +962,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 element_vulnerability = data.dynamic.ether_vulnerability
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             dmg_vulnerability = 1 + element_vulnerability + data.dynamic.all_vulnerability
             return dmg_vulnerability
 
@@ -1099,7 +1099,7 @@ class Calculator:
                 )
                 buildup_res = 1 - data.dynamic.ice_anomaly_res_decrease - enemy_buildup_res
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
 
             trigger_buff_level = data.judge_node.skill.trigger_buff_level
             if trigger_buff_level == 0:
@@ -1125,7 +1125,7 @@ class Calculator:
             elif trigger_buff_level == 10:
                 trigger_buildup_bonus = 0
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
 
             element_dmg_percentage = data.judge_node.skill.element_damage_percent
 
@@ -1159,7 +1159,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 base_damage = 0.625 * base_attr
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             return base_damage
 
         @staticmethod
@@ -1178,7 +1178,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 element_dmg_bonus = data.static.ether_dmg_bonus + data.dynamic.ether_dmg_bonus
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
 
             dmg_bonus = (
                 1 + element_dmg_bonus + data.dynamic.all_dmg_bonus + data.dynamic.anomaly_dmg_bonus
@@ -1227,7 +1227,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 element_res_pen = data.dynamic.ether_res_pen_increase
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             return element_res_pen
 
     class StunMul:
@@ -1353,7 +1353,7 @@ class Calculator:
                 self.skill_node.skill.skill_text,
                 f"第{self.skill_node.loading_mission.hitted_count if self.skill_node.loading_mission else 1}次命中",
                 "：",
-                [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers)],
+                [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers, strict=True)],
             )
 
     def cal_dmg_crit(self) -> np.float64:

@@ -16,8 +16,7 @@ from zsim.sim_progress.Load.loading_mission import LoadingMission
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Update import update_anomaly
 
-from .concrete_handlers import register_all_handlers
-from .event_handlers import event_handler_factory
+from .event_handlers import event_handler_factory, register_all_handlers
 
 if TYPE_CHECKING:
     from zsim.simulator.dataclasses import ScheduleData
@@ -216,30 +215,30 @@ class ScheduledEvent:
         Preload -> Load -> update_anomaly() -> Buff(第一轮) ->  Schedule -> Buff(第二轮)
         现有顺序：
         Preload -> Load -> Buff(第一轮) ->  Schedule -> update_anomaly() -> Buff(第二轮)
-        
+
         由于update_anomaly()函数是根据现有积蓄值来判断是否触发属性异常的，
         所以在运行过程中，只有先把积蓄值打满的下一次update_anomaly()才会触发属性异常，
         无论是哪种结构，enemy的receive_hit()函数都会在Schedule阶段执行，
         故任何早于Schedule阶段的update_anomaly都只能更新到上个tick的属性异常，
         所以，原有结构中，第Ntick打满的异常条，会在第N+1 tick被激活，
-        
+
         一般情况下，这种迟滞1tick的激活行为不会对模拟的结果造成影响，
         (长难句警告！！)--但若是某个Buff事件的激活 依赖于发生在 技能last_hit标签处的属性异常更新--
         那么在老的结构下，事件的更新顺序为
-            --(第N Tick)-- 
+            --(第N Tick)--
                 -> update_anomaly(此时的异常条还没打满[来自于上个tick]所以第Ntick的运行无结果)
-                -> Buff事件触发器检测（异常条更新状态没有改变，所以触发器不触发） 
+                -> Buff事件触发器检测（异常条更新状态没有改变，所以触发器不触发）
                 -> Schedule，异常条满，
             --(第N+1 Tick)--
                 -> update_anomaly(异常条满，更新异常)
                 -> Buff事件触发器检测（已经错过了触发窗口，所以触发器不触发）
-            
+
         而在新的结构下，事件更新顺序为：
-            --(第N Tick)-- 
+            --(第N Tick)--
                 -> Schedule，异常条满，
                 -> update_anomaly(异常条满，更新异常)
                 -> Buff事件触发器检测（将该Buff改为Schedule处理类型）
-        
+
         上述结构的改变就能够彻底规避来自于结构的触发误差——来自柳极性紊乱触发器的启发
         """
         if isinstance(event, SkillNode):

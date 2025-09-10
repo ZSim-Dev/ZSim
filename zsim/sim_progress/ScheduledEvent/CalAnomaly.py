@@ -2,10 +2,13 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-from zsim.define import ElementType, ELEMENT_TYPE_MAPPING as ETM
+from zsim.define import ELEMENT_TYPE_MAPPING as ETM
+from zsim.define import ElementType
 from zsim.sim_progress.anomaly_bar import AnomalyBar
 from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
     DirgeOfDestinyAnomaly as Abloom,
+)
+from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
     Disorder,
     PolarityDisorder,
 )
@@ -284,7 +287,7 @@ class CalDisorder(CalAnomaly):
                 _atk = base_mul / 0.625
                 _ratio = np.floor(t_s / 0.5) * 0.625 + 4.5 + disorder_base_ratio_increase
             case _:
-                assert False, f"Invalid Element Type {self.element_type}"
+                raise AssertionError(f"Invalid Element Type {self.element_type}")
         disorder_base_dmg = _atk * _ratio
         # from zsim.define import ELEMENT_TYPE_MAPPING as ETM
         # print(f"111111，计算紊乱！{ETM[self.element_type]}属性的紊乱，攻击力为：{_atk:.2f}，倍率为：{_ratio:.2f}, 紊乱倍率加成为：{disorder_base_ratio_increase}")
@@ -331,9 +334,9 @@ class CalPolarityDisorder(CalDisorder):
         ) + (ap * disorder_obj.additional_dmg_ap_ratio)
 
     def __find_yanagi(self) -> Yanagi | None:
-        yanagi_obj: Yanagi | None = self.sim_instance.char_data.char_obj_dict.get("柳", None)  # type: ignore
-        if yanagi_obj is None:
-            assert False, "没柳你哪来的极性紊乱"
+        yanagi_obj: Character | None = self.sim_instance.char_data.char_obj_dict.get("柳", None)
+        if yanagi_obj is None or not isinstance(yanagi_obj, Yanagi):
+            raise AssertionError("没柳你哪来的极性紊乱")
         return yanagi_obj
 
 

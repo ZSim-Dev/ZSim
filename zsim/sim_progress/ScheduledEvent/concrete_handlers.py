@@ -85,46 +85,57 @@ class BaseEventHandler(EventHandler):
         """从上下文中获取模拟器实例"""
         return context["sim_instance"]
 
-    def _validate_event(self, event: Any, expected_type: type | tuple[type, ...] | None = None) -> None:
+    def _validate_event(
+        self, event: Any, expected_type: type | tuple[type, ...] | None = None
+    ) -> None:
         """
         验证事件参数
-        
+
         Args:
             event: 待验证的事件对象
             expected_type: 期望的事件类型，如果为None则只验证非None
-            
+
         Raises:
             TypeError: 当事件类型不符合期望时
             ValueError: 当事件为None时
         """
         if event is None:
             raise ValueError("事件对象不能为None")
-        
+
         if expected_type is not None and not isinstance(event, expected_type):
             if isinstance(expected_type, tuple):
                 expected_names = [t.__name__ for t in expected_type]
-                raise TypeError(f"期望事件类型为 {expected_names} 之一，实际得到 {type(event).__name__}")
+                raise TypeError(
+                    f"期望事件类型为 {expected_names} 之一，实际得到 {type(event).__name__}"
+                )
             else:
-                raise TypeError(f"期望事件类型为 {expected_type.__name__}，实际得到 {type(event).__name__}")
+                raise TypeError(
+                    f"期望事件类型为 {expected_type.__name__}，实际得到 {type(event).__name__}"
+                )
 
     def _validate_context(self, context: dict[str, Any]) -> None:
         """
         验证上下文数据
-        
+
         Args:
             context: 待验证的上下文字典
-            
+
         Raises:
             ValueError: 当上下文缺少必需的键时
         """
         if not isinstance(context, dict):
             raise TypeError("上下文必须是字典类型")
-        
+
         required_keys = {
-            'data', 'tick', 'enemy', 'dynamic_buff', 
-            'exist_buff_dict', 'action_stack', 'sim_instance'
+            "data",
+            "tick",
+            "enemy",
+            "dynamic_buff",
+            "exist_buff_dict",
+            "action_stack",
+            "sim_instance",
         }
-        
+
         missing_keys = required_keys - context.keys()
         if missing_keys:
             raise ValueError(f"上下文缺少必需的键: {sorted(missing_keys)}")
@@ -162,7 +173,7 @@ class SkillEventHandler(BaseEventHandler):
         # 验证输入
         self._validate_event(event, (SkillNode, LoadingMission))
         self._validate_context(context)
-        
+
         data = self._get_context_data(context)
         tick = self._get_context_tick(context)
         enemy = self._get_context_enemy(context)
@@ -234,10 +245,10 @@ class SkillEventHandler(BaseEventHandler):
 
     def _extract_skill_info(self, event: SkillNode | LoadingMission) -> tuple[SkillNode, int]:
         """提取技能节点和命中次数信息
-        
+
         Args:
             event: 技能事件对象
-            
+
         Returns:
             tuple[SkillNode, int]: (技能节点, 命中次数)
         """
@@ -388,7 +399,7 @@ class SkillEventHandler(BaseEventHandler):
         sim_instance: Simulator,
     ) -> None:
         """处理buff结算
-        
+
         Args:
             tick: 当前tick
             exist_buff_dict: 已存在的buff字典
@@ -416,7 +427,7 @@ class SkillEventHandler(BaseEventHandler):
         event: SkillNode | LoadingMission,
     ) -> None:
         """处理伤害更新效果
-        
+
         Args:
             tick: 当前tick
             enemy: 敌人对象
@@ -441,7 +452,7 @@ class AnomalyEventHandler(BaseEventHandler):
         # 验证输入
         self._validate_event(event, AnB)
         self._validate_context(context)
-        
+
         enemy = self._get_context_enemy(context)
         dynamic_buff = self._get_context_dynamic_buff(context)
         exist_buff_dict = self._get_context_exist_buff_dict(context)

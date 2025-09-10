@@ -5,7 +5,6 @@
 """
 
 from abc import ABC, abstractmethod
-from functools import lru_cache
 from typing import Any
 
 
@@ -90,14 +89,14 @@ class EventHandlerFactory:
         if event_type in self._handler_cache:
             self._cache_hits += 1
             return self._handler_cache[event_type]
-        
+
         # 缓存未命中，查找处理器
         for handler in self._handlers.values():
             if handler.can_handle(event):
                 self._handler_cache[event_type] = handler
                 self._cache_misses += 1
                 return handler
-        
+
         self._cache_misses += 1
         return None
 
@@ -130,25 +129,25 @@ class EventHandlerFactory:
     def get_cache_stats(self) -> dict[str, int | float]:
         """
         获取缓存统计信息
-        
+
         Returns:
             dict[str, int]: 包含缓存命中率和统计信息的字典
         """
         total_requests = self._cache_hits + self._cache_misses
         hit_rate = (self._cache_hits / total_requests * 100) if total_requests > 0 else 0
-        
+
         return {
-            'cache_hits': self._cache_hits,
-            'cache_misses': self._cache_misses,
-            'total_requests': total_requests,
-            'hit_rate_percent': round(hit_rate, 2)
+            "cache_hits": self._cache_hits,
+            "cache_misses": self._cache_misses,
+            "total_requests": total_requests,
+            "hit_rate_percent": round(hit_rate, 2),
         }
-    
+
     def reset_cache_stats(self) -> None:
         """重置缓存统计信息"""
         self._cache_hits = 0
         self._cache_misses = 0
-    
+
     def clear_cache(self) -> None:
         """清除处理器缓存"""
         self._handler_cache.clear()

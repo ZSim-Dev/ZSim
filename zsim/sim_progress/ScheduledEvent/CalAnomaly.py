@@ -43,7 +43,9 @@ class CalAnomaly:
         self.enemy_obj = enemy_obj
         self.anomaly_obj: AnomalyBar = anomaly_obj
         if not self.anomaly_obj.settled:
-            raise ValueError(f"即将被计算的 {ETM[self.anomaly_obj.element_type]} 异常条对象尚未结算快照，请检查前置业务逻辑")
+            raise ValueError(
+                f"即将被计算的 {ETM[self.anomaly_obj.element_type]} 异常条对象尚未结算快照，请检查前置业务逻辑"
+            )
         self.dynamic_buff = dynamic_buff
         snapshot: tuple[ElementType, np.ndarray] = (
             self.anomaly_obj.element_type,
@@ -52,11 +54,13 @@ class CalAnomaly:
         self.element_type: ElementType = snapshot[0]
         # self.dmg_sp 以 array 形式储存，顺序为：基础伤害区、增伤区、异常精通区、等级、异常增伤区、异常暴击区、穿透率、穿透值、抗性穿透、冲击力、失衡值增幅
         self.dmg_sp: np.ndarray = snapshot[1]
-        assert self.dmg_sp.shape == (1, 11), (f"tick: {self.sim_instance.tick}  异常伤害快照形状错误，期望(1, 11)，实际{self.dmg_sp}\n"
-                                              f"其他信息：名字：{type(self.anomaly_obj).__name__}\n"
-                                              f"属性：{self.anomaly_obj.element_type}\n"
-                                              f"是否是紊乱：{self.anomaly_obj.is_disorder}\n"
-                                              f"是否已经被结算：{self.anomaly_obj.settled}")
+        assert self.dmg_sp.shape == (1, 11), (
+            f"tick: {self.sim_instance.tick}  异常伤害快照形状错误，期望(1, 11)，实际{self.dmg_sp}\n"
+            f"其他信息：名字：{type(self.anomaly_obj).__name__}\n"
+            f"属性：{self.anomaly_obj.element_type}\n"
+            f"是否是紊乱：{self.anomaly_obj.is_disorder}\n"
+            f"是否已经被结算：{self.anomaly_obj.settled}"
+        )
         if anomaly_obj.activated_by is None:
             print(
                 f"【CalAnomaly Warnning】:检测到异常实例(属性类型：{anomaly_obj.element_type}）的激活源为空，改异常实例将无法享受Buff加成。"
@@ -219,7 +223,9 @@ class CalAnomaly:
         所以我们为属性异常伤害期望计算添加了缩放比例的乘算逻辑
         """
         return np.float64(
-            np.prod(self.final_multipliers) / (self.dmg_sp[0, 9] * self.dmg_sp[0, 10]) * self.anomaly_obj.scaling_factor
+            np.prod(self.final_multipliers)
+            / (self.dmg_sp[0, 9] * self.dmg_sp[0, 10])
+            * self.anomaly_obj.scaling_factor
         )
 
 

@@ -1,14 +1,13 @@
 """
 事件处理上下文模型
 
-该模块定义了事件处理上下文的Pydantic模型，用于替代字典形式的上下文数据。
+该模块定义了事件处理上下文的dataclass，用于替代字典形式的上下文数据。
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
-
-from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from zsim.sim_progress.data_struct import ActionStack
@@ -17,24 +16,21 @@ if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
 
 
-class EventContext(BaseModel):
+@dataclass
+class EventContext:
     """
     事件处理上下文模型
 
-    包含事件处理所需的全部数据和对象，使用Pydantic模型提供类型安全和数据验证。
+    包含事件处理所需的全部数据和对象，使用dataclass提供类型安全和简洁的语法。
     """
 
-    data: ScheduleData = Field(description="调度数据对象")
-    tick: int = Field(description="当前时间刻")
-    enemy: Enemy = Field(description="敌人对象")
-    dynamic_buff: dict[str, Any] = Field(description="动态buff字典")
-    exist_buff_dict: dict[str, Any] = Field(description="已存在buff字典")
-    action_stack: ActionStack = Field(description="动作栈")
-    sim_instance: Simulator = Field(description="模拟器实例")
-
-    class Config:
-        """Pydantic配置"""
-        arbitrary_types_allowed = True
+    data: ScheduleData
+    tick: int
+    enemy: Enemy
+    dynamic_buff: dict[str, Any]
+    exist_buff_dict: dict[str, Any]
+    action_stack: ActionStack
+    sim_instance: Simulator
 
     def get_data(self) -> ScheduleData:
         """获取调度数据对象"""

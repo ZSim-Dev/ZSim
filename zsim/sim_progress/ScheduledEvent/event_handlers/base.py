@@ -3,6 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
+from .context import EventContext
+
 if TYPE_CHECKING:
     from zsim.sim_progress.data_struct import (
         ActionStack,
@@ -10,8 +12,6 @@ if TYPE_CHECKING:
     from zsim.sim_progress.Enemy import Enemy
     from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
-
-    from .context import EventContext
 
 
 class EventHandlerABC(ABC):

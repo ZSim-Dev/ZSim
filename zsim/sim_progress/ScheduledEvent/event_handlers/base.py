@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
 
+    from .context import EventContext
+
 
 class EventHandlerABC(ABC):
     """事件处理器抽象基类"""
@@ -29,7 +31,7 @@ class EventHandlerABC(ABC):
         pass
 
     @abstractmethod
-    def handle(self, event: Any, context: dict[str, Any]) -> None:
+    def handle(self, event: Any, context: EventContext) -> None:
         """
         处理事件
 
@@ -64,33 +66,33 @@ class BaseEventHandler(EventHandlerABC):
     def event_type(self) -> str:
         return self._event_type
 
-    def _get_context_data(self, context: dict[str, Any]) -> ScheduleData:
+    def _get_context_data(self, context: EventContext) -> ScheduleData:
         """从上下文中获取ScheduleData"""
-        return context["data"]
+        return context.get_data()
 
-    def _get_context_tick(self, context: dict[str, Any]) -> int:
+    def _get_context_tick(self, context: EventContext) -> int:
         """从上下文中获取当前tick"""
-        return context["tick"]
+        return context.get_tick()
 
-    def _get_context_enemy(self, context: dict[str, Any]) -> Enemy:
+    def _get_context_enemy(self, context: EventContext) -> Enemy:
         """从上下文中获取敌人对象"""
-        return context["enemy"]
+        return context.get_enemy()
 
-    def _get_context_dynamic_buff(self, context: dict[str, Any]) -> dict:
+    def _get_context_dynamic_buff(self, context: EventContext) -> dict:
         """从上下文中获取动态buff"""
-        return context["dynamic_buff"]
+        return context.get_dynamic_buff()
 
-    def _get_context_exist_buff_dict(self, context: dict[str, Any]) -> dict:
+    def _get_context_exist_buff_dict(self, context: EventContext) -> dict:
         """从上下文中获取已存在buff字典"""
-        return context["exist_buff_dict"]
+        return context.get_exist_buff_dict()
 
-    def _get_context_action_stack(self, context: dict[str, Any]) -> ActionStack:
+    def _get_context_action_stack(self, context: EventContext) -> ActionStack:
         """从上下文中获取动作栈"""
-        return context["action_stack"]
+        return context.get_action_stack()
 
-    def _get_context_sim_instance(self, context: dict[str, Any]) -> Simulator:
+    def _get_context_sim_instance(self, context: EventContext) -> Simulator:
         """从上下文中获取模拟器实例"""
-        return context["sim_instance"]
+        return context.get_sim_instance()
 
     def _validate_event(
         self, event: Any, expected_type: type | tuple[type, ...] | None = None
@@ -120,32 +122,20 @@ class BaseEventHandler(EventHandlerABC):
                     f"期望事件类型为 {expected_type.__name__}，实际得到 {type(event).__name__}"
                 )
 
-    def _validate_context(self, context: dict[str, Any]) -> None:
+    def _validate_context(self, context: EventContext) -> None:
         """
         验证上下文数据
 
         Args:
-            context: 待验证的上下文字典
+            context: 待验证的上下文对象
 
         Raises:
-            ValueError: 当上下文缺少必需的键时
+            ValueError: 当上下文无效时
         """
-        if not isinstance(context, dict):
-            raise TypeError("上下文必须是字典类型")
+        if not isinstance(context, EventContext):
+            raise TypeError("上下文必须是EventContext类型")
 
-        required_keys = {
-            "data",
-            "tick",
-            "enemy",
-            "dynamic_buff",
-            "exist_buff_dict",
-            "action_stack",
-            "sim_instance",
-        }
-
-        missing_keys = required_keys - context.keys()
-        if missing_keys:
-            raise ValueError(f"上下文缺少必需的键: {sorted(missing_keys)}")
+        # Pydantic模型已经确保了数据的完整性和有效性
 
     def _handle_error(self, error: Exception, operation: str, event: Any = None) -> None:
         """

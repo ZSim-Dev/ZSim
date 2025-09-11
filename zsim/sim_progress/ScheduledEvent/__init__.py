@@ -16,7 +16,7 @@ from zsim.sim_progress.Load.loading_mission import LoadingMission
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Update import update_anomaly
 
-from .event_handlers import event_handler_factory, register_all_handlers
+from .event_handlers import EventContext, event_handler_factory, register_all_handlers
 
 if TYPE_CHECKING:
     from zsim.simulator.dataclasses import ScheduleData
@@ -91,22 +91,22 @@ class ScheduledEvent:
         else:
             logging.debug("事件处理器已经注册")
 
-    def _create_event_context(self) -> dict[str, Any]:
+    def _create_event_context(self) -> EventContext:
         """
         创建事件处理上下文
 
         Returns:
-            dict[str, Any]: 包含事件处理所需数据的上下文字典
+            EventContext: 包含事件处理所需数据的上下文对象
         """
-        return {
-            "data": self.data,
-            "tick": self.tick,
-            "enemy": self.enemy,
-            "dynamic_buff": self.data.dynamic_buff,
-            "exist_buff_dict": self.exist_buff_dict,
-            "action_stack": self.action_stack,
-            "sim_instance": self.sim_instance,
-        }
+        return EventContext(
+            data=self.data,
+            tick=self.tick,
+            enemy=self.enemy,
+            dynamic_buff=self.data.dynamic_buff,
+            exist_buff_dict=self.exist_buff_dict,
+            action_stack=self.action_stack,
+            sim_instance=self.sim_instance,
+        )
 
     def event_start(self):
         """Schedule主逻辑"""

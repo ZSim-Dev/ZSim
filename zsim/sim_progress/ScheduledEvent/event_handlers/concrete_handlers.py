@@ -46,6 +46,8 @@ if TYPE_CHECKING:
     from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
 
+    from .context import EventContext
+
 
 class SkillEventHandler(BaseEventHandler):
     """技能事件处理器"""
@@ -56,7 +58,7 @@ class SkillEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, SkillNode | LoadingMission)
 
-    def handle(self, event: SkillNode | LoadingMission, context: dict[str, Any]) -> None:
+    def handle(self, event: SkillNode | LoadingMission, context: EventContext) -> None:
         """处理技能事件"""
         # 验证输入
         self._validate_event(event, (SkillNode, LoadingMission))
@@ -87,7 +89,7 @@ class SkillEventHandler(BaseEventHandler):
         )
 
     def _get_execute_tick(
-        self, event: SkillNode | LoadingMission, context: dict[str, Any]
+        self, event: SkillNode | LoadingMission, context: EventContext
     ) -> int | None:
         """获取事件的执行tick"""
         if isinstance(event, SkillNode):
@@ -335,7 +337,7 @@ class AnomalyEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, AnB)
 
-    def handle(self, event: AnB, context: dict[str, Any]) -> None:
+    def handle(self, event: AnB, context: EventContext) -> None:
         """处理异常事件"""
         # 验证输入
         self._validate_event(event, AnB)
@@ -392,7 +394,7 @@ class DisorderEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, Disorder)
 
-    def handle(self, event: Disorder, context: dict[str, Any]) -> None:
+    def handle(self, event: Disorder, context: EventContext) -> None:
         """处理紊乱事件"""
         enemy = self._get_context_enemy(context)
         dynamic_buff = self._get_context_dynamic_buff(context)
@@ -439,7 +441,7 @@ class PolarityDisorderEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, PolarityDisorder)
 
-    def handle(self, event: PolarityDisorder, context: dict[str, Any]) -> None:
+    def handle(self, event: PolarityDisorder, context: EventContext) -> None:
         """处理极性紊乱事件"""
         enemy = self._get_context_enemy(context)
         dynamic_buff = self._get_context_dynamic_buff(context)
@@ -483,7 +485,7 @@ class AbloomEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, Abloom)
 
-    def handle(self, event: Abloom, context: dict[str, Any]) -> None:
+    def handle(self, event: Abloom, context: EventContext) -> None:
         """处理薇薇安异放事件"""
         enemy = self._get_context_enemy(context)
         dynamic_buff = self._get_context_dynamic_buff(context)
@@ -523,7 +525,7 @@ class RefreshEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, ScheduleRefreshData)
 
-    def handle(self, event: ScheduleRefreshData, context: dict[str, Any]) -> None:
+    def handle(self, event: ScheduleRefreshData, context: EventContext) -> None:
         """处理数据刷新事件"""
         try:
             data = self._get_context_data(context)
@@ -558,7 +560,7 @@ class QuickAssistEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, QuickAssistEvent)
 
-    def handle(self, event: QuickAssistEvent, context: dict[str, Any]) -> None:
+    def handle(self, event: QuickAssistEvent, context: EventContext) -> None:
         """处理快速支援事件"""
         data = self._get_context_data(context)
         tick = self._get_context_tick(context)
@@ -582,7 +584,7 @@ class PreloadEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, SchedulePreload)
 
-    def handle(self, event: SchedulePreload, context: dict[str, Any]) -> None:
+    def handle(self, event: SchedulePreload, context: EventContext) -> None:
         """处理预加载事件"""
         data = self._get_context_data(context)
         tick = self._get_context_tick(context)
@@ -606,7 +608,7 @@ class StunForcedTerminationEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, StunForcedTerminationEvent)
 
-    def handle(self, event: StunForcedTerminationEvent, context: dict[str, Any]) -> None:
+    def handle(self, event: StunForcedTerminationEvent, context: EventContext) -> None:
         """处理眩晕强制终止事件"""
         data = self._get_context_data(context)
         tick = self._get_context_tick(context)
@@ -630,7 +632,7 @@ class PolarizedAssaultEventHandler(BaseEventHandler):
     def can_handle(self, event: Any) -> bool:
         return isinstance(event, PolarizedAssaultEvent)
 
-    def handle(self, event: PolarizedAssaultEvent, context: dict[str, Any]) -> None:
+    def handle(self, event: PolarizedAssaultEvent, context: EventContext) -> None:
         """处理极性强击事件"""
         data = self._get_context_data(context)
         tick = self._get_context_tick(context)

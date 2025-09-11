@@ -8,6 +8,7 @@ from typing import Any
 
 from .base import EventHandlerABC
 from .concrete_handlers import register_all_handlers
+from .context import EventContext
 
 
 class EventHandlerFactory:
@@ -117,4 +118,4 @@ class EventHandlerFactory:
 # 全局处理器工厂实例
 event_handler_factory = EventHandlerFactory()
 
-__all__ = ["event_handler_factory", "register_all_handlers"]
+__all__ = ["event_handler_factory", "register_all_handlers", "EventContext"]

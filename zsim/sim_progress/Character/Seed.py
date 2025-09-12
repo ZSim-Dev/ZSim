@@ -16,18 +16,20 @@ class Seed(Character):
         super().__init__(**kwargs)
         self._steel_charge: float = 0.0  # 钢能值
         self.max_steel_charge: int = 150  # 最大钢能值
-        self.sna_steel_charge_cost: int = 60 if self.cinema < 1 else 50   # 落华·崩坠一式、二式消耗的钢能值
+        self.sna_steel_charge_cost: int = (
+            60 if self.cinema < 1 else 50
+        )  # 落华·崩坠一式、二式消耗的钢能值
         self.sp_to_steel_ratio: float = 0.5  # 技能能耗转换为钢能值的比例
-        self.Q_steel_charge_get: int = 60   # Q技能获得的钢能值
-        self.vanguard: Character | None = None      # 正兵
-        self.sna_quick_release: bool = False        # sna的快速释放状态
+        self.Q_steel_charge_get: int = 60  # Q技能获得的钢能值
+        self.vanguard: Character | None = None  # 正兵
+        self.sna_quick_release: bool = False  # sna的快速释放状态
         # 特殊状态组
-        self._onslaught: bool = False    # 强袭状态
-        self._onslaught_active_tick: int = 0    # 强袭状态激活的tick
-        self._direct_strike: bool = False    # 明攻状态
-        self._direct_strike_active_tick: int = 0    # 明攻状态激活的tick
-        self.special_state_duration: int = 2400     # 特殊状态持续时间`
-        self.state_keep_tick: int = 180     # 特殊状态在后台保持的tick
+        self._onslaught: bool = False  # 强袭状态
+        self._onslaught_active_tick: int = 0  # 强袭状态激活的tick
+        self._direct_strike: bool = False  # 明攻状态
+        self._direct_strike_active_tick: int = 0  # 明攻状态激活的tick
+        self.special_state_duration: int = 2400  # 特殊状态持续时间`
+        self.state_keep_tick: int = 180  # 特殊状态在后台保持的tick
         """
         注意，我并未设计某函数来赋予明攻、强袭状态为False值，因为整个模拟器的结构不太方便每个tick都来判断一次是否状态是否过期。
         所以，这两个状态的赋值只会是赋予True值，而不会是赋予False值。
@@ -38,6 +40,7 @@ class Seed(Character):
     @property
     def onslaught(self) -> bool:
         """强袭状态"""
+        assert self.sim_instance is not None
         if not self._onslaught:
             return False
         else:
@@ -50,6 +53,7 @@ class Seed(Character):
     @property
     def direct_strike(self) -> bool:
         """明攻状态"""
+        assert self.sim_instance is not None
         if not self._direct_strike:
             return False
         else:
@@ -62,6 +66,7 @@ class Seed(Character):
     @onslaught.setter
     def onslaught(self, value: bool) -> None:
         """强袭状态在检测到赋予True值时记录当前tick"""
+        assert self.sim_instance is not None
         self._onslaught = value
         if value:
             self._onslaught_active_tick = self.sim_instance.tick
@@ -69,6 +74,7 @@ class Seed(Character):
     @direct_strike.setter
     def direct_strike(self, value: bool) -> None:
         """明攻状态在检测到赋予True值时记录当前tick"""
+        assert self.sim_instance is not None
         self._direct_strike = value
         if value:
             self._direct_strike_active_tick = self.sim_instance.tick
@@ -125,28 +131,35 @@ class Seed(Character):
 
     def special_resources(self, *args, **kwargs) -> None:
         """模拟Seed的特殊资源机制"""
+        assert self.sim_instance is not None
         # 输入类型检查
         skill_nodes: list[SkillNode] = _skill_node_filter(*args, **kwargs)
         # 对输入的skill_node进行遍历
         for node in skill_nodes:
             # 更新能耗转化的钢能值
             self.update_steel_charge_from_sp_cost(skill_node=node)
-            
+
             # 更新特殊状态
             self.update_special_state(node)
-            
+
             if node.char_name == self.NAME:
                 # SNA2和SNA3技能消耗钢能值
                 if node.skill_tag in ["1461_SNA_2", "1461_SNA_3"]:
-                    self.update_steel_charge(value=self.sna_steel_charge_cost * -1, update_origin=node.skill_tag)
-                
+                    self.update_steel_charge(
+                        value=self.sna_steel_charge_cost * -1, update_origin=node.skill_tag
+                    )
+
                 # Q技能获得钢能值
                 elif node.skill_tag == "1461_Q":
-                    self.update_steel_charge(value=self.Q_steel_charge_get, update_origin=node.skill_tag)
+                    self.update_steel_charge(
+                        value=self.Q_steel_charge_get, update_origin=node.skill_tag
+                    )
                     if SEED_REPORT:
                         self.sim_instance.schedule_data.change_process_state()
-                        print(f"【席德事件】席德释放了 {node.skill_tag} 获得了{self.Q_steel_charge_get}点钢能值")
-                
+                        print(
+                            f"【席德事件】席德释放了 {node.skill_tag} 获得了{self.Q_steel_charge_get}点钢能值"
+                        )
+
                 # SNA_1处理
                 elif node.skill_tag == "1461_SNA_1":
                     if self.sna_quick_release:
@@ -158,6 +171,7 @@ class Seed(Character):
 
     @steel_charge.setter
     def steel_charge(self, value: int | float) -> None:
+        assert self.sim_instance is not None
         # 检查钢能值足够的上升沿（支持1画和0画的不同门槛）
         threshold = self.sna_steel_charge_cost * 2
         if self._steel_charge < threshold <= self._steel_charge + value:
@@ -166,14 +180,16 @@ class Seed(Character):
             if SEED_REPORT:
                 self.sim_instance.schedule_data.change_process_state()
                 print(f"【席德事件】钢能值达到门槛({threshold}点)，开启SNA快速释放")
-        
+
         value = min(value, self.max_steel_charge)
         self._steel_charge = value
 
     def update_steel_charge(self, value: int | float, update_origin: str) -> None:
         """更新钢能值"""
         if value < 0:
-            assert abs(value) < self.steel_charge, f"{update_origin}企图消耗{abs(value):.2f}点钢能值，目前钢能值为{self.steel_charge:.2f}点，钢能值不足！"
+            assert abs(value) < self.steel_charge, (
+                f"{update_origin}企图消耗{abs(value):.2f}点钢能值，目前钢能值为{self.steel_charge:.2f}点，钢能值不足！"
+            )
         self.steel_charge += value
 
     @property
@@ -192,13 +208,15 @@ class Seed(Character):
             return
         if "steel_charge" in skill_node.labels:
             total_value = skill_node.labels["steel_charge"]
-            value = total_value/skill_node.skill.hit_times
+            assert isinstance(total_value, int | float)
+            value = total_value / skill_node.skill.hit_times
             self.update_steel_charge(value=value, update_origin=skill_node.skill_tag)
 
     def update_steel_charge_from_sp_cost(self, skill_node: SkillNode):
         """
         因技能能耗而更新钢能值，但注意，只有正兵和席德本身的能耗才能转化为钢能值
         """
+        assert self.sim_instance is not None
         # 筛选出正兵和席德本身的技能
         if self.vanguard is not None:
             if skill_node.char_name not in [self.NAME, self.vanguard.NAME]:
@@ -213,7 +231,9 @@ class Seed(Character):
         self.update_steel_charge(value=value, update_origin=f"{skill_node.skill_tag}能耗转化")
         if SEED_REPORT:
             self.sim_instance.schedule_data.change_process_state()
-            print(f"【席德事件】{skill_node.skill_tag}消耗了{sp_consume:.2f}点能量，转化为{value:.2f}点钢能值")
+            print(
+                f"【席德事件】{skill_node.skill_tag}消耗了{sp_consume:.2f}点能量，转化为{value:.2f}点钢能值"
+            )
 
     def update_special_state(self, skill_node: SkillNode):
         """更新席德的特殊状态，这个函数有两个任务：
@@ -242,12 +262,13 @@ class Seed(Character):
                 vanguard = char_obj
         else:
             self.vanguard = vanguard
+            assert self.vanguard is not None
             if SEED_REPORT:
-                self.sim_instance.schedule_data.change_process_state()
+                sim_instance.schedule_data.change_process_state()
                 print(f"【席德事件】本次模拟中，席德找到的正兵为：{self.vanguard.NAME}！")
         if self.vanguard is None:
             if SEED_REPORT:
-                self.sim_instance.schedule_data.change_process_state()
+                sim_instance.schedule_data.change_process_state()
                 print("【席德事件】注意！席德并未在当前队伍里找到正兵！")
 
     def reset_myself(self):

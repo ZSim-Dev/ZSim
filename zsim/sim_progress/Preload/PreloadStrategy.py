@@ -102,9 +102,9 @@ class SwapCancelStrategy(BasePreloadStrategy):
     def post_init_all_object(self):
         """后置初始化所有数据"""
         assert self.data.sim_instance is not None
-        sim_insatnce: Simulator = self.data.sim_instance
-        for char_obj in sim_insatnce.char_data.char_obj_list:
-            char_obj.POST_INIT_DATA(sim_insatnce=sim_insatnce)
+        sim_instance: Simulator = self.data.sim_instance
+        for char_obj in sim_instance.char_data.char_obj_list:
+            char_obj.POST_INIT_DATA(sim_instance=sim_instance)
 
 
 class SequenceStrategy:

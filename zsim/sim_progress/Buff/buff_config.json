@@ -1315,9 +1315,9 @@
     "module": ".BuffXLogic.SeedCinema2BesiegeIgnoreDefense",
     "class": "SeedCinema2BesiegeIgnoreDefense"
   },
-  "Buff-角色-席德-影画-2画-强化E增伤": {
-    "module": ".BuffXLogic.SeedCinema2EDMGBonus",
-    "class": "SeedCinema2EDMGBonus"
+  "Buff-角色-席德-影画-2画-耗能转化增伤": {
+    "module": ".BuffXLogic.SeedCinema2SpConsumeTransDmgBonus",
+    "class": "SeedCinema2SpConsumeTransDmgBonus"
   },
   "Buff-角色-席德-影画-4画-喧响效率与大招增伤": {
     "module": ".BuffXLogic.SeedCinema4DecibelGainAndQDMGBonus",

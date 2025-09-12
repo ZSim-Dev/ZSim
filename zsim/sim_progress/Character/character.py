@@ -352,7 +352,7 @@ class Character:
 
             self.quick_assist_manager = QuickAssistManager(self.character)
             self._on_field = False  # 角色是否在前台
-            self._switching_in_tick = 0       # 角色切到前台状态的时间点
+            self._switching_in_tick = 0  # 角色切到前台状态的时间点
             self._switching_out_tick = 0  # 角色切到后台状态的时间点
 
         def reset(self):
@@ -365,6 +365,7 @@ class Character:
 
         @on_field.setter
         def on_field(self, value: bool):
+            assert self.character.sim_instance is not None
             tick = self.character.sim_instance.tick
             if self.on_field and not value:
                 # 角色on_field状态的下降沿，即角色从前台切换到后台
@@ -376,6 +377,7 @@ class Character:
 
         def is_off_field_within(self, max_ticks: int) -> bool:
             """判断角色切到后台的时间是否小于等于指定时间"""
+            assert self.character.sim_instance is not None
             if self.on_field:
                 return False
             current_tick = self.character.sim_instance.tick
@@ -383,6 +385,7 @@ class Character:
 
         def is_on_field_within(self, max_ticks: int) -> bool:
             """判断角色切到前台的时间是否小于等于指定时间"""
+            assert self.character.sim_instance is not None
             if not self.on_field:
                 return False
             current_tick = self.character.sim_instance.tick
@@ -865,7 +868,7 @@ class Character:
     def personal_action_replace_strategy(self, action: str):
         return action
 
-    def POST_INIT_DATA(self, sim_insatnce: "Simulator"):
+    def POST_INIT_DATA(self, sim_instance: "Simulator"):
         pass
 
 

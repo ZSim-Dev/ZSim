@@ -1290,5 +1290,121 @@
   "Buff-角色-爱丽丝-影画-6画-额外攻击触发器": {
     "module": ".BuffXLogic.AliceCinema6Trigger",
     "class": "AliceCinema6Trigger"
+  },
+  "Buff-角色-席德-强袭": {
+    "module": ".BuffXLogic.SeedOnslaughtBonus",
+    "class": "SeedOnslaughtBonus"
+  },
+  "Buff-角色-席德-明攻": {
+    "module": ".BuffXLogic.SeedDirectStrikeBonus",
+    "class": "SeedDirectStrikeBonus"
+  },
+  "Buff-角色-席德-围杀": {
+    "module": ".BuffXLogic.SeedBesiegeBonus",
+    "class": "SeedBesiegeBonus"
+  },
+  "Buff-角色-席德-额外能力-重击大招增伤无视电抗": {
+    "module": ".BuffXLogic.SeedAdditionalAbilitySNAAndQBonus",
+    "class": "SeedAdditionalAbilitySNAAndQBonus"
+  },
+  "Buff-角色-席德-影画-1画-崩坠暴伤增加": {
+    "module": ".BuffXLogic.SeedCinema1SNACritDmgBonus",
+    "class": "SeedCinema1SNACritDmgBonus"
+  },
+  "Buff-角色-席德-影画-2画-围杀无视防御力": {
+    "module": ".BuffXLogic.SeedCinema2BesiegeIgnoreDefense",
+    "class": "SeedCinema2BesiegeIgnoreDefense"
+  },
+  "Buff-角色-席德-影画-2画-强化E增伤": {
+    "module": ".BuffXLogic.SeedCinema2EDMGBonus",
+    "class": "SeedCinema2EDMGBonus"
+  },
+  "Buff-角色-席德-影画-4画-喧响效率与大招增伤": {
+    "module": ".BuffXLogic.SeedCinema4DecibelGainAndQDMGBonus",
+    "class": "SeedCinema4DecibelGainAndQDMGBonus"
+  },
+  "Buff-角色-席德-影画-6画-常驻暴伤": {
+    "module": ".BuffXLogic.SeedCinema6CritDmgBonus",
+    "class": "SeedCinema6CritDmgBonus"
+  },
+  "Buff-角色-席德-影画-6画-触发器": {
+    "module": ".BuffXLogic.SeedCinema6Trigger",
+    "class": "SeedCinema6Trigger"
+  },
+  "Buff-武器-精1机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精2机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精3机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精4机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精5机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精1机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精2机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精3机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精4机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精5机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精1机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精2机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精3机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精4机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精5机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-驱动盘-拂晓生花-二件套-普攻增伤": {
+    "module": ".BuffXLogic.DawnsBloom2SetNADmgBonus",
+    "class": "DawnsBloom2SetNADmgBonus"
+  },
+  "Buff-驱动盘-拂晓生花-四件套-常驻普攻增伤": {
+    "module": ".BuffXLogic.DawnsBloom4SetAllTimeNADmgBonus",
+    "class": "DawnsBloom4SetAllTimeNADmgBonus"
+  },
+  "Buff-驱动盘-拂晓生花-四件套-触发普攻增伤": {
+    "module": ".BuffXLogic.DawnsBloom4SetTriggerNADmgBonus",
+    "class": "DawnsBloom4SetTriggerNADmgBonus"
+  },
+  "Buff-驱动盘-月光骑士颂-全队增伤": {
+    "module": ".BuffXLogic.MoonlightLullabyAllTeamDmgBonus",
+    "class": "MoonlightLullabyAllTeamDmgBonus"
   }
 }

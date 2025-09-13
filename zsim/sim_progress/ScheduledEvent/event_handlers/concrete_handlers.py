@@ -335,10 +335,10 @@ class AnomalyEventHandler(BaseEventHandler):
         super().__init__("anomaly")
 
     def can_handle(self, event: Any) -> bool:
-        return type(event) is AnB
+        return type(event) is AnB or type(event) is NewAnomaly
 
-    def handle(self, event: AnB, context: EventContext) -> None:
-        """处理异常事件"""
+    def handle(self, event: AnB | NewAnomaly, context: EventContext) -> None:
+        """处理异常事件（包括 NewAnomaly）"""
         # 验证输入
         self._validate_event(event, AnB)
         self._validate_context(context)
@@ -648,23 +648,6 @@ class PolarizedAssaultEventHandler(BaseEventHandler):
         event.execute()
 
 
-class NewAnomalyEventHandler(BaseEventHandler):
-    """新异常事件处理器"""
-
-    def __init__(self):
-        super().__init__("new_anomaly")
-
-    def can_handle(self, event: Any) -> bool:
-        """检查是否可以处理新异常事件"""
-        return type(event) is NewAnomaly
-
-    def handle(self, event: NewAnomaly, context: EventContext) -> None:
-        """处理新异常事件"""
-        # 新异常事件通常不需要特殊处理，主要是为了状态记录
-        # 这里可以添加特定的处理逻辑，目前只是简单处理
-        pass
-
-
 def register_all_handlers() -> None:
     """注册所有事件处理器"""
     from . import event_handler_factory
@@ -680,7 +663,6 @@ def register_all_handlers() -> None:
         PreloadEventHandler(),
         StunForcedTerminationEventHandler(),
         PolarizedAssaultEventHandler(),
-        NewAnomalyEventHandler(),
     ]
 
     for handler in handlers:

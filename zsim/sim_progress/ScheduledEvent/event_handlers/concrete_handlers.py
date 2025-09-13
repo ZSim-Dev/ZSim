@@ -439,7 +439,8 @@ class PolarityDisorderEventHandler(BaseEventHandler):
         super().__init__("polarity_disorder")
 
     def can_handle(self, event: Any) -> bool:
-        return isinstance(event, PolarityDisorder)
+        # 使用 type() 而不是 isinstance() 来避免子类误匹配
+        return type(event) is PolarityDisorder
 
     def handle(self, event: PolarityDisorder, context: EventContext) -> None:
         """处理极性紊乱事件"""

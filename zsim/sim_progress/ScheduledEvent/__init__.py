@@ -316,13 +316,6 @@ class ScheduledEvent:
                 _output_event_list.insert(insert_pos, _event)
         return _output_event_list
 
-    def broadcast_skill_event_to_char(self, event: SkillNode | LoadingMission):
-        """广播技能事件到角色"""
-        event_to_broadcast = event if isinstance(event, SkillNode) else event.mission_node
-        for char_obj in self.sim_instance.char_data.char_obj_list:
-            if hasattr(char_obj, "update_special_resource"):
-                char_obj.update_special_resource(event_to_broadcast)
-
 
 if __name__ == "__main__":
     pass

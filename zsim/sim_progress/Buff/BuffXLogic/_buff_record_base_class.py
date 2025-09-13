@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from ...Character.character import Character
     from ...Character.Alice import Alice
     from ...Character.Yixuan import Yixuan
+    from ...Character.Seed import Seed
     from ...Enemy import Enemy
     from ..buff_class import Buff
     from ...data_struct.ActionStack import ActionStack
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 
 class BuffRecordBaseClass:
     def __init__(self):
-        self.char: "Character | None | Alice | Yixuan" = None
+        self.char: "Character | None | Alice | Yixuan | Seed" = None
         self.sub_exist_buff_dict: dict[str, "Buff"] | None = None
         self.dynamic_buff_list: dict[str, list] | None = None
         self.enemy: "Enemy | None" = None

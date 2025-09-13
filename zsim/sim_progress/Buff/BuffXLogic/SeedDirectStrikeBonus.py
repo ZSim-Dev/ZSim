@@ -46,4 +46,3 @@ class SeedDirectStrikeBonus(Buff.BuffLogic):
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
-        return not self.xjudge()

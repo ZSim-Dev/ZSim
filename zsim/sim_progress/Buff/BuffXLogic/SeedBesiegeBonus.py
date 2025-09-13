@@ -14,6 +14,7 @@ class SeedBesiegeBonus(Buff.BuffLogic):
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
         self.xjudge = self.special_judge_logic
+        self.xexit = self.special_exit_logic
         self.buff_0: "Buff | None" = None
         self.record: BRBC | None = None
 
@@ -38,3 +39,11 @@ class SeedBesiegeBonus(Buff.BuffLogic):
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
+
+    def special_exit_logic(self, **kwargs):
+        self.check_record_module()
+        self.get_prepared(char_CID=1461)
+        assert self.record is not None, (
+            f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
+        )
+        return not self.xjudge()

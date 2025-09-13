@@ -13,7 +13,7 @@ class SeedOnslaughtBonus(Buff.BuffLogic):
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
         self.xjudge = self.special_judge_logic
-        self.xhit = self.special_exit_logic
+        self.xexit = self.special_exit_logic
         self.buff_0: "Buff | None" = None
         self.record: BRBC | None = None
 

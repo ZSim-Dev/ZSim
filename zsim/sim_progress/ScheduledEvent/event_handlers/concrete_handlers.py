@@ -16,6 +16,7 @@ from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
 )
 from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
     Disorder,
+    NewAnomaly,
     PolarityDisorder,
 )
 from zsim.sim_progress.Buff import ScheduleBuffSettle
@@ -40,7 +41,6 @@ from zsim.sim_progress.Update import update_anomaly
 from ..CalAnomaly import CalAbloom, CalAnomaly, CalDisorder, CalPolarityDisorder
 from ..Calculator import Calculator
 from .base import BaseEventHandler
-
 from .context import EventContext
 
 if TYPE_CHECKING:
@@ -335,7 +335,7 @@ class AnomalyEventHandler(BaseEventHandler):
         super().__init__("anomaly")
 
     def can_handle(self, event: Any) -> bool:
-        return isinstance(event, AnB)
+        return type(event) is AnB
 
     def handle(self, event: AnB, context: EventContext) -> None:
         """处理异常事件"""
@@ -392,7 +392,7 @@ class DisorderEventHandler(BaseEventHandler):
         super().__init__("disorder")
 
     def can_handle(self, event: Any) -> bool:
-        return isinstance(event, Disorder)
+        return type(event) is Disorder
 
     def handle(self, event: Disorder, context: EventContext) -> None:
         """处理紊乱事件"""
@@ -483,7 +483,7 @@ class AbloomEventHandler(BaseEventHandler):
         super().__init__("abloom")
 
     def can_handle(self, event: Any) -> bool:
-        return isinstance(event, Abloom)
+        return type(event) is Abloom
 
     def handle(self, event: Abloom, context: EventContext) -> None:
         """处理薇薇安异放事件"""
@@ -606,7 +606,7 @@ class StunForcedTerminationEventHandler(BaseEventHandler):
         super().__init__("stun_forced_termination")
 
     def can_handle(self, event: Any) -> bool:
-        return isinstance(event, StunForcedTerminationEvent)
+        return type(event) is StunForcedTerminationEvent
 
     def handle(self, event: StunForcedTerminationEvent, context: EventContext) -> None:
         """处理眩晕强制终止事件"""
@@ -630,7 +630,7 @@ class PolarizedAssaultEventHandler(BaseEventHandler):
         super().__init__("polarized_assault")
 
     def can_handle(self, event: Any) -> bool:
-        return isinstance(event, PolarizedAssaultEvent)
+        return type(event) is PolarizedAssaultEvent
 
     def handle(self, event: PolarizedAssaultEvent, context: EventContext) -> None:
         """处理极性强击事件"""
@@ -645,6 +645,23 @@ class PolarizedAssaultEventHandler(BaseEventHandler):
 
         # 执行事件
         event.execute()
+
+
+class NewAnomalyEventHandler(BaseEventHandler):
+    """新异常事件处理器"""
+
+    def __init__(self):
+        super().__init__("new_anomaly")
+
+    def can_handle(self, event: Any) -> bool:
+        """检查是否可以处理新异常事件"""
+        return type(event) is NewAnomaly
+
+    def handle(self, event: NewAnomaly, context: EventContext) -> None:
+        """处理新异常事件"""
+        # 新异常事件通常不需要特殊处理，主要是为了状态记录
+        # 这里可以添加特定的处理逻辑，目前只是简单处理
+        pass
 
 
 def register_all_handlers() -> None:
@@ -662,6 +679,7 @@ def register_all_handlers() -> None:
         PreloadEventHandler(),
         StunForcedTerminationEventHandler(),
         PolarizedAssaultEventHandler(),
+        NewAnomalyEventHandler(),
     ]
 
     for handler in handlers:

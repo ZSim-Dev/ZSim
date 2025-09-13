@@ -54,12 +54,12 @@ class EventConstants:
         "PolarizedAssaultEvent": "execute_tick",
     }
 
-    # 优先级定义
+    # 优先级定义（数字越大优先级越低）
     PRIORITY = {
-        "HIGH": 100,
-        "MEDIUM": 50,
-        "LOW": 0,
-        "VERY_LOW": -50,
+        "HIGH": 0,          # 高优先级，数字最小
+        "MEDIUM": 500,     # 中等优先级
+        "LOW": 800,        # 低优先级
+        "VERY_LOW": 999,   # 极低优先级，数字最大
     }
 
     # 异常更新规则

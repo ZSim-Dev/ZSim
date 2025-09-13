@@ -56,8 +56,7 @@ class CannonRotor(Buff.BuffLogic):
             return False
 
         from zsim.sim_progress.RandomNumberGenerator import RNG
-        from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
-        from zsim.sim_progress.ScheduledEvent import Calculator
+        from zsim.sim_progress.ScheduledEvent.Calculator import Calculator, MultiplierData
 
         mul_data = MultiplierData(
             self.record.enemy, self.record.dynamic_buff_list, self.record.char

@@ -4,13 +4,15 @@ from typing import Any, Literal
 
 import numpy as np
 
-from zsim.define import INVALID_ELEMENT_ERROR, ElementType, CHECK_SKILL_MUL, CHECK_SKILL_MUL_TAG
+from zsim.define import CHECK_SKILL_MUL, CHECK_SKILL_MUL_TAG, INVALID_ELEMENT_ERROR, ElementType
 from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
 from zsim.sim_progress.Character import Character
 from zsim.sim_progress.data_struct import cal_buff_total_bonus
 from zsim.sim_progress.Enemy import Enemy
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Report import report_to_log
+
+from .constants import EventConstants
 
 with open(
     file="./zsim/sim_progress/ScheduledEvent/buff_effect_trans.json",
@@ -21,8 +23,15 @@ with open(
 
 
 class MultiplierData:
+    """
+    乘数数据缓存管理类
+
+    使用缓存机制来存储和重用乘数计算结果，提高性能。
+    采用 LRU (Least Recently Used) 缓存策略来自动管理缓存大小。
+    """
+
     mul_data_cache: dict[tuple, "MultiplierData"] = {}
-    max_size = 128
+    MAX_CACHE_SIZE = EventConstants.MAX_CACHE_SIZE
 
     def __new__(
         cls,
@@ -41,12 +50,18 @@ class MultiplierData:
         if isinstance(judge_node, AnomalyBar):
             node_id = judge_node.UUID
 
-        cache_key = tuple((enemy_hashable, hashable_dynamic_buff, id(character_obj), node_id))
+        # 使用更稳定的唯一标识符，避免垃圾回收后的问题
+        character_id = (
+            getattr(character_obj, "UUID", None)
+            or getattr(character_obj, "CID", None)
+            or f"{character_obj.__class__.__name__}_{id(character_obj)}"
+        )
+        cache_key = tuple((enemy_hashable, hashable_dynamic_buff, character_id, node_id))
         if cache_key in cls.mul_data_cache:
             return cls.mul_data_cache[cache_key]
         else:
             instance = super().__new__(cls)
-            if len(cls.mul_data_cache) >= cls.max_size:
+            if len(cls.mul_data_cache) >= cls.MAX_CACHE_SIZE:
                 cls.mul_data_cache.popitem()
             cls.mul_data_cache[cache_key] = instance
             return instance
@@ -58,8 +73,18 @@ class MultiplierData:
         character_obj: Character | None = None,
         judge_node: SkillNode | AnomalyBar | None = None,
     ):
+        """
+        初始化乘数数据实例
+
+        Args:
+            enemy_obj: 敌人对象
+            dynamic_buff: 动态buff字典
+            character_obj: 角色对象
+            judge_node: 判断节点（技能节点或异常条）
+        """
         if dynamic_buff is None:
             dynamic_buff = {}
+
         if not hasattr(self, "char_name"):
             self.judge_node: SkillNode | AnomalyBar | None = judge_node
             self.enemy_instance = enemy_obj
@@ -76,17 +101,26 @@ class MultiplierData:
 
             # 获取角色局外面板数据
             static_statement: Character.Statement | None = getattr(character_obj, "statement", None)
-            self.static = self.StaticStatement(
-                static_statement
-            )  # 按理来说静态面板在角色都没有的情况下根本没必要生成，但是屎山就是这样搭建的，尊重
+            self.static = self.StaticStatement(static_statement)
+
             # 获取敌人数据
             self.enemy_obj = enemy_obj
+
             # 获取buff动态加成
             dynamic_statement: dict = self.get_buff_bonus(dynamic_buff, self.judge_node)
-
             self.dynamic = self.DynamicStatement(dynamic_statement)
 
     def get_buff_bonus(self, dynamic_buff: dict, node: SkillNode | AnomalyBar | None) -> dict:
+        """
+        获取buff加成数据
+
+        Args:
+            dynamic_buff: 动态buff字典
+            node: 判断节点
+
+        Returns:
+            dict: 包含所有buff加成的字典
+        """
         if self.char_name is None:
             char_buff: list = []
         else:
@@ -95,6 +129,7 @@ class MultiplierData:
             except KeyError:
                 char_buff = []
                 report_to_log(f"[WARNING] 动态Buff列表内没有角色 {self.char_name}", level=4)
+
         try:
             enemy_buff: list = self.enemy_obj.dynamic.dynamic_debuff_list
         except AttributeError:
@@ -107,10 +142,13 @@ class MultiplierData:
         enabled_buff: tuple = tuple(char_buff + enemy_buff)
         try:
             dynamic_statement: dict = cal_buff_total_bonus(
-                enabled_buff=enabled_buff, judge_obj=node, sim_instance=self.enemy_obj.sim_instance, char_name=self.char_name
+                enabled_buff=enabled_buff,
+                judge_obj=node,
+                sim_instance=self.enemy_obj.sim_instance,
+                char_name=self.char_name,
             )
-        except TypeError:
-            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}")
+        except TypeError as err:
+            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}") from err
         return dynamic_statement
 
     class StaticStatement:
@@ -631,7 +669,7 @@ class Calculator:
                     # if data.dynamic.sheer_atk != 0:
                     #     print(f"检测到 {data.char_instance.NAME} 的局内固定贯穿力Buff：{data.dynamic.sheer_atk}, 基础贯穿力：{base_sheer_atk}")
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             return attr
 
         @staticmethod
@@ -684,7 +722,7 @@ class Calculator:
             elif trigger_buff_level == 10:
                 trigger_dmg_bonus = 0
             else:
-                assert False, "Invalid trigger_level"
+                raise AssertionError("Invalid trigger_level")
             # 获取指定label增伤
             if (
                 data.judge_node.skill.labels is not None
@@ -889,7 +927,7 @@ class Calculator:
                     - data.dynamic.ether_res_pen_increase
                 )
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             res_mul = (
                 1
                 - element_res
@@ -924,7 +962,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 element_vulnerability = data.dynamic.ether_vulnerability
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             dmg_vulnerability = 1 + element_vulnerability + data.dynamic.all_vulnerability
             return dmg_vulnerability
 
@@ -1061,7 +1099,7 @@ class Calculator:
                 )
                 buildup_res = 1 - data.dynamic.ice_anomaly_res_decrease - enemy_buildup_res
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
 
             trigger_buff_level = data.judge_node.skill.trigger_buff_level
             if trigger_buff_level == 0:
@@ -1087,7 +1125,7 @@ class Calculator:
             elif trigger_buff_level == 10:
                 trigger_buildup_bonus = 0
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
 
             element_dmg_percentage = data.judge_node.skill.element_damage_percent
 
@@ -1121,7 +1159,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 base_damage = 0.625 * base_attr
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             return base_damage
 
         @staticmethod
@@ -1140,7 +1178,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 element_dmg_bonus = data.static.ether_dmg_bonus + data.dynamic.ether_dmg_bonus
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
 
             dmg_bonus = (
                 1 + element_dmg_bonus + data.dynamic.all_dmg_bonus + data.dynamic.anomaly_dmg_bonus
@@ -1189,7 +1227,7 @@ class Calculator:
             elif element_type in [4, 6]:
                 element_res_pen = data.dynamic.ether_res_pen_increase
             else:
-                assert False, INVALID_ELEMENT_ERROR
+                raise AssertionError(INVALID_ELEMENT_ERROR)
             return element_res_pen
 
     class StunMul:
@@ -1299,8 +1337,7 @@ class Calculator:
         """检查技能节点的乘区"""
         if not CHECK_SKILL_MUL:
             return
-        if any([__tag in self.skill_tag for __tag in
-                CHECK_SKILL_MUL_TAG]):
+        if any([__tag in self.skill_tag for __tag in CHECK_SKILL_MUL_TAG]):
             tag_list = [
                 "基础乘区",
                 "增伤区",
@@ -1310,10 +1347,14 @@ class Calculator:
                 "易伤区",
                 "失衡易伤区",
                 "特殊乘区",
-                "贯穿伤害区"
+                "贯穿伤害区",
             ]
-            print(self.skill_node.skill.skill_text, f"第{self.skill_node.loading_mission.hitted_count if self.skill_node.loading_mission else 1}次命中", "：",
-                  [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers)])
+            print(
+                self.skill_node.skill.skill_text,
+                f"第{self.skill_node.loading_mission.hitted_count if self.skill_node.loading_mission else 1}次命中",
+                "：",
+                [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers, strict=True)],
+            )
 
     def cal_dmg_crit(self) -> np.float64:
         """计算暴击伤害"""

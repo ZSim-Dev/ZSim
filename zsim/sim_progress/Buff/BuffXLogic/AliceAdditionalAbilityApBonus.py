@@ -39,8 +39,7 @@ class AliceAdditionalAbilityApBonus(Buff.BuffLogic):
         assert self.record.dynamic_buff_list is not None, "动态Buff列表未初始化"
         assert self.record.sub_exist_buff_dict is not None, "子存在Buff字典未初始化"
 
-        from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
-        from zsim.sim_progress.ScheduledEvent import Calculator
+        from zsim.sim_progress.ScheduledEvent.Calculator import Calculator, MultiplierData
 
         mul_data = MultiplierData(
             enemy_obj=self.record.enemy,

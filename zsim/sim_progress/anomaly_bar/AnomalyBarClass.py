@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from zsim.define import ELEMENT_TYPE_MAPPING, ElementType
+from zsim.define import ElementType
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Buff import Buff
@@ -77,7 +77,7 @@ class AnomalyBar:
         if self.max_duration is not None:
             assert duration <= self.max_duration, "该异常早就结束了！不应该触发紊乱！"
         else:
-            assert False, "该异常的max_duration为None，无法判断是否过期！"
+            raise AssertionError("该异常的max_duration为None，无法判断是否过期！")
         return duration
 
     def update_snap_shot(self, new_snap_shot: tuple, single_hit: "SingleHit"):
@@ -148,9 +148,9 @@ class AnomalyBar:
         self.activated_by = skill_node
         self.__get_max_duration(dynamic_buff_dict, char_cid)
         self.sim_instance.schedule_data.change_process_state()
-        print(
-            f"{skill_node.char_name}的技能【{self.activated_by.skill_tag}】激活了【{ELEMENT_TYPE_MAPPING[self.element_type]}】属性的异常状态！\n技能为{skill_node.skill_tag}， preload_tick为{skill_node.preload_tick}， end_tick为{skill_node.end_tick}，tick_list为{skill_node.tick_list}"
-        )
+        # print(
+        #     f"{skill_node.char_name}的技能【{self.activated_by.skill_tag}】激活了【{ELEMENT_TYPE_MAPPING[self.element_type]}】属性的异常状态！\n技能为{skill_node.skill_tag}， preload_tick为{skill_node.preload_tick}， end_tick为{skill_node.end_tick}，tick_list为{skill_node.tick_list}"
+        # )
 
     def reset_current_info_cause_output(self):
         """

@@ -1,6 +1,6 @@
+from zsim.sim_progress.ScheduledEvent.Calculator import Calculator, MultiplierData
+
 from .. import Buff, JudgeTools, check_preparation
-from zsim.sim_progress.ScheduledEvent import Calculator
-from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
 
 
 class QingYiAdditionalSkillRecord:

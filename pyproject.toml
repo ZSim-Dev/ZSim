@@ -36,7 +36,6 @@ dependencies = [
     "plotly~=6.0.0",
     "setuptools~=75.1.0",
     "streamlit~=1.44.0",
-    "toml~=0.10.2",
     "aiofiles>=24.1.0",
     "pydantic>=2.11.3",
     "psutil>=7.0.0",
@@ -48,10 +47,17 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "httpx>=0.28.1",
     "dotenv>=0.9.9",
+    "tomli-w>=1.2.0",
 ]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "B9", "I", "Q"]
+ignore = ["E501"]
+exclude = ["build", "dist", ".venv", "__pypackages__"]
+per-file-ignores = { "__init__.py" = ["F401"] }
 
 [[tool.uv.index]]
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
@@ -75,6 +81,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "pytest-asyncio>=1.1.0",
     "mypy>=1.17.1",
+    "ruff>=0.12.12",
 ]
 
 [project.optional-dependencies]

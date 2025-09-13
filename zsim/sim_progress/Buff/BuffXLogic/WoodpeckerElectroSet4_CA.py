@@ -60,7 +60,7 @@ class WoodpeckerElectroSet4_CA(Buff.BuffLogic):
             return False
         if str(self.record.char.CID) not in skill_node.skill_tag:
             return False
-        from zsim.sim_progress.ScheduledEvent import Calculator, MultiplierData
+        from zsim.sim_progress.ScheduledEvent.Calculator import Calculator, MultiplierData
 
         mul_data = MultiplierData(
             self.record.enemy, self.record.dynamic_buff_list, self.record.char

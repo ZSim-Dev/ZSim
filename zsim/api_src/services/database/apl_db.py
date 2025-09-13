@@ -9,7 +9,8 @@ import uuid
 from typing import Any
 
 import aiosqlite
-import toml
+import tomli_w
+import tomllib
 
 from zsim.define import COSTOM_APL_DIR, DEFAULT_APL_DIR, SQLITE_PATH
 
@@ -82,7 +83,7 @@ class APLDatabase:
                 row = await cursor.fetchone()
                 if row:
                     # 解析TOML内容
-                    content = toml.loads(row[5])
+                    content = tomllib.loads(row[5])
                     result = {
                         "title": row[0],
                         "author": row[1],
@@ -131,7 +132,7 @@ class APLDatabase:
         content_data.pop("latest_change_time", None)
 
         # 将配置数据转换为TOML格式
-        content = toml.dumps(content_data)
+        content = tomli_w.dumps(content_data)
 
         async with aiosqlite.connect(SQLITE_PATH) as db:
             await db.execute(
@@ -177,7 +178,7 @@ class APLDatabase:
         content_data.pop("latest_change_time", None)
 
         # 将配置数据转换为TOML格式
-        content = toml.dumps(content_data)
+        content = tomli_w.dumps(content_data)
 
         async with aiosqlite.connect(SQLITE_PATH) as db:
             # 先获取现有的create_time
@@ -231,8 +232,8 @@ class APLDatabase:
                 export_data.pop("latest_change_time", None)
 
                 # 将配置数据转换为TOML格式并保存到文件
-                with open(file_path, "w", encoding="utf-8") as f:
-                    toml.dump(export_data, f)
+                with open(file_path, "wb") as f:
+                    tomli_w.dump(export_data, f)
                 return True
             else:
                 return False
@@ -244,8 +245,8 @@ class APLDatabase:
         """从TOML文件导入APL配置"""
         try:
             # 读取TOML文件
-            with open(file_path, "r", encoding="utf-8") as f:
-                config_data = toml.load(f)
+            with open(file_path, "rb") as f:
+                config_data = tomllib.load(f)
 
             # 生成唯一ID
             config_id = str(uuid.uuid4())
@@ -390,8 +391,8 @@ class APLDatabase:
                 if file.endswith(".toml"):
                     file_path = os.path.join(root, file)
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
-                            apl_data = toml.load(f)
+                        with open(file_path, "rb") as f:
+                            apl_data = tomllib.load(f)
 
                         # 提取基本信息
                         general_info = apl_data.get("general", {})

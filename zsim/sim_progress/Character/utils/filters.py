@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import NewAnomaly
     from zsim.sim_progress.data_struct import SPUpdateData
     from zsim.sim_progress.Preload import SkillNode
-    from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
+    from zsim.sim_progress.ScheduledEvent.Calculator import Calculator
 
 
 def _skill_node_filter(*args, **kwargs) -> list["SkillNode"]:
@@ -23,16 +23,16 @@ def _skill_node_filter(*args, **kwargs) -> list["SkillNode"]:
     return skill_nodes
 
 
-def _multiplier_filter(*args, **kwargs) -> list["MultiplierData"]:
+def _multiplier_filter(*args, **kwargs) -> list[Calculator.MultiplierData]:
     """过滤出输入的 乘区数据，并作为列表返回"""
-    from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
+    from zsim.sim_progress.ScheduledEvent.Calculator import Calculator
 
-    multiplier_data: list[MultiplierData] = []
+    multiplier_data: list[Calculator.MultiplierData] = []
     for arg in args:
-        if isinstance(arg, MultiplierData):
+        if isinstance(arg, Calculator.MultiplierData):
             multiplier_data.append(arg)
     for value in kwargs.values():
-        if isinstance(value, MultiplierData):
+        if isinstance(value, Calculator.MultiplierData):
             multiplier_data.append(value)
     return multiplier_data
 

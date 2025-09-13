@@ -1,5 +1,5 @@
-from .. import Buff, JudgeTools, check_preparation
 from ....define import YUZUHA_REPORT
+from .. import Buff, JudgeTools, check_preparation
 
 
 class YuzuhaAdditionalAbilityAnomalyDmgBonusRecord:
@@ -37,8 +37,7 @@ class YuzuhaAdditionalAbilityAnomalyDmgBonus(Buff.BuffLogic):
         self.get_prepared(char_CID=1411, sub_exist_buff_dict=1, enemy=1, dynamic_buff_list=1)
         if self.record.cinema_1_ratio is None:
             self.record.cinema_1_ratio = 1 if self.record.char.cinema < 1 else 1.3
-        from zsim.sim_progress.ScheduledEvent.Calculator import MultiplierData
-        from zsim.sim_progress.ScheduledEvent import Calculator
+        from zsim.sim_progress.ScheduledEvent.Calculator import Calculator, MultiplierData
 
         mul_data = MultiplierData(
             self.record.enemy, self.record.dynamic_buff_list, self.record.char

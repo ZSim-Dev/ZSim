@@ -41,9 +41,15 @@ class SeedOnslaughtBonus(Buff.BuffLogic):
         )
         from zsim.sim_progress.Character.Seed import Seed
         assert isinstance(self.record.char, Seed), False
+
         return self.record.char.onslaught_active
 
     def special_exit_logic(self, **kwargs):
         """强袭Buff的退出逻辑和生效逻辑相反，所以这里需要调用席德的方法退出强袭状态"""
+        self.check_record_module()
+        self.get_prepared(char_CID=1461)
+        assert self.record is not None, (
+            f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
+        )
         return not self.xjudge
 

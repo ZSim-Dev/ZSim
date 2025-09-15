@@ -34,11 +34,26 @@ class SeedDirectStrikeBonus(Buff.BuffLogic):
         self.record = self.buff_0.history.record
 
     def special_judge_logic(self, **kwargs):
+        """判断席德的明攻Buff生效情况"""
         self.check_record_module()
         self.get_prepared(char_CID=1461)
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
+        from zsim.sim_progress.Character.Seed import Seed
+        seed: Seed = self.record.char
+        if seed.vanguard is None:
+            # 当席德的没有队友被指定为“正兵”时，明攻永远不可能触发。
+            return False
+        benifiter_name = self.buff_instance.ft.beneficiary
+        name_box = ["席德"] + [seed.vanguard.NAME]
+
+        # 当 当前Buff的收益人不属于席德或正兵时，直接返回False
+        if benifiter_name not in name_box:
+            return False
+
+        # 直接运行席德的围攻状态判断函数
+        return seed.direct_strike_active
 
     def special_exit_logic(self, **kwargs):
         self.check_record_module()
@@ -46,3 +61,5 @@ class SeedDirectStrikeBonus(Buff.BuffLogic):
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
+        return not self.xjudge
+

@@ -1,4 +1,5 @@
 # 这是席德围杀Buff的脚本
+
 from .. import Buff, JudgeTools, check_preparation
 from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 
@@ -60,4 +61,8 @@ class SeedBesiegeBonus(Buff.BuffLogic):
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
-        return not self.xjudge
+        result = not self.xjudge
+        if result:
+            self.buff_instance.sim_instance.schedule_data.change_process_state()
+            print(f"【席德事件】{self.buff_instance.ft.beneficiary}的围攻Buff已经失效")
+        return result

@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING
-from .character import Character
-from .utils.filters import _skill_node_filter
+from .ExStateManager import SeedEXStateManager
+
 from define import SEED_REPORT
+
+from ..character import Character
+from ..utils.filters import _skill_node_filter
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode
@@ -36,6 +39,7 @@ class Seed(Character):
         但是我设计了一个属性来记录这两个状态的激活tick，所以我可以在需要判断状态是否过期时，用当前tick减去激活tick，
         如果大于特殊状态持续时间，那么就认为状态过期。
         """
+        self.sesm = SeedEXStateManager(char_instance=self)
 
     @property
     def onslaught(self) -> bool:
@@ -129,6 +133,16 @@ class Seed(Character):
         """围杀状态，当强袭状态和明攻状态同时为True时，为True"""
         return self.onslaught and self.direct_strike
 
+    @property
+    def e_ex_repeat_limit_reached(self) -> bool:
+        """强化E第一段的释放次数是否达到最大次数"""
+        if not self.dynamic.lasting_node.is_spamming:
+            return False
+        if self.dynamic.lasting_node.skill_tag != "1461_E_EX_1":
+            return False
+        result = self.dynamic.lasting_node.repeat_times == self.sesm.e_ex_max_repeat_times
+        return result
+
     def special_resources(self, *args, **kwargs) -> None:
         """模拟Seed的特殊资源机制"""
         assert self.sim_instance is not None
@@ -160,10 +174,28 @@ class Seed(Character):
                             f"【席德事件】席德释放了 {node.skill_tag} 获得了{self.Q_steel_charge_get}点钢能值"
                         )
 
-                # SNA_1处理
                 elif node.skill_tag == "1461_SNA_1":
-                    if self.sna_quick_release:
-                        self.sna_quick_release = False
+                    # SNA_1处理
+                    active_generation_node_stack = self.sim_instance.preload.preload_data.personal_active_generation_node_stack[
+                        1461
+                    ]
+                    latest_active_generation_node = active_generation_node_stack.peek()
+
+                    # 首先确认是否存在刚好结束的强化E第一段，因为衔接在强化E后自动释放的SNA_1是不会消耗快速释放标记的
+                    e_ex_is_just_end = False
+                    if latest_active_generation_node is not None:
+                        if all(
+                            [
+                                latest_active_generation_node.skill_tag == "1461_E_EX_1",
+                                latest_active_generation_node.end_tick == self.sim_instance.tick,
+                            ]
+                        ):
+                            e_ex_is_just_end = True
+                    if not e_ex_is_just_end:
+                        if self.sna_quick_release:
+                            self.sna_quick_release = False
+                    else:
+                        print("【席德测试】检测到位于强化E后自动衔接释放的SNA_1，本次释放不会消耗快速释放标记！")
 
     @property
     def steel_charge(self) -> float:
@@ -283,6 +315,53 @@ class Seed(Character):
         self._direct_strike = False
         self._direct_strike_active_tick = 0
 
+    def personal_action_replace_strategy(self, action: str):
+        """
+        席德的个人动作替换策略，涉及到多个替换策略：
+        1、对于不满释放的E_EX_1，在结束重复释放时，无论后续动作是什么，都需要替换为E_EX_2，但是需要检测后续的APL意愿是什么。如果APL意愿还是E_EX_1，那么就不执行替换；
+        2、对于第一段E_EX_1，需要将其替换成E_EX_0，作为起手式。
+        """
+        if action in self.e_ex_list:
+            print(f"【席德APL语法警告】席德的强化E释放只需要填写“1461_E_EX”即可，不需要指定具体是哪一段强化E，当前APL填写了{action}，将正常按照“1461_E_EX”进行处理")
+            action = "1461_E_EX"
+        active_generation_node_stack = (
+            self.sim_instance.preload.preload_data.personal_active_generation_node_stack[1461]
+        )
+
+        # 当个人栈为空时，说明当前动作是第一次释放，此时需要判断当前动作是否为E_EX_1，如果是，则需要替换为E_EX_0
+        if active_generation_node_stack is None:
+            return action if action != "1461_E_EX" else "1461_E_EX_0"
+        last_node = active_generation_node_stack.peek()
+        if last_node is None:
+            return action if action != "1461_E_EX" else "1461_E_EX_0"
+
+        # 当APL想要释放强化E时
+        if action == "1461_E_EX":
+            if last_node.skill_tag not in self.e_ex_list:
+                # 当上一个主动动作不是任意一段强化E时，说明当前强化E是第一段，需要替换为E_EX_0
+                return "1461_E_EX_0"
+            else:
+                if last_node.skill_tag == "1461_E_EX_0":
+                    # 当上一个主动动作是E_EX_0时，说明当前强化E是第二段，需要替换为E_EX_1
+                    return "1461_E_EX_1"
+                elif last_node.skill_tag == "1461_E_EX_1":
+                    # 当上一个主动动作是E_EX_1时，需要分类讨论
+                    if self.e_ex_repeat_limit_reached:
+                        # 若此时强化E已经达到最大重复次数，那么需要将当前强化E指令换位SNA_1
+                        return "1461_SNA_1"
+                    else:
+                        # 若此时强化E还没有达到最大重复次数，那么此时需要继续释放E_EX_1
+                        return "1461_E_EX_1"
+                elif last_node.skill_tag == "1461_E_EX_2":
+                    # 上一个主动动作是E_EX_2时，说明一轮强化E释放已结束，并且尚未达到最大重复次数，所以此时强化E指令需要替换为E_EX_0
+                    return "1461_E_EX_0"
+        else:
+            # 当APL想要释放的技能不是强化E时，仅需要检查强化E是否恰好结束。如果角色在E_EX_1后衔接其他技能，那么这里是一定会追加SNA_1或是E_EX_2的，
+            # 但是，如果是Q或是QTE、parry、闪避这种动作，则又可以无脑继续释放
+            if last_node.skill_tag == "1461_E_EX_1":
+
+        return action
+
     def get_resources(self, *args, **kwargs) -> tuple[str | None, int | float | None]:
         return "钢能值", self.steel_charge
 
@@ -297,4 +376,7 @@ class Seed(Character):
             "明攻状态生效": self.direct_strike_active,
             "围杀状态生效": self.besiege_active,
             "正兵": self.vanguard.NAME if self.vanguard else None,
+            "强化E达到最大次数": self.e_ex_repeat_limit_reached,
         }
+
+

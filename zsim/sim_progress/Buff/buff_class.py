@@ -649,12 +649,12 @@ class Buff:
         ready检测不通过直接return——cd没转好，所以就算能够触发，也是不会触发的。
         """
         if sub_mission == "start":
-            self.update_cause_start(timenow, timecost, sub_exist_buff_dict)
+            self.update_cause_start(timenow, timecost, sub_exist_buff_dict, beneficiary=char_name)
         elif sub_mission == "end":
             if self.ft.endjudge:
-                self.update_cause_end(timenow, sub_exist_buff_dict)
+                self.update_cause_end(timenow, sub_exist_buff_dict, beneficiary=char_name)
         elif sub_mission == "hit":
-            self.update_cause_hit(timenow, sub_exist_buff_dict, timecost)
+            self.update_cause_hit(timenow, sub_exist_buff_dict, timecost, beneficiary=char_name)
 
     def update_to_buff_0(self, buff_0):
         """
@@ -691,7 +691,7 @@ class Buff:
         self.dy.built_in_buff_box = buff_0.dy.built_in_buff_box
         self.dy.count = buff_0.dy.count
 
-    def update_cause_start(self, timenow, timecost, exist_buff_dict: dict):
+    def update_cause_start(self, timenow, timecost, exist_buff_dict: dict, beneficiary: str):
         buff_0 = exist_buff_dict[self.ft.index]
         if not isinstance(buff_0, Buff):
             raise TypeError(f"{buff_0}不是Buff类！")
@@ -700,7 +700,7 @@ class Buff:
             assert self.logic.xstart is not None, (
                 f"{self.ft.index} 的simple_start_logic参数不为True时，其logic.xstart不能为空"
             )
-            self.logic.xstart()
+            self.logic.xstart(beneficiary=beneficiary)
             self.update_to_buff_0(buff_0)
             return
         if self.ft.maxduration == 0:  # 瞬时buff
@@ -759,7 +759,7 @@ class Buff:
 
         # report_to_log(f"[Buff INFO]:{timenow}:{buff_0.ft.index}第{buff_0.history.active_times}次触发", level=3)
 
-    def update_cause_end(self, timenow, exist_buff_dict):
+    def update_cause_end(self, timenow, exist_buff_dict, beneficiary: str):
         """
         这个函数一般不会用到，因为不会有动作结束才触发的傻逼buff逻辑。
         “艾莲踩了你一脚，你当场不敢发作但是等艾莲转身离开，你触发硬度+3，持续30秒？
@@ -785,12 +785,12 @@ class Buff:
         else:
             # EXAMPLE：普攻结束后，随机获得1~10层的攻击力Buff。
             assert self.logic.xend is not None, f"{self.ft.index}的buff没有初始化xend方法"
-            self.logic.xend()
+            self.logic.xend(beneficiary=beneficiary)
             self.dy.is_changed = True
         if self.dy.is_changed:
             self.update_to_buff_0(buff_0)
 
-    def update_cause_hit(self, timenow, exist_buff_dict: dict, timecost):
+    def update_cause_hit(self, timenow, exist_buff_dict: dict, timecost, beneficiary: str):
         """
         这里是最常用的代码，大部分的buff都是hit标签更新。
         当然，第一层就要过hitincrease筛选，但凡不满足的，我hit一万次你也触发不了。
@@ -811,7 +811,7 @@ class Buff:
             endticks = self.dy.endticks
         if not self.ft.simple_hit_logic:
             assert self.logic.xhit is not None, f"{self.ft.index}的buff没有初始化xhit方法"
-            self.logic.xhit()
+            self.logic.xhit(beneficiary=beneficiary)
             self.dy.is_changed = True
             self.update_to_buff_0(buff_0)
             return

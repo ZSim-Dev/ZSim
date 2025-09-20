@@ -1299,6 +1299,10 @@
     "module": ".BuffXLogic.SeedDirectStrikeBonus",
     "class": "SeedDirectStrikeBonus"
   },
+  "Buff-角色-席德-明攻触发器": {
+    "module": ".BuffXLogic.SeedDirectStrikeTrigger",
+    "class": "SeedDirectStrikeTrigger"
+  },
   "Buff-角色-席德-围杀": {
     "module": ".BuffXLogic.SeedBesiegeBonus",
     "class": "SeedBesiegeBonus"

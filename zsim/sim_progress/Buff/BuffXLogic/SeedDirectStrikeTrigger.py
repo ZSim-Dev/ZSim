@@ -3,18 +3,19 @@ from .. import Buff, JudgeTools, check_preparation
 from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 
 
-class SeedDirectStrikeBonusRecord(BRBC):
+class SeedDirectStrikeTriggerRecord(BRBC):
     def __init__(self):
         super().__init__()
         self.buff_index = "Buff-角色-席德-明攻"
 
 
-class SeedDirectStrikeBonus(Buff.BuffLogic):
+class SeedDirectStrikeTrigger(Buff.BuffLogic):
     def __init__(self, buff_instance):
         """这是席德明攻Buff的脚本"""
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
-        self.xexit = self.special_exit_logic
+        self.xjudge = self.special_judge_logic
+        self.xhit = self.special_hit_logic
         self.buff_0: "Buff | None" = None
         self.record: BRBC | None = None
 
@@ -30,10 +31,11 @@ class SeedDirectStrikeBonus(Buff.BuffLogic):
             "【Buff初始化警告】席德的复杂逻辑模块未正确初始化，请检查函数"
         )
         if self.buff_0.history.record is None:
-            self.buff_0.history.record = SeedDirectStrikeBonusRecord()
+            self.buff_0.history.record = SeedDirectStrikeTriggerRecord()
         self.record = self.buff_0.history.record
 
-    def special_exit_logic(self, **kwargs):
+    def special_judge_logic(self, **kwargs):
+        """判断席德的明攻Buff生效情况"""
         self.check_record_module()
         self.get_prepared(char_CID=1461)
         assert self.record is not None, (
@@ -44,7 +46,14 @@ class SeedDirectStrikeBonus(Buff.BuffLogic):
         if seed.vanguard is None:
             # 当席德的没有队友被指定为“正兵”时，明攻永远不可能触发。
             return False
-        # 直接运行席德的围攻状态判断函数
         direct_strike = seed.direct_strike_active
-        return not direct_strike
+        # 直接运行席德的围攻状态判断函数
+        return direct_strike
 
+    def special_hit_logic(self, **kwargs):
+        self.check_record_module()
+        self.get_prepared(char_CID=1461, sub_exist_buff_dict=1)
+        assert self.record is not None
+        seed = self.record.char
+        from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
+        buff_add_strategy(self.record.buff_index, benifit_list=[seed.vanguard.NAME],sim_instance=self.buff_instance.sim_instance)

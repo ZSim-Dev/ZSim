@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
-from .ExStateManager import SeedEXStateManager
 
-from define import SEED_REPORT
+from zsim.define import SEED_REPORT
 
 from ..character import Character
 from ..utils.filters import _skill_node_filter
+from .ExStateManager import SeedEXStateManager
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode
@@ -138,7 +138,7 @@ class Seed(Character):
         """强化E第一段的释放次数是否达到最大次数"""
         if not self.dynamic.lasting_node.is_spamming:
             return False
-        if self.dynamic.lasting_node.skill_tag != "1461_E_EX_1":
+        if self.dynamic.lasting_node.node.skill_tag != "1461_E_EX_1":
             return False
         result = self.dynamic.lasting_node.repeat_times == self.sesm.e_ex_max_repeat_times
         return result
@@ -157,6 +157,8 @@ class Seed(Character):
             self.update_special_state(node)
 
             if node.char_name == self.NAME:
+                # 更新强化E状态
+                self.sesm.update_ex_state(skill_node=node)
                 # SNA2和SNA3技能消耗钢能值
                 if node.skill_tag in ["1461_SNA_2", "1461_SNA_3"]:
                     self.update_steel_charge(
@@ -229,7 +231,7 @@ class Seed(Character):
         """判断钢能值是否足够"""
         return self.steel_charge >= self.sna_steel_charge_cost * 2
 
-    def update_special_resource(self, skill_node: SkillNode):
+    def update_special_resource(self, skill_node: "SkillNode"):
         """
         从命中中更新钢能值，该函数的调用时机为命中后，
         所以不在Character的special_resource内进行更新，而是在Schedule阶段调用。
@@ -244,7 +246,7 @@ class Seed(Character):
             value = total_value / skill_node.skill.hit_times
             self.update_steel_charge(value=value, update_origin=skill_node.skill_tag)
 
-    def update_steel_charge_from_sp_cost(self, skill_node: SkillNode):
+    def update_steel_charge_from_sp_cost(self, skill_node: "SkillNode"):
         """
         因技能能耗而更新钢能值，但注意，只有正兵和席德本身的能耗才能转化为钢能值
         """
@@ -267,19 +269,19 @@ class Seed(Character):
                 f"【席德事件】{skill_node.skill_tag}消耗了{sp_consume:.2f}点能量，转化为{value:.2f}点钢能值"
             )
 
-    def update_special_state(self, skill_node: SkillNode):
+    def update_special_state(self, skill_node: "SkillNode"):
         """更新席德的特殊状态，这个函数有两个任务：
         1、在正兵释放强化E时，开启强袭状态；
         2、在席德释放强化E时，开启明攻状态；"""
         if skill_node.skill.trigger_buff_level != 2:
             return
+        if self.vanguard is None:
+            return
         if skill_node.char_name == self.NAME:
-            self.onslaught = True
+            self.direct_strike = True
         else:
-            if self.vanguard is None:
-                return
             if skill_node.char_name == self.vanguard.NAME:
-                self.direct_strike = True
+                self.onslaught = True
 
     def POST_INIT_DATA(self, sim_instance: "Simulator"):
         """在初始化阶段，席德需要通过基础攻击力来确认“正兵”人选，只有强攻类型的角色才能成为正兵"""
@@ -317,9 +319,7 @@ class Seed(Character):
 
     def personal_action_replace_strategy(self, action: str):
         """
-        席德的个人动作替换策略，涉及到多个替换策略：
-        1、对于不满释放的E_EX_1，在结束重复释放时，无论后续动作是什么，都需要替换为E_EX_2，但是需要检测后续的APL意愿是什么。如果APL意愿还是E_EX_1，那么就不执行替换；
-        2、对于第一段E_EX_1，需要将其替换成E_EX_0，作为起手式。
+        席德的个人动作替换策略，根据强化E连段情况的不同，将传入的动作指令替换成不同的skill_tag
         """
         return self.sesm.action_replacement_handler(action=action)
 
@@ -327,6 +327,7 @@ class Seed(Character):
         return "钢能值", self.steel_charge
 
     def get_special_stats(self, *args, **kwargs) -> dict[str | None, object | None]:
+        from .ExStateManager import SeedEXState
         return {
             "钢能值足够": self.steel_charge_enough,
             "sna快速释放": self.sna_quick_release,
@@ -338,6 +339,7 @@ class Seed(Character):
             "围杀状态生效": self.besiege_active,
             "正兵": self.vanguard.NAME if self.vanguard else None,
             "强化E达到最大次数": self.e_ex_repeat_limit_reached,
+            "强化E连续释放": self.sesm.e_ex_state in [SeedEXState.LOOPING, SeedEXState.FIRST_CAST]
         }
 
 

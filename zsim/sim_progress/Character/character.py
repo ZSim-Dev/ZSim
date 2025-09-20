@@ -163,22 +163,22 @@ class Character:
         if sim_cfg is not None:
             if isinstance(sim_cfg, ExecAttrCurveCfg):
                 if not sim_cfg.remove_equip:
-                    self.__init_all_equip_static(drive4, drive5, drive6, 
-                                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                                scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+                    self.__init_all_equip_static(drive4, drive5, drive6,
+                                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                                scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                                 scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN)
                 self.__init_attr_curve_config(sim_cfg)
                 self._init_weapon_primitive(weapon, weapon_level)
             elif isinstance(sim_cfg, ExecWeaponCfg):
-                self.__init_all_equip_static(drive4, drive5, drive6, 
-                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+                self.__init_all_equip_static(drive4, drive5, drive6,
+                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                          scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN)
                 self._init_weapon_primitive(sim_cfg.weapon_name, sim_cfg.weapon_level)  # 覆盖武器基础属性
         else:
-            self.__init_all_equip_static(drive4, drive5, drive6, 
-                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+            self.__init_all_equip_static(drive4, drive5, drive6,
+                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                          scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN)
             # 初始化武器基础属性    .\data\weapon.csv
             self._init_weapon_primitive(weapon, weapon_level)
@@ -196,16 +196,16 @@ class Character:
 
         self.statement = Character.Statement(self, crit_balancing=crit_balancing)
         self.skill_object: Skill = Skill(name=self.NAME, CID=self.CID, **skills_level, char_obj=self)
-        self.action_list = self.skill_object.action_list 
+        self.action_list = self.skill_object.action_list
         self.skills_dict = self.skill_object.skills_dict
         self.dynamic = self.Dynamic(self)
         self.sim_instance: "Simulator | None" = None        # 模拟器实例
         self.equip_buff_map: dict[int, "Buff"] = {}     # 来自装备的Buff0的指针
 
     # fmt: off
-    def __init_all_equip_static(self, drive4, drive5, drive6, 
-                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+    def __init_all_equip_static(self, drive4, drive5, drive6,
+                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                 scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN):
         # fmt: on
         # 初始化套装效果        .\data\equip_set_2pc.csv

@@ -1304,8 +1304,8 @@
     "class": "SeedBesiegeBonus"
   },
   "Buff-角色-席德-额外能力-重击大招增伤无视电抗": {
-    "module": ".BuffXLogic.SeedAdditionalAbilitySNAAndQBonus",
-    "class": "SeedAdditionalAbilitySNAAndQBonus"
+    "module": ".BuffXLogic.SeedAdditionalAbilityTrigger",
+    "class": "SeedAdditionalAbilityTrigger"
   },
   "Buff-角色-席德-影画-1画-崩坠暴伤增加": {
     "module": ".BuffXLogic.SeedCinema1SNACritDmgBonus",

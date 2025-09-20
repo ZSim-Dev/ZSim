@@ -6,6 +6,7 @@ from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 class SeedDirectStrikeBonusRecord(BRBC):
     def __init__(self):
         super().__init__()
+        self.buff_index = "Buff-角色-席德-明攻"
 
 
 class SeedDirectStrikeBonus(Buff.BuffLogic):
@@ -44,12 +45,6 @@ class SeedDirectStrikeBonus(Buff.BuffLogic):
         seed: Seed = self.record.char
         if seed.vanguard is None:
             # 当席德的没有队友被指定为“正兵”时，明攻永远不可能触发。
-            return False
-        benifiter_name = self.buff_instance.ft.beneficiary
-        name_box = ["席德"] + [seed.vanguard.NAME]
-
-        # 当 当前Buff的收益人不属于席德或正兵时，直接返回False
-        if benifiter_name not in name_box:
             return False
 
         # 直接运行席德的围攻状态判断函数

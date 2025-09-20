@@ -1,3 +1,5 @@
+from zsim.sim_progress.Character.Seed import Seed
+
 from .. import Buff, JudgeTools, check_preparation
 from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 
@@ -39,13 +41,12 @@ class SeedOnslaughtBonus(Buff.BuffLogic):
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
-        from zsim.sim_progress.Character.Seed import Seed
-        assert isinstance(self.record.char, Seed), False
+        assert type(self.record.char) is Seed, f"当前record中的角色不是席德，而是{type(self.record.char).__name__}, CID为：{self.record.char.CID, self.record.char.NAME}"
 
         return self.record.char.onslaught_active
 
     def special_exit_logic(self, **kwargs):
-        """强袭Buff的退出逻辑和生效逻辑相反，所以这里需要调用席德的方法退出强袭状态"""
+        """强袭Buff的退出逻辑和生效逻辑相反，所以这里需要调用席德的方法检测是否退出强袭状态"""
         self.check_record_module()
         self.get_prepared(char_CID=1461)
         assert self.record is not None, (

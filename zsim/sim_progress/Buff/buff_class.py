@@ -9,6 +9,7 @@ import pandas as pd
 
 from zsim.define import CONFIG_PATH, EFFECT_FILE_PATH, EXIST_FILE_PATH, JUDGE_FILE_PATH
 from zsim.sim_progress.Report import report_to_log
+
 from .BuffXLogic._buff_record_base_class import BuffRecordBaseClass as BRBC
 
 if TYPE_CHECKING:
@@ -197,7 +198,7 @@ class Buff:
                 会根据对应的添加逻辑，修改这一参数。这一参数可以标志出该buff是否应该由当前角色的行为触发。
                 这样就可以避免“艾莲的强化E会意外触发苍角核心被动的攻击力buff”
                 """
-                self.beneficiary = None
+                self._beneficiary = None
                 """
                 在20250102的更新中，我们为buff.feature新增了beneficiary这个属性。并且在buff_exist_judge函数中做了对应的初始化逻辑。
                 该属性是为了标注buff的受益者，至此，operator、beneficiary 与passively_updating三个参数构成了一套相对完整的逻辑。
@@ -228,6 +229,16 @@ class Buff:
                     self.listener_id = None
                 else:
                     self.listener_id = str(__listener_id_str).strip()
+
+        @property
+        def beneficiary(self):
+            return self._beneficiary
+
+        @beneficiary.setter
+        def beneficiary(self, value):
+            # if self.index == "Buff-角色-席德-明攻":
+            #     print(11111111, f"席德明攻的受益人变更为{value}，当前buff的操作者是：{self.operator}")
+            self._beneficiary = value
 
         def __process_label_rule(self, config_dict: dict) -> int | None:
             label_rule = config_dict.get("label_effect_rule", 0)

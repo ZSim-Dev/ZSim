@@ -1,14 +1,14 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ...Character.character import Character
     from ...Character.Alice import Alice
-    from ...Character.Yixuan import Yixuan
+    from ...Character.character import Character
     from ...Character.Seed import Seed
-    from ...Enemy import Enemy
-    from ..buff_class import Buff
+    from ...Character.Yixuan import Yixuan
     from ...data_struct.ActionStack import ActionStack
+    from ...Enemy import Enemy
     from ...Preload.PreloadDataClass import PreloadData
+    from ..buff_class import Buff
 
 
 class BuffRecordBaseClass:
@@ -26,6 +26,7 @@ class BuffRecordBaseClass:
         self.trans_ratio: float = 0
         self.cd: int = 60   # 内置CD：1秒一次
         self.last_active_tick: int = 0  # 上次触发的时间点
+        self.buff_index: str | None = None
 
     def check_cd(self, tick_now: int):
         """检查内置CD是否就绪"""

@@ -1,26 +1,96 @@
 [general]
-title = "APL配置示例"
-comment = "这是一个APL配置示例，你可以据此新建新模板"
-author = "Yuki Aro"
+title = "席德-大安比-扳机"
+comment = "开发组为席德、大安比、扳机 提供的默认APL"
+author = "虎皮"
 create_time = "2025-04-15T23:00:00.000+08:00"
-latest_change_time = "2025-04-15T23:00:00.000+08:00"
+latest_change_time = "2025-09-20T14:33:15.900+08:00"
 
 [characters]
-required = [ "零号·安比", "扳机",]
-optional = [ "丽娜",]
-
-[apl_logic]
-logic = "# 扳机逻辑\n# 扳机补充决意值逻辑：\n# 连击逻辑：\n1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7\n# 启动逻辑\n1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False|status.enemy:stun==False\n\n\n# 失衡期逻辑：\n#连携技释放逻辑\n1361|action+=|1361_QTE|status.enemy:QTE_triggered_times==0|status.enemy:single_qte!=None|special.preload_data:operating_char!=1361\n1381|action+=|1381_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1381\n\n\n# 3E启动逻辑\n1381|action+=|1381_E_A|attribute.1381:special_state→满层==True|status.enemy:stun==True\n# 维持E连续释放，直至白雷耗尽\n1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0|status.enemy:stun==True\n# 大招逻辑\n1381|action+=|1381_Q|attribute.1381:decibel>=3000|attribute.1381:special_resource<0.01|status.enemy:stun==True|status.1381:lasting_node_tag!=1381_E_A\n# 泄能逻辑\n1381|action+=|1381_E_EX|attribute.1381:energy>=60|attribute.1381:special_resource<0.01|status.enemy:stun==True\n\n\n# 零号·安比站场逻辑（临近爆发前）\n# 临近失衡时，一直持续平A直到连携技激发\n1381|action+=|auto_NA|status.enemy:stun_pct>=0.8|status.enemy:stun==False\n\n# 零号·安比站场逻辑（平时）\n# 3E启动逻辑\n1381|action+=|1381_E_A|attribute.1381:special_state→满层==True\n# 维持E连续释放，直至白雷耗尽\n1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0\n\n1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True\n1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False\n\n\n# 平稳期，如果能量快要溢出且距离怪物失衡还有一段时间，那就可以放强化E\n1381|action+=|1381_E_EX|attribute.1381:energy>=100|attribute.1381:special_resource<0.01|status.enemy:stun_pct<=0.5\n\n\n\n# 第四段普攻重复最多5次\n1381|action+=|1381_NA_4|action.1381:strict_linked_after==1381_NA_4|status.1381:lasting_node_tag==1381_NA_4|status.1381:repeat_times<5\n1361|action+=|1361_SNA_3|action.1361:strict_linked_after==1361_SNA_1\n1381|action+=|auto_NA\n"
+required = [
+    "席德",
+    "零号·安比",
+    "扳机",
+]
+optional = []
 
 [characters."零号·安比"]
-cinema = [ 0, 1, 2, 3, 4, 5, 6,]
+cinema = [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+]
 weapon = ""
 equip_set4 = ""
 
 [characters."扳机"]
-cinema = 0
+cinema = [
+    0,
+]
 weapon = ""
+equip_set4 = ""
 
-[characters."丽娜"]
-cinema = [ 0,]
+[characters."席德"]
+cinema = [
+    0,
+]
 weapon = ""
+equip_set4 = ""
+
+[apl_logic]
+logic = """
+# 扳机补充决意值逻辑：
+# 连击逻辑：
+1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7
+# 启动逻辑
+1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False|status.enemy:stun==False
+
+# 3E启动逻辑
+1381|action+=|1381_E_A|attribute.1381:special_state→满层==True|status.enemy:stun==True
+# 维持E连续释放，直至白雷耗尽
+1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0|status.enemy:stun==True
+
+# 零号·安比站场逻辑（临近爆发前）
+# 临近失衡时，一直持续平A直到连携技激发
+1381|action+=|auto_NA|status.enemy:stun_pct>=0.8|status.enemy:stun==False
+
+# 失衡期逻辑：
+#连携技释放逻辑
+1361|action+=|1361_QTE|status.enemy:QTE_triggered_times==0|status.enemy:single_qte!=None|special.preload_data:operating_char!=1361
+1461|action+=|1461_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1461
+1381|action+=|1381_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1381
+# 大招逻辑
+# 优先释放席德大招
+1461|action+=|1461_Q|attribute.1461:decibel>=3000|attribute.1461:special_resource<=70|status.enemy:stun==True
+1381|action+=|1381_Q|attribute.1381:decibel>=3000|attribute.1381:special_resource<0.01|status.enemy:stun==True|status.1381:lasting_node_tag!=1381_E_A
+# 泄能逻辑
+1381|action+=|1381_E_EX|attribute.1381:energy>=60|attribute.1381:special_resource<0.01|status.enemy:stun==True
+
+# 零号·安比 3E逻辑（平时）
+# 3E启动逻辑
+1381|action+=|1381_E_A|attribute.1381:special_state→满层==True
+# 维持E连续释放，直至白雷耗尽
+1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0
+
+1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True
+1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False
+
+# 席德非失衡期站场逻辑
+# 席德强化E连段
+1461|action+=|1461_E_EX|attribute.1461:energy>=10|attribute.1461:special_state→强化E连续释放==True|status.enemy:stun==False
+# 钢能值足够时，尽量打三连
+1461|action+=|auto_NA|action.1461:positive_linked_after==1461_SNA_1|attribute.1461:special_state→钢能值足够==True|status.enemy:stun==False
+1461|action+=|1461_SNA_1|attribute.1461:special_state→钢能值足够==True|status.enemy:stun==False
+
+# 平稳期，如果能量快要溢出且距离怪物失衡还有一段时间，那就可以放强化E
+1381|action+=|1381_E_EX|attribute.1381:energy>=100|attribute.1381:special_resource<0.01|status.enemy:stun_pct<=0.5
+
+# 强化E启动
+1461|action+=|1461_E_EX|attribute.1461:energy>=60
+
+1461|action+=|auto_NA
+
+"""

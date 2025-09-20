@@ -10,7 +10,105 @@ required = [ "扳机", "莱特", "雨果",]
 optional = []
 
 [apl_logic]
-logic = "# 扳机补充决意值逻辑：\r\n# 连击逻辑：\r\n1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7\r\n# 启动逻辑\r\n1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False\r\n\r\n\r\n# QTE逻辑\r\n1291|action+=|1291_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1291|status.enemy:QTE_triggered_times<1\r\n1161|action+=|1161_E_EX_1|status.enemy:single_qte==None|status.enemy:stun==True|status.enemy:QTE_activation_available==True|attribute.1161:energy>=40|status.enemy:QTE_triggered_times<1\r\n1161|action+=|1161_E|status.enemy:single_qte==None|status.enemy:stun==True|status.enemy:QTE_activation_available==True|attribute.1161:energy<40|status.enemy:QTE_triggered_times<1\r\n# 莱特消耗士气的逻辑\r\n1161|action.no_swap_cancel+=|1161_NA_5_EnEndH_EX|action.1161:strict_linked_after==1161_NA_5_CoH_EX\r\n1161|action.no_swap_cancel+=|1161_NA_5_CoH_EX|action.1161:strict_linked_after==1161_NA_5_SH_EX\r\n1161|action.no_swap_cancel+=|1161_NA_5_SH_EX|action.1161:strict_linked_after==1161_BH_Aid|status.enemy:stun==False\r\n\r\n# 非失衡期泄能逻辑\r\n1291|action+=|1291_E_EX_1|attribute.1291:energy>=85|status.enemy:stun==False\r\n\r\n# 莱特EQ逻辑\r\n1161|action+=|1161_Q|attribute.1161:decibel>=3000|buff.1161:count→Buff-角色-莱特-核心被动-冲击力提升>=75|status.enemy:stun_pct<0.5\r\n1161|action+=|1161_E_EX_2|attribute.1161:energy>=80|buff.1161:count→Buff-角色-莱特-核心被动-冲击力提升>=75|action.1161:strict_linked_after==1161_E_EX_1|status.enemy:stun_pct<0.5\r\n1161|action.no_swap_cancel+=|1161_E_EX_1|attribute.1161:energy>=100|buff.1161:count→Buff-角色-莱特-核心被动-冲击力提升>=75|status.enemy:stun_pct<0.5\r\n\r\n# 扳机EQ逻辑\r\n1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True\r\n1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False\r\n\r\n# 莱特士气足够时，上场释放快支\r\n1161|action.no_swap_cancel+=|1161_BH_Aid|attribute.1161:special_resource>=75|status.1161:on_field==False|status.enemy:stun==False\r\n\r\n# 莱特站场\r\n# 1161|action+=|auto_NA|status.enemy:stun==False\r\n\r\n# 失衡期爆发逻辑\r\n# 1291|action+=|auto_NA|buff.1291:exist→Buff-角色-雨果-4画-蓄力射击减冰抗==False|attribute.1291:cinema>=4\r\n\r\n# 4画专用逻辑\r\n# 1291|action+=|1291_Q|attribute.1291:decibel>=3000|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1|status.1291:char_available==True|buff.1291:exist→Buff-角色-雨果-4画-蓄力射击减冰抗==True\r\n# 1291|action+=|1291_E_EX_1|attribute.1291:energy>=40|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1|buff.1291:exist→Buff-角色-雨果-4画-蓄力射击减冰抗==True\r\n\r\n1291|action+=|1291_Q|attribute.1291:decibel>=3000|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1|status.1291:char_available==True\r\n1291|action+=|1291_E_EX_1|attribute.1291:energy>=40|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1\r\n\r\n\r\n# 雨果自动平A测试\r\n1291|action+=|auto_NA\r\n\r\n\r\n"
+logic = """
+# 扳机补充决意值逻辑：
+# 连击逻辑：
+
+1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7
+
+# 启动逻辑
+
+1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False
+
+
+
+
+
+# QTE逻辑
+
+1291|action+=|1291_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1291|status.enemy:QTE_triggered_times<1
+
+1161|action+=|1161_E_EX_1|status.enemy:single_qte==None|status.enemy:stun==True|status.enemy:QTE_activation_available==True|attribute.1161:energy>=40|status.enemy:QTE_triggered_times<1
+
+1161|action+=|1161_E|status.enemy:single_qte==None|status.enemy:stun==True|status.enemy:QTE_activation_available==True|attribute.1161:energy<40|status.enemy:QTE_triggered_times<1
+
+# 莱特消耗士气的逻辑
+
+1161|action.no_swap_cancel+=|1161_NA_5_EnEndH_EX|action.1161:strict_linked_after==1161_NA_5_CoH_EX
+
+1161|action.no_swap_cancel+=|1161_NA_5_CoH_EX|action.1161:strict_linked_after==1161_NA_5_SH_EX
+
+1161|action.no_swap_cancel+=|1161_NA_5_SH_EX|action.1161:strict_linked_after==1161_BH_Aid|status.enemy:stun==False
+
+
+
+# 非失衡期泄能逻辑
+
+1291|action+=|1291_E_EX_1|attribute.1291:energy>=85|status.enemy:stun==False
+
+
+
+# 莱特EQ逻辑
+
+1161|action+=|1161_Q|attribute.1161:decibel>=3000|buff.1161:count→Buff-角色-莱特-核心被动-冲击力提升>=75|status.enemy:stun_pct<0.5
+
+1161|action+=|1161_E_EX_2|attribute.1161:energy>=80|buff.1161:count→Buff-角色-莱特-核心被动-冲击力提升>=75|action.1161:strict_linked_after==1161_E_EX_1|status.enemy:stun_pct<0.5
+
+1161|action.no_swap_cancel+=|1161_E_EX_1|attribute.1161:energy>=100|buff.1161:count→Buff-角色-莱特-核心被动-冲击力提升>=75|status.enemy:stun_pct<0.5
+
+
+
+# 扳机EQ逻辑
+
+1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True
+
+1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False
+
+
+
+# 莱特士气足够时，上场释放快支
+
+1161|action.no_swap_cancel+=|1161_BH_Aid|attribute.1161:special_resource>=75|status.1161:on_field==False|status.enemy:stun==False
+
+
+
+# 莱特站场
+
+# 1161|action+=|auto_NA|status.enemy:stun==False
+
+
+
+# 失衡期爆发逻辑
+
+# 1291|action+=|auto_NA|buff.1291:exist→Buff-角色-雨果-4画-蓄力射击减冰抗==False|attribute.1291:cinema>=4
+
+
+
+# 4画专用逻辑
+
+# 1291|action+=|1291_Q|attribute.1291:decibel>=3000|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1|status.1291:char_available==True|buff.1291:exist→Buff-角色-雨果-4画-蓄力射击减冰抗==True
+
+# 1291|action+=|1291_E_EX_1|attribute.1291:energy>=40|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1|buff.1291:exist→Buff-角色-雨果-4画-蓄力射击减冰抗==True
+
+
+
+1291|action+=|1291_Q|attribute.1291:decibel>=3000|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1|status.1291:char_available==True
+
+1291|action+=|1291_E_EX_1|attribute.1291:energy>=40|status.enemy:stun==True|status.enemy:QTE_triggered_times>=1
+
+
+
+
+
+# 雨果自动平A测试
+
+1291|action+=|auto_NA
+
+
+
+
+
+"""
 
 [characters."扳机"]
 cinema = [ 0,]

@@ -1395,14 +1395,6 @@
     "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
     "class": "CordisGerminaSNAAndQIgnoreDefense"
   },
-  "Buff-驱动盘-拂晓生花-二件套-普攻增伤": {
-    "module": ".BuffXLogic.DawnsBloom2SetNADmgBonus",
-    "class": "DawnsBloom2SetNADmgBonus"
-  },
-  "Buff-驱动盘-拂晓生花-四件套-常驻普攻增伤": {
-    "module": ".BuffXLogic.DawnsBloom4SetAllTimeNADmgBonus",
-    "class": "DawnsBloom4SetAllTimeNADmgBonus"
-  },
   "Buff-驱动盘-拂晓生花-四件套-触发普攻增伤": {
     "module": ".BuffXLogic.DawnsBloom4SetTriggerNADmgBonus",
     "class": "DawnsBloom4SetTriggerNADmgBonus"

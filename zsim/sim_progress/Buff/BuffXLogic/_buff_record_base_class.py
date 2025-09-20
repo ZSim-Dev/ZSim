@@ -27,6 +27,7 @@ class BuffRecordBaseClass:
         self.cd: int = 60   # 内置CD：1秒一次
         self.last_active_tick: int = 0  # 上次触发的时间点
         self.buff_index: str | None = None
+        self.trigger_buff_0: "Buff | None" = None
 
     def check_cd(self, tick_now: int):
         """检查内置CD是否就绪"""

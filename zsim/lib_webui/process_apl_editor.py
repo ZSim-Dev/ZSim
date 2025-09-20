@@ -96,7 +96,7 @@ class APLArchive:
 
             # 保存到文件
             with open(absolute_path, "wb") as f:
-                tomli_w.dump(data_to_save, f)
+                tomli_w.dump(data_to_save, f, multiline_strings=True)
 
             # 刷新内部缓存
             self.refresh()
@@ -216,7 +216,7 @@ class APLArchive:
                 apl_data["general"]["comment"] = new_comment
 
             with open(absolute_path, "wb") as f:
-                tomli_w.dump(apl_data, f)
+                tomli_w.dump(apl_data, f, multiline_strings=True)
 
             st.success("正在保存...")
             time.sleep(1)
@@ -697,7 +697,7 @@ def go_apl_editor():
                     os.makedirs(COSTOM_APL_DIR, exist_ok=True)
                     # 保存新文件
                     with open(new_file_path, "wb") as f:
-                        tomli_w.dump(new_apl_data, f)
+                        tomli_w.dump(new_apl_data, f, multiline_strings=True)
 
                     st.success(f"APL '{new_title}' 已成功创建并保存至 '{safe_filename}'")
                     time.sleep(1)

@@ -112,7 +112,7 @@ class TestAPLImportExport:
 
         import_file_path = os.path.join(test_custom_dir, "import_config.toml")
         with open(import_file_path, "wb") as f:
-            tomli_w.dump(import_data, f)
+            tomli_w.dump(import_data, f, multiline_strings=True)
 
         # 导入配置
         config_id = db.import_apl_config(import_file_path)

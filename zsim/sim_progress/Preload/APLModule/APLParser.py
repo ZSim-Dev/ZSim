@@ -80,6 +80,7 @@ class APLParser:
                         "conditions": [cond.strip() for cond in conditions if cond.strip()],
                         "conditions_tree": logic_tree,  # dict表示的逻辑树结构
                         "priority": priority,
+                        "whole_line": line,
                     }
                 )
                 if mode == 0:

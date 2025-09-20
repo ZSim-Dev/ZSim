@@ -13,6 +13,7 @@ class AtkResponseAPLUnit(APLUnit):
         self.char_CID = apl_unit_dict["CID"]
         self.priority = apl_unit_dict["priority"]
         self.apl_unit_type = apl_unit_dict["type"]
+        self.whole_line = apl_unit_dict.get("whole_line", None)
         self.response_proactive_level = None  # 进攻响应APL的主动响应等级
         if self.apl_unit_type.split("_")[-1] == "positive+=":
             self.response_proactive_level = 1
@@ -27,8 +28,8 @@ class AtkResponseAPLUnit(APLUnit):
         self.break_when_found_action = True
         self.result = apl_unit_dict["action"]
         from zsim.sim_progress.Preload.apl_unit.APLUnit import (
-            spawn_sub_condition,
             logic_tree_to_expr_node,
+            spawn_sub_condition,
         )
 
         for condition_str in apl_unit_dict["conditions"]:

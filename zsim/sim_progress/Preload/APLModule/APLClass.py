@@ -14,9 +14,9 @@ from ..apl_unit.ActionAPLUnit import ActionAPLUnit
 from .APLOperator import APLOperator
 
 if TYPE_CHECKING:
+    from zsim.sim_progress.Character.character import Character
     from zsim.sim_progress.Preload import PreloadData
     from zsim.simulator.simulator_class import Simulator
-    from zsim.sim_progress.Character.character import Character
 
 
 class APLClass:
@@ -71,8 +71,8 @@ class APLClass:
         )
         final_result = self.perform_action(cid, skill_tag, tick)
         # FIXME: 这里的优先级修改可能存在问题，需要重新考虑一下。
-        if final_result != skill_tag:
-            apl_priority = 0
+        # if final_result != skill_tag:
+        #     apl_priority = 0
         return final_result, apl_priority, apl_unit
 
     def get_game_state(self) -> dict | None:

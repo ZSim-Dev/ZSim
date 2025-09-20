@@ -15,9 +15,10 @@ class ActionAPLUnit(APLUnit):
         self.apl_unit_type = apl_unit_dict["type"]
         self.break_when_found_action = True
         self.result = apl_unit_dict["action"]
+        self.whole_line = apl_unit_dict.get("whole_line", None)
         from zsim.sim_progress.Preload.apl_unit.APLUnit import (
-            spawn_sub_condition,
             logic_tree_to_expr_node,
+            spawn_sub_condition,
         )
 
         for condition_str in apl_unit_dict["conditions"]:

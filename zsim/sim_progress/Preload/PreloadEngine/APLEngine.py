@@ -32,15 +32,28 @@ class APLEngine(BasePreloadEngine):
 
         self.apl = self.apl_manager.load_apl(apl_path, mode=0, preload_data=self.preload_data)
         self.latest_node: SkillNode | None = None
+        self._apl_want: tuple | None = None       # APL引擎的想法
+
+    @property
+    def apl_want(self) -> tuple | None:
+        return self._apl_want
+
+    @apl_want.setter
+    def apl_want(self, value: tuple | None) -> None:
+        skill_tag, apl_priority, apl_unit = value if value else (None, None, None)
+        if APL_THOUGHT_CHECK:
+            tick = self.sim_instance.tick
+            if tick in range(ATCW[0], ATCW[1]):
+                if value != self.apl_want:
+                    print(
+                        f"{tick}tick：APL引擎的想法变化，{self.apl_want[0] if self.apl_want else None} → {skill_tag}，来自于优先级 {apl_priority} 的单元，详细内容：{apl_unit.whole_line}"
+                    ) if self.apl_want is not None else print(f"{tick}tick：APL引擎产生了第一个想法：{skill_tag}")
+        self._apl_want = value
 
     def run_myself(self, tick) -> SkillNode | None:
         """APL模块运行的最终结果：技能名、最终通过的APL代码优先级"""
         skill_tag, apl_priority, apl_unit = self.apl.execute(tick, mode=0)
-        if APL_THOUGHT_CHECK:
-            if tick in range(ATCW[0], ATCW[1]):
-                print(
-                    f"当前tick为：{tick}，APL引擎在本tick想要运行的技能是：{skill_tag}，该技能来自于优先级为 {apl_priority} 的APL单元（属于角色 {apl_unit.char_CID}）"
-                )
+        self.apl_want = (skill_tag, apl_priority, apl_unit)
         if skill_tag == "wait":
             return None
         node = SkillsQueue.spawn_node(

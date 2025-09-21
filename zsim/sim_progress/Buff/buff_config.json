@@ -1311,10 +1311,6 @@
     "module": ".BuffXLogic.SeedAdditionalAbilityTrigger",
     "class": "SeedAdditionalAbilityTrigger"
   },
-  "Buff-角色-席德-影画-1画-崩坠暴伤增加": {
-    "module": ".BuffXLogic.SeedCinema1SNACritDmgBonus",
-    "class": "SeedCinema1SNACritDmgBonus"
-  },
   "Buff-角色-席德-影画-2画-围杀无视防御力": {
     "module": ".BuffXLogic.SeedCinema2BesiegeIgnoreDefense",
     "class": "SeedCinema2BesiegeIgnoreDefense"

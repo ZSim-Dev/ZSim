@@ -17,13 +17,13 @@ class Seed(Character):
         Seed的特殊机制
         """
         super().__init__(**kwargs)
-        self._steel_charge: float = 0.0  # 钢能值
+        self._steel_charge: float = 60.0 if self.cinema < 1 else 100.0  # 钢能值
         self.max_steel_charge: int = 150  # 最大钢能值
         self.sna_steel_charge_cost: int = (
             60 if self.cinema < 1 else 50
         )  # 落华·崩坠一式、二式消耗的钢能值
         self.sp_to_steel_ratio: float = 0.5  # 技能能耗转换为钢能值的比例
-        self.Q_steel_charge_get: int = 60  # Q技能获得的钢能值
+        self.Q_steel_charge_get: int = 60 if self.cinema < 1 else 80  # Q技能获得的钢能值
         self.vanguard: Character | None = None  # 正兵
         self.sna_quick_release: bool = False  # sna的快速释放状态
         # 特殊状态组

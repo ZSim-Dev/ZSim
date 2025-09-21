@@ -1398,5 +1398,9 @@
   "Buff-驱动盘-月光骑士颂-全队增伤": {
     "module": ".BuffXLogic.MoonlightLullabyAllTeamDmgBonus",
     "class": "MoonlightLullabyAllTeamDmgBonus"
+  },
+  "Buff-角色-席德-影画-2画-无视防御触发器": {
+    "module": ".BuffXLogic.SeedCinema2BesiegeIgnoreDefenceTrigger",
+    "class": "SeedCinema2BesiegeIgnoreDefenceTrigger"
   }
 }

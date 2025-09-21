@@ -122,11 +122,16 @@ class Seed(Character):
         else:
             return False
 
-    @property
-    def besiege_active(self) -> bool:
-        """围杀状态是否生效：需要强袭状态和明攻状态同时生效"""
-        # 围杀状态需要强袭状态和明攻状态同时生效
-        return self.onslaught_active and self.direct_strike_active
+    def besiege_active_check(self) -> tuple[bool, bool]:
+        """
+        围杀状态是否生效：需要强袭状态和明攻状态同时生效，返回的是席德以及正兵的围杀状态，
+        围杀状态需要强袭状态和明攻状态同时生效，对于席德和正兵来说，围杀的生效判定条件不同。
+        对于席德来说，需要自身的强袭Buff处于生效，且正兵身上的明攻状态存在，就可以通过判定
+        对于正兵来说，需要自身的明攻Buff生效，且席德身上的强袭状态存在，就可以通过判定
+        """
+        seed_besiege = self.onslaught_active and self.direct_strike
+        vanguard_besiege = self.direct_strike_active and self.onslaught
+        return seed_besiege, vanguard_besiege
 
     @property
     def besiege(self) -> bool:
@@ -336,7 +341,6 @@ class Seed(Character):
             "围杀状态": self.besiege,
             "强袭状态生效": self.onslaught_active,
             "明攻状态生效": self.direct_strike_active,
-            "围杀状态生效": self.besiege_active,
             "正兵": self.vanguard.NAME if self.vanguard else None,
             "强化E达到最大次数": self.e_ex_repeat_limit_reached,
             "强化E连续释放": self.sesm.e_ex_state in [SeedEXState.LOOPING, SeedEXState.FIRST_CAST]

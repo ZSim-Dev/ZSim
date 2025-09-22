@@ -42,55 +42,85 @@ equip_set4 = ""
 
 [apl_logic]
 logic = """
-# 扳机补充决意值逻辑：
-# 连击逻辑：
-1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7
-# 启动逻辑
+# -------------------------最高优先级----------------------------
+# APL安排了尽量让扳机的强化E激发连携技的手法，所以另外两个角色在此期间需要保持静默。这个保持静默的优先级是非常高的，要提到最前面来。
+1381|action+=|wait|(status.enemy:stun_pct>=0.95 or status.enemy:stun==True)|action.1361:positive_linked_after==1361_E_EX
+1461|action+=|wait|(status.enemy:stun_pct>=0.95 or status.enemy:stun==True)|action.1361:positive_linked_after==1361_E_EX
+
+# 零号·安比一旦3E开始，就必须持续E连击
+1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0
+# 席德一旦在SNA_1释放后发现钢能值足够，就必须打完三连。
+1461|action+=|auto_NA|action.1461:positive_linked_after==1461_SNA_1|attribute.1461:special_state→钢能值足够==True
+
+
+
+# -------------------------爆发期----------------------------     底层逻辑是:enemy.stun==True
+# 首先是QTE手法，优先放扳机的，然后放零号安比的，然后放席德的，保证尽量让席德收尾。
+1381|action+=|1381_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1381
+1461|action+=|1461_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1461
+
+
+# 合轴逻辑。双C相互合轴是提高爆发质量的底层逻辑，这里必须前置。
+# 零号·安比尝试在席德的SNA_2后合轴打3E，这要求在自身条件满足的同时，还满足合轴条件（席德已经释放了SNA_2，同时席德处于前台）
+1381|action+=|1381_E_A|status.enemy:stun==True|attribute.1381:special_state→满层==True|action.1461:positive_linked_after==1461_SNA_2|special.preload_data:operating_char==1461
+
+# 安比在席德释放SNA_2时候，尝试使用Q、强化E合轴。由于安比不是爆发主力，所以对于银星的审查就不那么严格了，尽量把技能甩出来才是第一目标。
+1381|action+=|1381_Q|status.enemy:stun==True|special.preload_data:operating_char==1461|attribute.1381:decibel>=3000|attribute.1381:special_resource<=2|action.1461:positive_linked_after==1461_SNA_2
+1381|action+=|1381_E_EX|status.enemy:stun==True|special.preload_data:operating_char==1461|attribute.1381:energy>=60|attribute.1381:special_resource<=2|action.1461:positive_linked_after==1461_SNA_2
+# 席德在大安比释放强化E时，尝试使用大招合轴。但是需要避免自己吞掉自己的SNA_1、SNA_2、SNA_3
+1461|action+=|1461_Q|status.enemy:stun==True|special.preload_data:operating_char==1381|attribute.1461:decibel>=3000|attribute.1461:special_resource<=70|action.1381:positive_linked_after==1381_E_EX|(action.1461:positive_linked_after!=1461_SNA_1 and action.1461:positive_linked_after!=1461_SNA_2 and action.1461:positive_linked_after!=1461_SNA_3)
+# 席德在大安比释放强化E时，尝试使用SNA_1进行合轴（如果钢能值满，且快速释放机会还在）
+1461|action+=|1461_SNA_1|status.enemy:stun==True|special.preload_data:operating_char==1381|attribute.1461:special_state→钢能值足够==True|attribute.1461:special_state→sna快速释放==True|action.1381:positive_linked_after==1381_E_EX
+
+
+# 席德输出阶段，先检测重击，然后检测大招释放。需要考虑大招不要提前在三连期间释放，防止顶替亏损伤害。
+1461|action+=|1461_SNA_1|status.enemy:stun==True|attribute.1461:special_state→钢能值足够==True|attribute.1461:special_state→sna快速释放==True
+1461|action+=|1461_Q|status.enemy:stun==True|attribute.1461:special_resource<=70|attribute.1461:decibel>=3000|(action.1461:positive_linked_after!=1461_SNA_1 and action.1461:positive_linked_after!=1461_SNA_2 and action.1461:positive_linked_after!=1461_SNA_3)
+
+# 大安比输出阶段，先检测3E，然后再检测大招、强化E，此处需要严格把控强化E和大招不要溢出银星
+1381|action+=|1381_E_A|status.enemy:stun==True|attribute.1381:special_state→满层==True
+1381|action+=|1381_Q|status.enemy:stun==True|attribute.1381:decibel>=3000|attribute.1381:special_resource<=0.5
+1381|action+=|1381_E_EX|status.enemy:stun==True|attribute.1381:energy>=60|attribute.1381:special_resource<=0.5
+
+# 收尾阶段，当整个爆发期没有别的可以做的事情的时候，那就只能让席德释放强化E或是平A了，相当于爆发期的止损手法。
+# 席德强化E连续释放与启动逻辑
+1461|action+=|1461_E_EX|status.enemy:stun==True|attribute.1461:energy>=10|attribute.1461:special_state→强化E连续释放==True
+1461|action+=|1461_E_EX|status.enemy:stun==True|attribute.1461:energy>=60|attribute.1461:special_resource<=80
+1461|action+=|auto_NA|status.enemy:stun==True
+
+
+# -------------------------非失衡期----------------------------     底层逻辑是：status.enemy:stun==False
+# 非失衡期的头等大事就是扳机的决意值补充
+1361|action+=|1361_SNA_1|status.enemy:stun==False|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100
 1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False|status.enemy:stun==False
 
-# 3E启动逻辑
-1381|action+=|1381_E_A|attribute.1381:special_state→满层==True|status.enemy:stun==True
-# 维持E连续释放，直至白雷耗尽
-1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0|status.enemy:stun==True
+# ==========（临近失衡）==========     底层逻辑是：status.enemy:stun_pct>=0.8
+# 首先，如果怪物的失衡百分比已经接近99%，则尽可能尝试让扳机用强化E激发连携。同时，其他两名角色需要保持静默，不要合轴，以免影响连携技激发。
+1361|action+=|1361_E_EX|status.enemy:stun==False|status.enemy:stun_pct>=0.95|attribute.1361:energy>=60
 
-# 零号·安比站场逻辑（临近爆发前）
-# 临近失衡时，一直持续平A直到连携技激发
-1381|action+=|auto_NA|status.enemy:stun_pct>=0.8|status.enemy:stun==False
 
-# 失衡期逻辑：
-#连携技释放逻辑
-1361|action+=|1361_QTE|status.enemy:QTE_triggered_times==0|status.enemy:single_qte!=None|special.preload_data:operating_char!=1361
-1461|action+=|1461_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1461
-1381|action+=|1381_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1381
-# 大招逻辑
-# 优先释放席德大招
-1461|action+=|1461_Q|attribute.1461:decibel>=3000|attribute.1461:special_resource<=70|status.enemy:stun==True
-1381|action+=|1381_Q|attribute.1381:decibel>=3000|attribute.1381:special_resource<0.01|status.enemy:stun==True|status.1381:lasting_node_tag!=1381_E_A
-# 泄能逻辑
-1381|action+=|1381_E_EX|attribute.1381:energy>=60|attribute.1381:special_resource<0.01|status.enemy:stun==True
+# 其他情况，在席德钢能值不足80点时，由席德通过普攻站场，席德钢能值一旦达到80点，就切下去让大安比战场，以免席德误触SNA_1影响爆发。
+1461|action+=|auto_NA|status.enemy:stun==False|status.enemy:stun_pct>=0.8|attribute.1461:special_resource<80
+1381|action+=|auto_NA|status.enemy:stun==False|status.enemy:stun_pct>=0.8
 
-# 零号·安比 3E逻辑（平时）
-# 3E启动逻辑
-1381|action+=|1381_E_A|attribute.1381:special_state→满层==True
-# 维持E连续释放，直至白雷耗尽
-1381|action+=|1381_E_A|attribute.1381:special_resource>=1|attribute.1381:special_state→E连击>0
+# ==========（非临近失衡）==========     底层逻辑：status.enemy:stun==False
+# 应该保证大安比、席德的SNA_1和3E在非临近失衡阶段的启动处于高优先级
+1381|action+=|1381_E_A|status.enemy:stun==False|attribute.1381:special_state→满层==True
+1461|action+=|1461_SNA_1|status.enemy:stun==False|attribute.1461:special_state→钢能值足够==True|attribute.1461:special_state→sna快速释放==True
 
-1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True
-1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False
+# 应保证扳机大招在非临近失衡期、低失衡百分比时的高优先级，然后保证其强化E不要溢出，为临近失衡期留好能量。
+1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<=0.6|status.1361:char_available==True
+1361|action+=|1361_E_EX|attribute.1361:energy>=110|status.enemy:stun==False|status.enemy:stun_pct<=0.7
 
-# 席德非失衡期站场逻辑
-# 席德强化E连段
-1461|action+=|1461_E_EX|attribute.1461:energy>=10|attribute.1461:special_state→强化E连续释放==True|status.enemy:stun==False
-# 钢能值足够时，尽量打三连
-1461|action+=|auto_NA|action.1461:positive_linked_after==1461_SNA_1|attribute.1461:special_state→钢能值足够==True|status.enemy:stun==False
-1461|action+=|1461_SNA_1|attribute.1461:special_state→钢能值足够==True|status.enemy:stun==False
+# 考虑大安比的能量、喧响值严重溢出的情况，如果喧响值发生了溢出，则只允许在 较低的失衡百分比下释放Q，席德大招同理。
+1381|action+=|1381_E_EX|status.enemy:stun==False|attribute.1381:energy>=110|attribute.1381:special_resource<=0.5
+1381|action+=|1381_Q|status.enemy:stun==False|status.enemy:stun_pct<=0.2|attribute.1381:decibel>=3000|attribute.1381:special_resource<=0.5
+1461|action+=|1461_Q|status.enemy:stun==False|status.enemy:stun_pct<=0.2|attribute.1461:decibel>=3000|attribute.1461:special_resource<=70
 
-# 平稳期，如果能量快要溢出且距离怪物失衡还有一段时间，那就可以放强化E
-1381|action+=|1381_E_EX|attribute.1381:energy>=100|attribute.1381:special_resource<0.01|status.enemy:stun_pct<=0.5
+# 席德泄能
+1461|action+=|1461_E_EX|status.enemy:stun==False|attribute.1461:energy>=10|attribute.1461:special_state→强化E连续释放==True
+1461|action+=|1461_E_EX|status.enemy:stun==False|attribute.1461:energy>=60|attribute.1461:special_resource<=80
 
-# 强化E启动
-1461|action+=|1461_E_EX|attribute.1461:energy>=60
-
-1461|action+=|auto_NA
-
+# 席德平A作为底层逻辑。
+1461|action+=|auto_NA|status.enemy:stun==False
 """

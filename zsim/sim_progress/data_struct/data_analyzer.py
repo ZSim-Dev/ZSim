@@ -169,6 +169,7 @@ def __check_skill_node(buff: "Buff", skill_node: "SkillNode") -> bool:
             if __check_label_key(label_key=label_key, target_label_key="only_skill"):
                 if skill_tag in label_value:
                     label_satisfied = True
+                    # print(f"{buff.ft.index}对技能{skill_tag}成功生效！")
 
             # 检查是否为特定标签限制
             elif __check_label_key(label_key=label_key, target_label_key="only_label"):
@@ -204,7 +205,10 @@ def __check_skill_node(buff: "Buff", skill_node: "SkillNode") -> bool:
                 label_key=label_key, target_label_key="only_element"
             ):
                 from zsim.define import ELEMENT_EQUIVALENCE_MAP
-                assert label_value is list, f"Buff {buff} 的标签 {label_key} 的值存在，对应Value为：{label_value} ，但不是列表类型，请检查初始化或者数据库。"
+                if not isinstance(label_value, list):
+                    raise TypeError(
+                        f"Buff {buff} 的标签 {label_key} 的值存在，对应Value为：{label_value} ，但不是列表类型，请检查初始化或者数据库。"
+                    )
                 for _ele_type in label_value:
                     if (
                         skill_node.element_type

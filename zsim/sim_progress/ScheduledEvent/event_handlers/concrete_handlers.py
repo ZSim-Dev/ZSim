@@ -538,7 +538,6 @@ class RefreshEventHandler(BaseEventHandler):
         """处理数据刷新事件"""
         try:
             data = self._get_context_data(context)
-
             # 创建角色映射
             char_mapping = {character.NAME: character for character in data.char_obj_list}
 

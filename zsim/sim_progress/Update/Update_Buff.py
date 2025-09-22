@@ -29,7 +29,10 @@ def update_buff(DYNAMIC_BUFF_DICT, enemy, exist_buff_dict, timetick):
             # 首先根据Buff的结束行为是否复杂进行分流
             if not _.ft.simple_exit_logic:
                 # 结束行为复杂的Buff，其结束逻辑由xexit()控制
-                shoud_exit = _.logic.xexit()
+                try:
+                    shoud_exit = _.logic.xexit(beneficiary=charname)
+                except TypeError:
+                    raise TypeError(f"{_.ft.index}的xexit方法参数错误！")  # noqa: B904
                 if not shoud_exit:
                     # 如果buff的xexit()函数认为buff不应该结束，则再记录一次层数。
                     report_buff_to_queue(charname, timetick, _.ft.index, _.dy.count, True, level=4)

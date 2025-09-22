@@ -38,7 +38,7 @@ class LinaAdditionalSkillEleDMGBonus(Buff.BuffLogic):
         else:
             return False
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         self.check_record_module()
         self.get_prepared(enemy=1)
         if not self.record.enemy.dynamic.shock:

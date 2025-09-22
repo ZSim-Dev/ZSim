@@ -42,7 +42,7 @@ class KaboomTheCannon(Buff.BuffLogic):
             self.buff_0.history.record = KaboomTheCannonRecord()
         self.record = self.buff_0.history.record
 
-    def special_hit_logic(self):
+    def special_hit_logic(self, **kwargs):
         """主要归档触发源。"""
         # TODO: 等三只小猪加入了，可能还得重新弄。
         self.check_record_module()

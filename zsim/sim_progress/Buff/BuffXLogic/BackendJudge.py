@@ -25,7 +25,7 @@ class BackendJudge(Buff.BuffLogic):
         else:
             return False
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         result = self.xjudge()
         if result:
             return False

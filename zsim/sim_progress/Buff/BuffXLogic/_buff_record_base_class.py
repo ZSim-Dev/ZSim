@@ -28,6 +28,8 @@ class BuffRecordBaseClass:
         self.last_active_tick: int = 0  # 上次触发的时间点
         self.buff_index: str | None = None
         self.trigger_buff_0: "Buff | None" = None
+        self.additional_damage_skill_tag: str | None = None
+        self.trigger_skill_tag: str | None = None
 
     def check_cd(self, tick_now: int):
         """检查内置CD是否就绪"""

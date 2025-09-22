@@ -33,7 +33,7 @@ class SokakuUniqueSkillMinorATKBonus(Buff.BuffLogic):
             self.buff_0.history.record = SokakuUniqueSkillMinorATKRecord()
         self.record = self.buff_0.history.record
 
-    def special_start_logic(self):
+    def special_start_logic(self, **kwargs):
         """
         展旗发动时，应该检索当前角色的面板攻击力。
         """

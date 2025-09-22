@@ -24,7 +24,7 @@ class HellfireGearsSpRBonus(Buff.BuffLogic):
         else:
             return False
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         if self.equipper is None:
             self.equipper = JudgeTools.find_equipper(
                 "燃狱齿轮", sim_instance=self.buff_instance.sim_instance

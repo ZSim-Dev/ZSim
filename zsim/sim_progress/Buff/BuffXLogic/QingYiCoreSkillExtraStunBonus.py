@@ -63,7 +63,7 @@ class QingYiCoreSkillExtraStunBonus(Buff.BuffLogic):
             self.record.last_update_voltage = self.record.char.get_resources()[1]
             return False
 
-    def special_start_logic(self):
+    def special_start_logic(self, **kwargs):
         """
         这里是启动逻辑。进入这一逻辑说明是SNA_1或者SNA_2的start标签。
         此时，应该从record获取层数，并且激活buff。

@@ -360,8 +360,10 @@ def BuffJudge(
     if simple_logic:
         all_match = simple_string_judge(judge_condition_dict, skill_now)
     else:
-        # print(buff_now.ft.index)
-        all_match = buff_now.logic.xjudge(loading_mission=mission, skill_node=mission.mission_node)
+        try:
+            all_match = buff_now.logic.xjudge(loading_mission=mission, skill_node=mission.mission_node)
+        except TypeError:
+            raise TypeError(f"{buff_now.ft.index}的xjudge方法参数错误！")
     result = all_match
     return save_cache_and_return(result)
 

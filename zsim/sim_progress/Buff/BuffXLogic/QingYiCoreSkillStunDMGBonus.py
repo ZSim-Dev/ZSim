@@ -43,7 +43,7 @@ class QingYiCoreSkillStunDMGBonus(Buff.BuffLogic):
             self.buff_0.history.record = QintYiCoreSkillRecord()
         self.record = self.buff_0.history.record
 
-    def special_start_logic(self):
+    def special_start_logic(self, **kwargs):
         """
         检测到当前的action_stack，判断它们的mission_tag
         SNA_1叠1层， 且预叠1层；

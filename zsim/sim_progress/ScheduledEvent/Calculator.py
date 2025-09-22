@@ -254,6 +254,7 @@ class MultiplierData:
             self.field_sp_get_ratio: float = 0.0
             self.field_sp_limit: float = 0.0
             self.extra_damage_ratio: float = 0.0  # 基础伤害倍率
+            self.decibel_get_ratio: float = 0.0  # 喧响获得效率
 
             self.phy_crit_dmg_bonus: float = 0.0
             self.fire_crit_dmg_bonus: float = 0.0

@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from ....define import SEED_REPORT
 from ..character import Character
 
 if TYPE_CHECKING:
@@ -33,6 +34,7 @@ class SeedEXStateManager:
             SeedEXState.INTRUPTED: "1461_E_EX_0",
             SeedEXState.FINISH: "1461_SNA_1",
         }
+        self.cinema_2_buff_index = "Buff-角色-席德-影画-2画-耗能转化增伤"
 
     @property
     def e_ex_state(self) -> str:
@@ -41,7 +43,7 @@ class SeedEXStateManager:
     @e_ex_state.setter
     def e_ex_state(self, value: SeedEXState):
         """设置强化E释放的当前状态"""
-        # print(f"【席德强化E状态报告】{self.char.sim_instance.tick}tick：席德强化E状态更改为 {value}") if value != self._e_ex_state else None
+
         self._e_ex_state = value
 
     def update_ex_state(self, skill_node: "SkillNode"):
@@ -73,6 +75,14 @@ class SeedEXStateManager:
                 else:
                     assert self.e_ex_state in [SeedEXState.FINISH, SeedEXState.INTRUPTED], f"席德的强化E释放状态状态错误, 当前状态为 {self.e_ex_state}"
                     self.e_ex_state = SeedEXState.IDLE
+                    if self.char.cinema >= 2:
+                        if SEED_REPORT:
+                            self.char.sim_instance.schedule_data.change_process_state()
+                            print(f"【席德2画报告】检测到强化E结束，本次强化E共耗能{self.repeat_count * 5:.0f}点，将为本次自动衔接的 {skill_node.skill.skill_text} 提供{self.repeat_count * 5:.0f}%的增伤！")
+                        from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
+                        benefit_list = ["席德"]
+                        buff_add_strategy(self.cinema_2_buff_index, benifit_list=benefit_list, specified_count=self.repeat_count, sim_instance=self.char.sim_instance)
+
         else:
             assert self.e_ex_state not in [SeedEXState.LOOPING, SeedEXState.FIRST_CAST], f"在传入其他无关技能时，席德的强化E状态处于未结算的情况，当前状态为{self.e_ex_state}"
             if self.e_ex_state in [SeedEXState.FINISH, SeedEXState.INTRUPTED]:

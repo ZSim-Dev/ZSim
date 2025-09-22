@@ -216,9 +216,9 @@ class Seed(Character):
         if self._steel_charge < threshold <= self._steel_charge + value:
             # 在检测到钢能值足够的上升沿时，打开sna的快速释放标记。
             self.sna_quick_release = True
-            if SEED_REPORT:
-                self.sim_instance.schedule_data.change_process_state()
-                print(f"【席德事件】钢能值达到门槛({threshold}点)，开启SNA快速释放")
+            # if SEED_REPORT:
+            #     self.sim_instance.schedule_data.change_process_state()
+            #     print(f"【席德事件】钢能值达到门槛({threshold}点)，开启SNA快速释放")
 
         value = min(value, self.max_steel_charge)
         self._steel_charge = value
@@ -226,7 +226,7 @@ class Seed(Character):
     def update_steel_charge(self, value: int | float, update_origin: str) -> None:
         """更新钢能值"""
         if value < 0:
-            assert abs(value) < self.steel_charge, (
+            assert abs(value) <= self.steel_charge, (
                 f"{update_origin}企图消耗{abs(value):.2f}点钢能值，目前钢能值为{self.steel_charge:.2f}点，钢能值不足！"
             )
         self.steel_charge += value
@@ -234,7 +234,8 @@ class Seed(Character):
     @property
     def steel_charge_enough(self) -> bool:
         """判断钢能值是否足够"""
-        return self.steel_charge >= self.sna_steel_charge_cost * 2
+        result = self.steel_charge >= self.sna_steel_charge_cost * 2
+        return result
 
     def update_special_resource(self, skill_node: "SkillNode"):
         """
@@ -305,10 +306,14 @@ class Seed(Character):
             if SEED_REPORT:
                 sim_instance.schedule_data.change_process_state()
                 print(f"【席德事件】本次模拟中，席德找到的正兵为：{self.vanguard.NAME}！")
+            self.onslaught = True
+            self.direct_strike = True
+
         if self.vanguard is None:
             if SEED_REPORT:
                 sim_instance.schedule_data.change_process_state()
                 print("【席德事件】注意！席德并未在当前队伍里找到正兵！")
+
 
     def reset_myself(self):
         # 重置能量、喧响值

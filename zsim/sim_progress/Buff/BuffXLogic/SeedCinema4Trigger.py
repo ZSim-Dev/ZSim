@@ -2,13 +2,13 @@ from .. import Buff, JudgeTools, check_preparation
 from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 
 
-class SeedCinema2BesiegeIgnoreDefenceTriggerRecord(BRBC):
+class SeedCinema4TriggerRecord(BRBC):
     def __init__(self):
         super().__init__()
-        self.buff_index = "Buff-角色-席德-影画-2画-围杀无视防御力"
+        self.buff_index = "Buff-角色-席德-影画-4画-喧响效率与大招增伤"
 
 
-class SeedCinema2BesiegeIgnoreDefenceTrigger(Buff.BuffLogic):
+class SeedCinema4Trigger(Buff.BuffLogic):
     def __init__(self, buff_instance):
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
@@ -29,7 +29,7 @@ class SeedCinema2BesiegeIgnoreDefenceTrigger(Buff.BuffLogic):
             "【Buff初始化警告】角色名字的复杂逻辑模块未正确初始化，请检查函数"
         )
         if self.buff_0.history.record is None:
-            self.buff_0.history.record = SeedCinema2BesiegeIgnoreDefenceTriggerRecord()
+            self.buff_0.history.record = SeedCinema4TriggerRecord()
         self.record = self.buff_0.history.record
 
     def special_judge_logic(self, **kwargs):
@@ -64,5 +64,3 @@ class SeedCinema2BesiegeIgnoreDefenceTrigger(Buff.BuffLogic):
             benefit_list.append(seed.vanguard.NAME) if seed.vanguard is not None else None
         if benefit_list:
             buff_add_strategy(self.record.buff_index, benifit_list=benefit_list, sim_instance=self.buff_instance.sim_instance)
-
-

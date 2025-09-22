@@ -14,7 +14,6 @@ class SeedBesiegeBonus(Buff.BuffLogic):
         """这是席德围杀Buff的脚本"""
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
-        self.xjudge = self.special_judge_logic
         self.xexit = self.special_exit_logic
         self.buff_0: "Buff | None" = None
         self.record: BRBC | None = None
@@ -34,35 +33,32 @@ class SeedBesiegeBonus(Buff.BuffLogic):
             self.buff_0.history.record = SeedBesiegeBonusRecord()
         self.record = self.buff_0.history.record
 
-    def special_judge_logic(self, **kwargs):
-        self.check_record_module()
-        self.get_prepared(char_CID=1461)
-        assert self.record is not None, (
-            f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
-        )
-        from zsim.sim_progress.Character.Seed import Seed
-        seed: Seed = self.record.char
-        if seed.vanguard is None:
-            # 当席德的没有队友被指定为“正兵”时，围攻永远不可能触发。
-            return False
-        benifiter_name = self.buff_instance.ft.beneficiary
-        name_box = ["席德"] + [seed.vanguard.NAME]
-
-        # 当 当前Buff的收益人不属于席德或正兵时，直接返回False
-        if benifiter_name not in name_box:
-            return False
-
-        # 直接运行席德的围攻状态判断函数
-        return seed.besiege
-
     def special_exit_logic(self, **kwargs):
         self.check_record_module()
         self.get_prepared(char_CID=1461)
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
-        result = not self.xjudge
-        if result:
-            self.buff_instance.sim_instance.schedule_data.change_process_state()
-            print(f"【席德事件】{self.buff_instance.ft.beneficiary}的围攻Buff已经失效")
-        return result
+        seed = self.record.char
+        from zsim.sim_progress.Character.Seed import Seed
+
+        assert isinstance(seed, Seed), (
+            f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
+        )
+        besiege_tuple = seed.besiege_active_check()
+        beneficiary = kwargs.get("beneficiary", None)
+        if beneficiary is None:
+            print(
+                f"【Buff退出警告】{self.buff_instance.ft.index} 的复杂逻辑模块未正确识别到输入参数“beneficiary”，遂终止Buff。请检查函数"
+            )
+            return True
+        # 如果席德都没有指定正兵，那么肯定也不可能有围杀Buff
+        if seed.vanguard is None:
+            return True
+        if beneficiary == "席德":
+            return not besiege_tuple[0]
+        elif beneficiary == seed.vanguard.NAME:
+            return not besiege_tuple[1]
+        else:
+            # 别的角色不可能保留围杀Buff
+            return True

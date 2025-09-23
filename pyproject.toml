@@ -26,7 +26,7 @@ noconfirm = true
 
 [project]
 name = "zzz-simulator"
-version = "0.3.4a3"
+version = "0.3.5"
 description = "A simulator for ZZZ game"
 requires-python = ">=3.12"
 dependencies = [

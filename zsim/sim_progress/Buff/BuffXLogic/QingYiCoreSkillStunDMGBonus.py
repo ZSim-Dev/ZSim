@@ -77,7 +77,7 @@ class QingYiCoreSkillStunDMGBonus(Buff.BuffLogic):
         self.buff_instance.dy.count = min(self.buff_instance.dy.count, 20)
         self.buff_instance.update_to_buff_0(self.buff_0)
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         """
         退出逻辑：检测到失衡的下降沿。
         """

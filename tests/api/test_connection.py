@@ -34,7 +34,7 @@ def test_backend_connection():
                 print(f"✓ 健康检查成功: {data}")
             else:
                 print(f"✗ 健康检查失败: {result.stderr}")
-                return False
+                return None
 
             # 测试API端点
             result = subprocess.run(
@@ -49,16 +49,16 @@ def test_backend_connection():
                 print(f"✓ API端点测试成功: {data}")
             else:
                 print(f"✗ API端点测试失败: {result.stderr}")
-                return False
+                return None
 
             return True
 
         except Exception as e:
             print(f"✗ UDS连接测试失败: {e}")
-            return False
+            return None
     else:
         print(f"✗ UDS socket文件不存在: {uds_path}")
-        return False
+        return None
 
 
 def test_http_fallback():

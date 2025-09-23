@@ -132,6 +132,14 @@ class SkillEventHandler(BaseEventHandler):
 
         # 处理伤害更新
         self._update_damage_effects(tick, enemy, data, event)
+        self._broadcast_skill_event_to_char(event=event, sim_instance=sim_instance)
+
+    def _broadcast_skill_event_to_char(self, event: SkillNode | LoadingMission, sim_instance: Simulator):
+        """广播技能事件到角色"""
+        event_to_broadcast = event if isinstance(event, SkillNode) else event.mission_node
+        for char_obj in sim_instance.char_data.char_obj_list:
+            if hasattr(char_obj, "update_special_resource"):
+                char_obj.update_special_resource(event_to_broadcast)
 
     def _extract_skill_info(self, event: SkillNode | LoadingMission) -> tuple[SkillNode, int]:
         """提取技能节点和命中次数信息
@@ -530,7 +538,6 @@ class RefreshEventHandler(BaseEventHandler):
         """处理数据刷新事件"""
         try:
             data = self._get_context_data(context)
-
             # 创建角色映射
             char_mapping = {character.NAME: character for character in data.char_obj_list}
 

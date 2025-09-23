@@ -13,6 +13,7 @@ exclude = [
     ".git*",
     "electron*",
     "dist*",
+    "knowledge_base*",
 ]
 
 [tool.pyinstaller]

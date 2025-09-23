@@ -1290,5 +1290,117 @@
   "Buff-角色-爱丽丝-影画-6画-额外攻击触发器": {
     "module": ".BuffXLogic.AliceCinema6Trigger",
     "class": "AliceCinema6Trigger"
+  },
+  "Buff-角色-席德-强袭": {
+    "module": ".BuffXLogic.SeedOnslaughtBonus",
+    "class": "SeedOnslaughtBonus"
+  },
+  "Buff-角色-席德-明攻": {
+    "module": ".BuffXLogic.SeedDirectStrikeBonus",
+    "class": "SeedDirectStrikeBonus"
+  },
+  "Buff-角色-席德-明攻触发器": {
+    "module": ".BuffXLogic.SeedDirectStrikeTrigger",
+    "class": "SeedDirectStrikeTrigger"
+  },
+  "Buff-角色-席德-围杀": {
+    "module": ".BuffXLogic.SeedBesiegeBonus",
+    "class": "SeedBesiegeBonus"
+  },
+  "Buff-角色-席德-额外能力-重击大招增伤无视电抗": {
+    "module": ".BuffXLogic.SeedAdditionalAbilityTrigger",
+    "class": "SeedAdditionalAbilityTrigger"
+  },
+  "Buff-角色-席德-影画-2画-围杀无视防御力": {
+    "module": ".BuffXLogic.SeedCinema2BesiegeIgnoreDefense",
+    "class": "SeedCinema2BesiegeIgnoreDefense"
+  },
+  "Buff-角色-席德-影画-4画-喧响效率与大招增伤": {
+    "module": ".BuffXLogic.SeedCinema4Bonus",
+    "class": "SeedCinema4Bonus"
+  },
+  "Buff-角色-席德-影画-6画-触发器": {
+    "module": ".BuffXLogic.SeedCinema6Trigger",
+    "class": "SeedCinema6Trigger"
+  },
+  "Buff-武器-精1机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精2机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精3机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精4机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精5机巧心种-常驻暴击": {
+    "module": ".BuffXLogic.CordisGerminaCritRateBonus",
+    "class": "CordisGerminaCritRateBonus"
+  },
+  "Buff-武器-精1机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精2机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精3机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精4机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精5机巧心种-电属性增伤": {
+    "module": ".BuffXLogic.CordisGerminaEleDmgBonus",
+    "class": "CordisGerminaEleDmgBonus"
+  },
+  "Buff-武器-精1机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精2机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精3机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精4机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-武器-精5机巧心种-普攻大招无视防御": {
+    "module": ".BuffXLogic.CordisGerminaSNAAndQIgnoreDefense",
+    "class": "CordisGerminaSNAAndQIgnoreDefense"
+  },
+  "Buff-驱动盘-拂晓生花-四件套-触发普攻增伤": {
+    "module": ".BuffXLogic.DawnsBloom4SetTriggerNADmgBonus",
+    "class": "DawnsBloom4SetTriggerNADmgBonus"
+  },
+  "Buff-驱动盘-月光骑士颂-全队增伤": {
+    "module": ".BuffXLogic.MoonlightLullabyAllTeamDmgBonus",
+    "class": "MoonlightLullabyAllTeamDmgBonus"
+  },
+  "Buff-角色-席德-影画-2画-无视防御触发器": {
+    "module": ".BuffXLogic.SeedCinema2BesiegeIgnoreDefenceTrigger",
+    "class": "SeedCinema2BesiegeIgnoreDefenceTrigger"
+  },
+  "Buff-角色-席德-围杀触发器": {
+    "module": ".BuffXLogic.SeedBesiegeBonusTrigger",
+    "class": "SeedBesiegeBonusTrigger"
+  },
+  "Buff-角色-席德-影画-4画-触发器": {
+    "module": ".BuffXLogic.SeedCinema4Trigger",
+    "class": "SeedCinema4Trigger"
   }
 }

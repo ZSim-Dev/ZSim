@@ -63,7 +63,7 @@ class SokakuUniqueSkillMajorATKBonus(Buff.BuffLogic):
         self.record.last_update_rescource = resource_now
         return False
 
-    def special_start_logic(self):
+    def special_start_logic(self, **kwargs):
         """
         展旗发动时，应该检索当前角色的面板攻击力。
         如果能顺利执行这个模块，那么意味着已经检测到下降沿。

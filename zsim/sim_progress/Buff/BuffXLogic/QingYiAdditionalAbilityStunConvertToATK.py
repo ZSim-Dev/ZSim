@@ -38,7 +38,7 @@ class QingYiAdditionalAbilityStunConvertToATK(Buff.BuffLogic):
     def special_judge_logic(self, **kwargs):
         return True
 
-    def special_hit_logic(self):
+    def special_hit_logic(self, **kwargs):
         """
         找冲击力，并且构建mul现场算。算完出层数即可。
         """

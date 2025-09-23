@@ -42,7 +42,7 @@ class HugoCorePassiveDoubleStunAtkBonus(Buff.BuffLogic):
 
                 if not isinstance(char_obj, Character):
                     raise TypeError("char_obj_list中的对象不是Character类的实例")
-                if char_obj.speicalty == "击破":
+                if char_obj.specialty == "击破":
                     self.record.stun_char_count += 1
             if HUGO_REPORT:
                 self.buff_instance.sim_instance.schedule_data.change_process_state()

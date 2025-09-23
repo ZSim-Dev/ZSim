@@ -33,7 +33,7 @@ class MiyabiCoreSkill_FrostBurn(Buff.BuffLogic):
             self.buff_0.history.record = MiyabiCoreSkillFB()
         self.record = self.buff_0.history.record
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         """
         霜灼buff的退出机制是检测到霜寒的下降沿就退出
         """

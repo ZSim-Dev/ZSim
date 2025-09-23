@@ -12,16 +12,18 @@ class SPUpdateData:
         self.char_name = char_obj.NAME
         self.static_sp_regen: float = char_obj.statement.sp_regen
         enabled_buff: Generator = (buff for buff in dynamic_buff[self.char_name])
-        self.dynamic_sp_regen: float = self.__cal_dynamic_sp_regen(enabled_buff)
+        self.dynamic_sp_regen: tuple[float, float] = self.__cal_dynamic_sp_regen(enabled_buff)
 
     @staticmethod
     def __cal_dynamic_sp_regen(enabled_buff: Generator):
         buff_bonus: dict = cal_buff_total_bonus(enabled_buff)
         dynamic_sp_regen = buff_bonus.get("能量自动恢复", 0) + buff_bonus.get("局内能量自动恢复", 0)
-        return dynamic_sp_regen
+        dynamic_sp_gain_ratio = buff_bonus.get("局内能量获得效率", 0)
+        return dynamic_sp_regen, dynamic_sp_gain_ratio
 
     def get_sp_regen(self) -> float:
-        return self.static_sp_regen + self.dynamic_sp_regen
+        sp_regen = (self.static_sp_regen + self.dynamic_sp_regen[0]) * (self.dynamic_sp_regen[1] + 1)
+        return sp_regen
 
 
 class ScheduleRefreshData:

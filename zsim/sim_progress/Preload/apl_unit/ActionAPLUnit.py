@@ -15,9 +15,10 @@ class ActionAPLUnit(APLUnit):
         self.apl_unit_type = apl_unit_dict["type"]
         self.break_when_found_action = True
         self.result = apl_unit_dict["action"]
+        self.whole_line = apl_unit_dict.get("whole_line", None)
         from zsim.sim_progress.Preload.apl_unit.APLUnit import (
-            spawn_sub_condition,
             logic_tree_to_expr_node,
+            spawn_sub_condition,
         )
 
         for condition_str in apl_unit_dict["conditions"]:
@@ -56,4 +57,12 @@ class ActionAPLUnit(APLUnit):
         final_result = self.evaluate_condition_ast(
             self.sub_conditions_ast, found_char_dict, game_state, sim_instance, tick, result_box
         )
-        return final_result, result_box
+        # 下列代码块是用于检查QTE是否在重复释放上符合规则（即QTE是否已经被响应过了）
+        if "QTE" in self.result:
+            enemy = self.sim_instance.schedule_data.enemy
+            qte_manager = enemy.qte_manager
+            qte_leagal = qte_manager.check_qte_legality(qte_skill_tag=self.result)
+        else:
+            qte_leagal = True
+        final_final_result = final_result and qte_leagal
+        return final_final_result, result_box

@@ -78,7 +78,7 @@ class SliceofTimeExtraResources(Buff.BuffLogic):
         else:
             return False
 
-    def special_start_logic(self):
+    def special_start_logic(self, **kwargs):
         """
         这部分的代码主要是负责构建一个ScheduleRefreshData实例的，
         而simple_start只是为了启动一次，让Log记录到这个buff。

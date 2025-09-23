@@ -67,7 +67,15 @@ def buff_add_strategy(
     # __check_buff_add_result(buff_name, selected_characters, exist_buff_dict, DYNAMIC_BUFF_DICT, sim_instance)
 
 
-def let_buff_start(DYNAMIC_BUFF_DICT: dict[str, list[Buff]], buff_name: str, enemy: "Enemy", exist_buff_dict: dict[str, dict[str, Buff]], names: str, specified_count: int, tick: int):
+def let_buff_start(
+        DYNAMIC_BUFF_DICT: dict[str, list[Buff]],
+        buff_name: str,
+        enemy: "Enemy",
+        exist_buff_dict: dict[str, dict[str, Buff]],
+        names: str,
+        specified_count: int,
+        tick: int
+    ):
     """
     这个函数是buff_add_strategy函数的添加Buff的核心业务函数。
     Args:

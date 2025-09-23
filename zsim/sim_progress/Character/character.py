@@ -149,7 +149,7 @@ class Character:
 
         self.decibel: float = 1000.0
 
-        self.speicalty: str | None
+        self.specialty: str | None
         self.element_type: int
 
         self.crit_balancing: bool = crit_balancing
@@ -163,22 +163,22 @@ class Character:
         if sim_cfg is not None:
             if isinstance(sim_cfg, ExecAttrCurveCfg):
                 if not sim_cfg.remove_equip:
-                    self.__init_all_equip_static(drive4, drive5, drive6, 
-                                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                                scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+                    self.__init_all_equip_static(drive4, drive5, drive6,
+                                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                                scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                                 scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN)
                 self.__init_attr_curve_config(sim_cfg)
                 self._init_weapon_primitive(weapon, weapon_level)
             elif isinstance(sim_cfg, ExecWeaponCfg):
-                self.__init_all_equip_static(drive4, drive5, drive6, 
-                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+                self.__init_all_equip_static(drive4, drive5, drive6,
+                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                          scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN)
                 self._init_weapon_primitive(sim_cfg.weapon_name, sim_cfg.weapon_level)  # 覆盖武器基础属性
         else:
-            self.__init_all_equip_static(drive4, drive5, drive6, 
-                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+            self.__init_all_equip_static(drive4, drive5, drive6,
+                                         equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                         scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                          scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN)
             # 初始化武器基础属性    .\data\weapon.csv
             self._init_weapon_primitive(weapon, weapon_level)
@@ -196,16 +196,16 @@ class Character:
 
         self.statement = Character.Statement(self, crit_balancing=crit_balancing)
         self.skill_object: Skill = Skill(name=self.NAME, CID=self.CID, **skills_level, char_obj=self)
-        self.action_list = self.skill_object.action_list 
+        self.action_list = self.skill_object.action_list
         self.skills_dict = self.skill_object.skills_dict
         self.dynamic = self.Dynamic(self)
         self.sim_instance: "Simulator | None" = None        # 模拟器实例
         self.equip_buff_map: dict[int, "Buff"] = {}     # 来自装备的Buff0的指针
 
     # fmt: off
-    def __init_all_equip_static(self, drive4, drive5, drive6, 
-                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style, 
-                                scATK, scATK_percent, scAnomalyProficiency, scCRIT, 
+    def __init_all_equip_static(self, drive4, drive5, drive6,
+                                equip_set2_a, equip_set2_b, equip_set2_c, equip_set4, equip_style,
+                                scATK, scATK_percent, scAnomalyProficiency, scCRIT,
                                 scCRIT_DMG, scDEF, scDEF_percent, scHP, scHP_percent, scPEN):
         # fmt: on
         # 初始化套装效果        .\data\equip_set_2pc.csv
@@ -351,11 +351,45 @@ class Character:
             )
 
             self.quick_assist_manager = QuickAssistManager(self.character)
-            self.on_field = False  # 角色是否在前台
+            self._on_field = False  # 角色是否在前台
+            self._switching_in_tick = 0  # 角色切到前台状态的时间点
+            self._switching_out_tick = 0  # 角色切到后台状态的时间点
 
         def reset(self):
             self.lasting_node.reset()
             self.on_field = False
+
+        @property
+        def on_field(self) -> bool:
+            return self._on_field
+
+        @on_field.setter
+        def on_field(self, value: bool):
+            assert self.character.sim_instance is not None
+            tick = self.character.sim_instance.tick
+            if self.on_field and not value:
+                # 角色on_field状态的下降沿，即角色从前台切换到后台
+                self._switching_out_tick = tick
+            elif not self.on_field and value:
+                # 角色on_field状态的上升沿，即角色从后台切换到前台
+                self._switching_in_tick = tick
+            self._on_field = value
+
+        def is_off_field_within(self, max_ticks: int) -> bool:
+            """判断角色切到后台的时间是否小于等于指定时间"""
+            assert self.character.sim_instance is not None
+            if self.on_field:
+                return False
+            current_tick = self.character.sim_instance.tick
+            return current_tick - self._switching_out_tick <= max_ticks
+
+        def is_on_field_within(self, max_ticks: int) -> bool:
+            """判断角色切到前台的时间是否小于等于指定时间"""
+            assert self.character.sim_instance is not None
+            if not self.on_field:
+                return False
+            current_tick = self.character.sim_instance.tick
+            return current_tick - self._switching_in_tick <= max_ticks
 
     def is_available(self, tick: int):
         """查询角色当前tick是否有空"""
@@ -436,7 +470,7 @@ class Character:
                 self.PEN_numeric = float(row_0.get("基础穿透值", 0))
                 self.base_sp_regen = float(row_0.get("基础能量自动回复", 0))
                 self.base_sp_get_ratio = float(row_0.get("基础能量获取效率", 1))
-                self.speicalty = row_0.get("角色特性", None)  # 角色特性，强攻、击破等
+                self.specialty = row_0.get("角色特性", None)  # 角色特性，强攻、击破等
                 self.aid_type = row_0.get("支援类型", None)
                 self.element_type = row_0.get("角色属性", 0)
                 if self.element_type is None or self.element_type < 0:
@@ -797,7 +831,14 @@ class Character:
         """可外部强制更新喧响的方法"""
         # if self.decibel == 3000 and self.NAME == '仪玄':
         #     print(f"{self.NAME} 释放技能时喧响值已满3000点！")
-        self.decibel += decibel_value
+        from zsim.sim_progress.ScheduledEvent.Calculator import cal_buff_total_bonus
+        dynamic_buff = self.sim_instance.global_stats.DYNAMIC_BUFF_DICT
+        enabled_buff = tuple(dynamic_buff[self.NAME])
+        buff_bonus_dict = cal_buff_total_bonus(enabled_buff=enabled_buff, judge_obj=None, sim_instance=self.sim_instance)
+        decibel_get_ratio = buff_bonus_dict.get("喧响获得效率", 0)
+        final_decibel_change_value = decibel_value * (1 + decibel_get_ratio)
+        self.decibel += final_decibel_change_value
+        # print(final_decibel_change_value, decibel_value, decibel_get_ratio)
         self.decibel = max(0.0, min(self.decibel, 3000))
 
     def special_resources(self, *args, **kwargs) -> None:
@@ -834,7 +875,7 @@ class Character:
     def personal_action_replace_strategy(self, action: str):
         return action
 
-    def POST_INIT_DATA(self, sim_insatnce: "Simulator"):
+    def POST_INIT_DATA(self, sim_instance: "Simulator"):
         pass
 
 

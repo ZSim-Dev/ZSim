@@ -4,10 +4,9 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Sequence
 
 # from charset_normalizer.md import is_arabic_isolated_form
-
 from zsim.define import BACK_ATTACK_RATE
-from zsim.sim_progress.Report import report_to_log
 from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import NewAnomaly
+from zsim.sim_progress.Report import report_to_log
 
 if TYPE_CHECKING:
     from zsim.sim_progress.anomaly_bar import AnomalyBar
@@ -109,6 +108,8 @@ def __check_skill_node(buff: "Buff", skill_node: "SkillNode") -> bool:
     1. only_skill: buff仅对特定技能标签生效
     2. only_label: buff仅对带有特定标签的技能生效
 
+    注意：不同的label之间是AND关系，单个label内的列表元素是OR关系。
+
     参数:
         buff (Buff): 需要检查的buff对象
         skill_node (SkillNode): 技能节点对象
@@ -135,6 +136,12 @@ def __check_skill_node(buff: "Buff", skill_node: "SkillNode") -> bool:
     skill_tag: str = skill_node.skill_tag
     skill_labels: dict[str, Any] = skill_node.labels
 
+    # 用于记录是否检查了相关的label类型
+    has_relevant_labels = False
+
+    # 用于记录所有相关label是否都满足条件
+    all_labels_satisfied = True
+
     # 遍历buff的所有标签进行检查
     for label_key, label_value in buff_labels.items():
         """注意，在Buff端，label总是以 {str, list[str]}的形式存在的，这里要针对这一特性进行处理。"""
@@ -144,39 +151,46 @@ def __check_skill_node(buff: "Buff", skill_node: "SkillNode") -> bool:
             raise TypeError(
                 f"Buff {buff} 的标签 {label_key} 的值存在，对应Value为：{label_value} ，但不是列表类型，请检查初始化或者数据库。"
             )
+
+        # 检查是否为允许的标签类型，不在ALLOWED_LABELS中的label，直接跳过
         if any(
             [
                 __check_label_key(label_key=label_key, target_label_key=_tlk)
                 for _tlk in ALLOWED_LABELS
             ]
         ):
+
+            has_relevant_labels = True
+            label_satisfied = False
+
+            # 对于合法label，要进行分类讨论
+
             # 检查是否为特定技能限制
             if __check_label_key(label_key=label_key, target_label_key="only_skill"):
                 if skill_tag in label_value:
-                    return True
+                    label_satisfied = True
+                    # print(f"{buff.ft.index}对技能{skill_tag}成功生效！")
+
             # 检查是否为特定标签限制
             elif __check_label_key(label_key=label_key, target_label_key="only_label"):
                 """
                 当被检查技能完全不存在label属性时，说明该技能是无标签的普通技能。
-                而当前分支检查的是“技能是否具有Buff指定的标签”，所以这里无需继续遍历，直接continue。
+                而当前分支检查的是"技能是否具有Buff指定的标签"，所以这里无需继续遍历，直接continue。
                 """
                 if skill_labels is None:
-                    continue
-                if any(_sub_label in skill_labels.keys() for _sub_label in label_value):
+                    # 如果技能没有标签属性，那么只有标签限制无法满足
+                    label_satisfied = False
+                elif any(_sub_label in skill_labels.keys() for _sub_label in label_value):
                     # print(f'在技能 {skill_tag} 中，成功找到标签 {label_value}，')
-                    return True
-                # for _sub_label in label_value:
-                #     if _sub_label in skill_labels.keys():
-                #         print(f'在技能 {skill_tag} 中，成功找到标签 {label_value}，')
-                #         return True
-                #     else:
-                #         print(skill_node.skill_tag, skill_labels, _sub_label, label_value)
+                    label_satisfied = True
+
             elif __check_label_key(
                 label_key=label_key, target_label_key="only_trigger_buff_level"
             ):
                 if skill_node.skill.trigger_buff_level in label_value:
                     # print(f"{buff.ft.index}对技能{skill_tag}成功生效！")
-                    return True
+                    label_satisfied = True
+
             elif __check_label_key(
                 label_key=label_key, target_label_key="only_back_attack"
             ):
@@ -185,29 +199,41 @@ def __check_skill_node(buff: "Buff", skill_node: "SkillNode") -> bool:
                 rng: RNG = buff.sim_instance.rng_instance
                 normalized_value = rng.random_float()
                 if normalized_value <= BACK_ATTACK_RATE:
-                    return True
+                    label_satisfied = True
+
             elif __check_label_key(
                 label_key=label_key, target_label_key="only_element"
             ):
                 from zsim.define import ELEMENT_EQUIVALENCE_MAP
-
+                if not isinstance(label_value, list):
+                    raise TypeError(
+                        f"Buff {buff} 的标签 {label_key} 的值存在，对应Value为：{label_value} ，但不是列表类型，请检查初始化或者数据库。"
+                    )
                 for _ele_type in label_value:
                     if (
                         skill_node.element_type
                         in ELEMENT_EQUIVALENCE_MAP[_ele_type]
                     ):
-                        # 只要找到一种符合要求的元素，就返回True
-                        return True
+                        # 只要找到一种符合要求的元素，就满足这个label
+                        label_satisfied = True
+                        break
+
             elif __check_label_key(
                 label_key=label_key, target_label_key="only_skill_type"
             ):
                 if skill_node.skill.skill_type in label_value:
-                    return True
-    else:
-        # if buff.ft.index == "Buff-角色-仪玄-2画-强化E与终结技无视以太抗" and any([__tags in skill_node.skill_tag for __tags in ["1371_E_EX", "1371_Q"]]):
-        #     print(f"data_analyzer的报告：{buff.ft.index}与{skill_node.skill_tag}不匹配！")
-        return False
-    # FIXME: 该函数还是有些逻辑问题的，等带后续继续优化修改！
+                    label_satisfied = True
+
+            # 如果当前label不满足条件，那么整个AND条件就不满足
+            if not label_satisfied:
+                all_labels_satisfied = False
+
+    # 如果没有任何相关的label类型，说明buff没有限制条件
+    if not has_relevant_labels:
+        return True
+
+    # 只有所有相关的label都满足条件，才返回True
+    return all_labels_satisfied
 
 
 def __check_label_key(label_key: str, target_label_key: str):
@@ -240,6 +266,15 @@ def __check_special_anomly(buff: "Buff", anomaly_node: "AnomalyBar") -> bool:
         bool: 如果buff标签与异常状态节点匹配则返回True，否则返回False
     """
     # 导入异常状态相关的类
+    from zsim.sim_progress.anomaly_bar.Anomalies import (
+        AuricInkAnomaly,
+        ElectricAnomaly,
+        EtherAnomaly,
+        FireAnomaly,
+        FrostAnomaly,
+        IceAnomaly,
+        PhysicalAnomaly,
+    )
     from zsim.sim_progress.anomaly_bar.CopyAnomalyForOutput import (
         DirgeOfDestinyAnomaly as Abloom,
     )
@@ -247,14 +282,6 @@ def __check_special_anomly(buff: "Buff", anomaly_node: "AnomalyBar") -> bool:
         Disorder,
         PolarityDisorder,
     )
-    from zsim.sim_progress.anomaly_bar.Anomalies import (
-        IceAnomaly,
-        PhysicalAnomaly,
-        FireAnomaly,
-        FrostAnomaly,
-        EtherAnomaly,
-        ElectricAnomaly,
-        AuricInkAnomaly)
 
     # 定义允许的标签类型
     ALLOW_LABELS = ["only_anomaly", "specified_disorder_element_type"]
@@ -335,8 +362,8 @@ def __check_activation_origin(buff_obj: "Buff", judge_obj: "SkillNode | AnomalyB
         return True
     if "only_active_by" not in buff_obj.ft.label.keys():
         return True
-    from zsim.sim_progress.Preload import SkillNode
     from zsim.sim_progress.anomaly_bar import AnomalyBar
+    from zsim.sim_progress.Preload import SkillNode
     CID_list = buff_obj.ft.label.get("only_active_by")
     # FIXME: 当队伍中同时存在两把“时流贤者”时，Buff源检验可能会出错，暂不确定。
     if CID_list[0] == "self":

@@ -33,6 +33,7 @@
   "额外伤害倍率": "extra_damage_ratio",
   "固定贯穿力": "sheer_atk",
   "局内贯穿力%": "field_sheer_atk_percentage",
+  "喧响获得效率": "decibel_get_ratio",
 
   "物理属性暴击伤害": "phy_crit_dmg_bonus",
   "火属性暴击伤害": "fire_crit_dmg_bonus",

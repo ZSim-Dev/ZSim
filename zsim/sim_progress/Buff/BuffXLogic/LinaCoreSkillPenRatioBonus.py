@@ -53,7 +53,7 @@ class LinaCoreSkillPenRatioBonus(Buff.BuffLogic):
         else:
             return True
 
-    def special_start_logic(self):
+    def special_start_logic(self, **kwargs):
         self.check_record_module()
         self.get_prepared(
             action_stack=1,
@@ -73,7 +73,7 @@ class LinaCoreSkillPenRatioBonus(Buff.BuffLogic):
         self.buff_instance.dy.count = count
         self.buff_instance.update_to_buff_0(self.buff_0)
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         """
         只要检测到重击，就立刻终止。
         """

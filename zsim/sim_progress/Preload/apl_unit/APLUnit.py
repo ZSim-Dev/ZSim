@@ -108,6 +108,7 @@ def sub_condition_unit_factory(priority: int, sub_condition_dict: dict = None, m
 class SimpleUnitForForceAdd(APLUnit):
     def __init__(self, condition_list, sim_instance: "Simulator" = None):
         super().__init__(sim_instance=sim_instance)
+        self.whole_line = condition_list
 
         for condition_str in condition_list:
             self.sub_conditions_unit_list.append(spawn_sub_condition(self.priority, condition_str))

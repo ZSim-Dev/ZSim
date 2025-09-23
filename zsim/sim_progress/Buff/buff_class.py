@@ -9,6 +9,7 @@ import pandas as pd
 
 from zsim.define import CONFIG_PATH, EFFECT_FILE_PATH, EXIST_FILE_PATH, JUDGE_FILE_PATH
 from zsim.sim_progress.Report import report_to_log
+
 from .BuffXLogic._buff_record_base_class import BuffRecordBaseClass as BRBC
 
 if TYPE_CHECKING:
@@ -197,7 +198,7 @@ class Buff:
                 会根据对应的添加逻辑，修改这一参数。这一参数可以标志出该buff是否应该由当前角色的行为触发。
                 这样就可以避免“艾莲的强化E会意外触发苍角核心被动的攻击力buff”
                 """
-                self.beneficiary = None
+                self._beneficiary = None
                 """
                 在20250102的更新中，我们为buff.feature新增了beneficiary这个属性。并且在buff_exist_judge函数中做了对应的初始化逻辑。
                 该属性是为了标注buff的受益者，至此，operator、beneficiary 与passively_updating三个参数构成了一套相对完整的逻辑。
@@ -228,6 +229,16 @@ class Buff:
                     self.listener_id = None
                 else:
                     self.listener_id = str(__listener_id_str).strip()
+
+        @property
+        def beneficiary(self):
+            return self._beneficiary
+
+        @beneficiary.setter
+        def beneficiary(self, value):
+            # if self.index == "Buff-角色-席德-明攻":
+            #     print(11111111, f"席德明攻的受益人变更为{value}，当前buff的操作者是：{self.operator}")
+            self._beneficiary = value
 
         def __process_label_rule(self, config_dict: dict) -> int | None:
             label_rule = config_dict.get("label_effect_rule", 0)
@@ -638,12 +649,12 @@ class Buff:
         ready检测不通过直接return——cd没转好，所以就算能够触发，也是不会触发的。
         """
         if sub_mission == "start":
-            self.update_cause_start(timenow, timecost, sub_exist_buff_dict)
+            self.update_cause_start(timenow, timecost, sub_exist_buff_dict, beneficiary=char_name)
         elif sub_mission == "end":
             if self.ft.endjudge:
-                self.update_cause_end(timenow, sub_exist_buff_dict)
+                self.update_cause_end(timenow, sub_exist_buff_dict, beneficiary=char_name)
         elif sub_mission == "hit":
-            self.update_cause_hit(timenow, sub_exist_buff_dict, timecost)
+            self.update_cause_hit(timenow, sub_exist_buff_dict, timecost, beneficiary=char_name)
 
     def update_to_buff_0(self, buff_0):
         """
@@ -680,7 +691,7 @@ class Buff:
         self.dy.built_in_buff_box = buff_0.dy.built_in_buff_box
         self.dy.count = buff_0.dy.count
 
-    def update_cause_start(self, timenow, timecost, exist_buff_dict: dict):
+    def update_cause_start(self, timenow, timecost, exist_buff_dict: dict, beneficiary: str):
         buff_0 = exist_buff_dict[self.ft.index]
         if not isinstance(buff_0, Buff):
             raise TypeError(f"{buff_0}不是Buff类！")
@@ -689,7 +700,7 @@ class Buff:
             assert self.logic.xstart is not None, (
                 f"{self.ft.index} 的simple_start_logic参数不为True时，其logic.xstart不能为空"
             )
-            self.logic.xstart()
+            self.logic.xstart(beneficiary=beneficiary)
             self.update_to_buff_0(buff_0)
             return
         if self.ft.maxduration == 0:  # 瞬时buff
@@ -748,7 +759,7 @@ class Buff:
 
         # report_to_log(f"[Buff INFO]:{timenow}:{buff_0.ft.index}第{buff_0.history.active_times}次触发", level=3)
 
-    def update_cause_end(self, timenow, exist_buff_dict):
+    def update_cause_end(self, timenow, exist_buff_dict, beneficiary: str):
         """
         这个函数一般不会用到，因为不会有动作结束才触发的傻逼buff逻辑。
         “艾莲踩了你一脚，你当场不敢发作但是等艾莲转身离开，你触发硬度+3，持续30秒？
@@ -774,12 +785,12 @@ class Buff:
         else:
             # EXAMPLE：普攻结束后，随机获得1~10层的攻击力Buff。
             assert self.logic.xend is not None, f"{self.ft.index}的buff没有初始化xend方法"
-            self.logic.xend()
+            self.logic.xend(beneficiary=beneficiary)
             self.dy.is_changed = True
         if self.dy.is_changed:
             self.update_to_buff_0(buff_0)
 
-    def update_cause_hit(self, timenow, exist_buff_dict: dict, timecost):
+    def update_cause_hit(self, timenow, exist_buff_dict: dict, timecost, beneficiary: str):
         """
         这里是最常用的代码，大部分的buff都是hit标签更新。
         当然，第一层就要过hitincrease筛选，但凡不满足的，我hit一万次你也触发不了。
@@ -800,7 +811,7 @@ class Buff:
             endticks = self.dy.endticks
         if not self.ft.simple_hit_logic:
             assert self.logic.xhit is not None, f"{self.ft.index}的buff没有初始化xhit方法"
-            self.logic.xhit()
+            self.logic.xhit(beneficiary=beneficiary)
             self.dy.is_changed = True
             self.update_to_buff_0(buff_0)
             return

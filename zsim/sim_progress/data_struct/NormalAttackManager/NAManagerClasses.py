@@ -4,6 +4,7 @@ from .BaseNAManager import BaseNAManager
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Character.character import Character
+    from zsim.sim_progress.Character.Seed import Seed
 
 
 class YanagiNAManager(BaseNAManager):
@@ -41,3 +42,14 @@ class HugoNAManager(BaseNAManager):
             "only_full_charge_na": lambda: HUGO_NA_MODE_LEVEL == 3,
         }
 
+
+class SeedNAManager(BaseNAManager):
+    def __init__(self, char_obj: "Character | Seed", rule_inventory_dict: dict):
+        super().__init__(char_obj, rule_inventory_dict)
+        from zsim.sim_progress.Character.Seed import Seed
+        self.char: Seed = char_obj
+        self.na_rule_inventory = rule_inventory_dict
+        self.RULE_MAP = {
+            "default": lambda: not self.char.steel_charge_enough,
+            "steel_charge_enough": lambda: self.char.steel_charge_enough
+        }

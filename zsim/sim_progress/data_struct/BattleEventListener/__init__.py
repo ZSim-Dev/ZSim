@@ -21,7 +21,7 @@ class ListenerManger:
         self.__listener_map: dict[str, str] = {
             "Hugo_1": "HugoCorePassiveBuffListener",
             "Hormone_Punk_1": "HormonePunkListener",
-            "Zenshin_Herb_Case_1": "ZanshinHerbCaseListener",
+            "Zanshin_Herb_Case_1": "ZanshinHerbCaseListener",
             "Heartstring_Nocturne_1": "HeartstringNocturneListener",
             "Yixuan_1": "YixuanAnomalyListener",
             "CinderCobalt_1": "CinderCobaltListener",
@@ -105,6 +105,7 @@ class ListenerManger:
         self, listener_owner: "Character | Enemy | None", listener_id: str
     ) -> BaseListener | None:
         """获取指定监听器"""
+        from zsim.sim_progress.Character.character import Character
         if listener_owner is None:
             raise TypeError("监听器所有者不能为空")
 

@@ -31,7 +31,7 @@ class LighterUniqueSkillStunTimeLimitBonus(Buff.BuffLogic):
             self.buff_0.history.record = LighterUniqueSkillStunTimeRecord()
         self.record = self.buff_0.history.record
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         """
         获取当前失衡值，和上一次失衡值对比。
         """

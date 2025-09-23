@@ -10,3 +10,6 @@ class QTEManager:
 
     def reset_myself(self):
         self.qte_data.reset()
+
+    def check_qte_legality(self, qte_skill_tag: str):
+        return self.qte_data.check_qte_legality(qte_skill_tag)

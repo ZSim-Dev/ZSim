@@ -10,7 +10,97 @@ required = [ "仪玄", "扳机", "耀嘉音",]
 optional = []
 
 [apl_logic]
-logic = "# 进攻响应逻辑\n# 仪玄 尽快 在闪避后衔接闪避反击\n1371|action+=|1371_CA|action.1371:positive_linked_after==1371_dodge\n\n# 仪玄 在招架后 释放支援突击\n1371|action+=|assault_after_parry\n\n# 扳机 在招架后 释放支援突击\n1361|action+=|assault_after_parry\n\n# 仪玄 尽量延后招架敌人攻击\n1371|action.atk_response_balance+=|parry|special.preload_data:operating_char!=1371\n# 扳机 尽量延后招架敌人攻击\n1361|action.atk_response_balance+=|parry|special.preload_data:operating_char!=1361\n\n# 仪玄 尽量延后闪避敌人攻击（受上面APL影响，此条APL永不执行）\n1371|action.atk_response_balance+=|1371_dodge|special.preload_data:operating_char==1371\n\n# 仪玄在前台扳机进行 招架交互 时保持等待\n# 防止仪玄在扳机在【招架、被击退、突击支援】过程中用快速支援抢队，最终导致扳机的突击支援打不出来。\n1371|action+=|wait|action.1361:during_parry==True\n1371|action+=|wait|action.1361:assault_aid_enable==True\n\n\n# 耀嘉音开场E\n1311|action+=|1311_E_A|action.1311:first_action==True\n\n# 扳机补充决意值逻辑：\n1361|action+=|1361_BH_Aid|status.1361:quick_assist_available==True|attribute.1361:special_resource<20|status.enemy:stun==False\n# 连击逻辑：\n1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7\n# 启动逻辑\n1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False\n\n# QTE逻辑\n1361|action+=|1361_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1361|status.enemy:QTE_triggered_times<1\n1371|action+=|1371_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1371|status.enemy:QTE_triggered_times<2\n1311|action+=|1311_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1311|status.enemy:QTE_triggered_times<3\n\n\n\n# 仪玄响应快支手法\n1371|action+=|1371_BH_Aid|status.1371:quick_assist_available==True|status.enemy:single_qte==None|status.enemy:QTE_activation_available==False\n\n# 2画逻辑\n1371|action+=|1371_Cinema_2|action.1371:strict_linked_after==1371_SNA_B_2|attribute.1371:cinema>=2|attribute.1371:special_state→聚墨点数>=1\n1371|action+=|1371_Cinema_2|action.1371:strict_linked_after==1371_E_EX_B_3|attribute.1371:cinema>=2|attribute.1371:special_state→聚墨点数>=1\n\n\n\n# 强化E连段释放逻辑\n1371|action+=|1371_E_EX_A_3|action.1371:strict_linked_after==1371_E_EX_A_2|attribute.1371:special_resource>=20\n1371|action+=|1371_E_EX_A_2|action.1371:strict_linked_after==1371_E_EX_A_1_Add\n1371|action+=|1371_E_EX_A_2|action.1371:strict_linked_after==1371_E_EX_A_1_NFC\n\n# 扳机快支逻辑\n1361|action+=|1361_BH_Aid|attribute.1361:energy>=60|status.1361:quick_assist_available==True|status.enemy:stun==False\n# 扳机EQ逻辑\n1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True\n1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False\n\n# 耀嘉音开大逻辑\n1311|action+=|1311_Q|attribute.1311:decibel>=3000|status.enemy:stun==False\n\n# 玄墨极阵释放逻辑\n1371|action+=|1371_SNA_B_1|attribute.1371:special_state→玄墨值==1\n\n# 术法大招释放逻辑\n1371|action+=|1371_Q_A|attribute.1371:special_state→调息层数==True|attribute.1371:special_state→玄墨值==0|status.enemy:stun==True\n1371|action+=|1371_Q_A|attribute.1371:special_state→术法值==120|status.enemy:stun==True\n1371|action+=|1371_Q|attribute.1371:decibel==3000|status.enemy:stun==True\n\n# 第一段强化E释放逻辑\n# 1371|action+=|1371_E_EX_A_1_FC|attribute.1371:special_resource>=60\n\n# 第一段强化E（测试加速版）释放逻辑\n# 1371|action+=|1371_E_EX_A_1_FCT|attribute.1371:special_resource>=60\n\n# 凝云术释放逻辑(失衡期)\n1371|action+=|1371_E_EX_B_1|attribute.1371:special_resource>=60|status.enemy:stun==True\n\n# 在敌人远未失衡时开大，避免溢出\n1371|action+=|1371_Q_A|status.enemy:stun_pct<=0.2|attribute.1371:special_state→术法值==120\n\n# 在能量快要满时放凝云术\n1371|action+=|1371_E_EX_B_1|attribute.1371:special_resource>=110\n# 仪玄测试专用APL\n1371|action+=|auto_NA\n\n"
+logic = """
+# 进攻响应逻辑
+# 仪玄 尽快 在闪避后衔接闪避反击
+1371|action+=|1371_CA|action.1371:positive_linked_after==1371_dodge
+
+# 仪玄 在招架后 释放支援突击
+1371|action+=|assault_after_parry
+
+# 扳机 在招架后 释放支援突击
+1361|action+=|assault_after_parry
+
+# 仪玄 尽量延后招架敌人攻击
+1371|action.atk_response_balance+=|parry|special.preload_data:operating_char!=1371
+# 扳机 尽量延后招架敌人攻击
+1361|action.atk_response_balance+=|parry|special.preload_data:operating_char!=1361
+
+# 仪玄 尽量延后闪避敌人攻击（受上面APL影响，此条APL永不执行）
+1371|action.atk_response_balance+=|1371_dodge|special.preload_data:operating_char==1371
+
+# 仪玄在前台扳机进行 招架交互 时保持等待
+# 防止仪玄在扳机在【招架、被击退、突击支援】过程中用快速支援抢队，最终导致扳机的突击支援打不出来。
+1371|action+=|wait|action.1361:during_parry==True
+1371|action+=|wait|action.1361:assault_aid_enable==True
+
+
+# 耀嘉音开场E
+1311|action+=|1311_E_A|action.1311:first_action==True
+
+# 扳机补充决意值逻辑：
+1361|action+=|1361_BH_Aid|status.1361:quick_assist_available==True|attribute.1361:special_resource<20|status.enemy:stun==False
+# 连击逻辑：
+1361|action+=|1361_SNA_1|attribute.1361:special_state→狙击姿态==True|attribute.1361:special_resource<100|status.enemy:stun_pct<=0.7
+# 启动逻辑
+1361|action+=|1361_SNA_0|attribute.1361:special_resource<5|status.enemy:stun==False
+
+# QTE逻辑
+1361|action+=|1361_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1361|status.enemy:QTE_triggered_times<1
+1371|action+=|1371_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1371|status.enemy:QTE_triggered_times<2
+1311|action+=|1311_QTE|status.enemy:single_qte!=None|special.preload_data:operating_char!=1311|status.enemy:QTE_triggered_times<3
+
+
+
+# 仪玄响应快支手法
+1371|action+=|1371_BH_Aid|status.1371:quick_assist_available==True|status.enemy:single_qte==None|status.enemy:QTE_activation_available==False
+
+# 2画逻辑
+1371|action+=|1371_Cinema_2|action.1371:strict_linked_after==1371_SNA_B_2|attribute.1371:cinema>=2|attribute.1371:special_state→聚墨点数>=1
+1371|action+=|1371_Cinema_2|action.1371:strict_linked_after==1371_E_EX_B_3|attribute.1371:cinema>=2|attribute.1371:special_state→聚墨点数>=1
+
+
+
+# 强化E连段释放逻辑
+1371|action+=|1371_E_EX_A_3|action.1371:strict_linked_after==1371_E_EX_A_2|attribute.1371:special_resource>=20
+1371|action+=|1371_E_EX_A_2|action.1371:strict_linked_after==1371_E_EX_A_1_Add
+1371|action+=|1371_E_EX_A_2|action.1371:strict_linked_after==1371_E_EX_A_1_NFC
+
+# 扳机快支逻辑
+1361|action+=|1361_BH_Aid|attribute.1361:energy>=60|status.1361:quick_assist_available==True|status.enemy:stun==False
+# 扳机EQ逻辑
+1361|action+=|1361_Q|attribute.1361:decibel>=3000|status.enemy:stun==False|status.enemy:stun_pct<0.7|status.1361:char_available==True
+1361|action+=|1361_E_EX|attribute.1361:energy>=60|status.enemy:stun==False
+
+# 耀嘉音开大逻辑
+1311|action+=|1311_Q|attribute.1311:decibel>=3000|status.enemy:stun==False
+
+# 玄墨极阵释放逻辑
+1371|action+=|1371_SNA_B_1|attribute.1371:special_state→玄墨值==1
+
+# 术法大招释放逻辑
+1371|action+=|1371_Q_A|attribute.1371:special_state→调息层数==True|attribute.1371:special_state→玄墨值==0|status.enemy:stun==True
+1371|action+=|1371_Q_A|attribute.1371:special_state→术法值==120|status.enemy:stun==True
+1371|action+=|1371_Q|attribute.1371:decibel==3000|status.enemy:stun==True
+
+# 第一段强化E释放逻辑
+# 1371|action+=|1371_E_EX_A_1_FC|attribute.1371:special_resource>=60
+
+# 第一段强化E（测试加速版）释放逻辑
+# 1371|action+=|1371_E_EX_A_1_FCT|attribute.1371:special_resource>=60
+
+# 凝云术释放逻辑(失衡期)
+1371|action+=|1371_E_EX_B_1|attribute.1371:special_resource>=60|status.enemy:stun==True
+
+# 在敌人远未失衡时开大，避免溢出
+1371|action+=|1371_Q_A|status.enemy:stun_pct<=0.2|attribute.1371:special_state→术法值==120
+
+# 在能量快要满时放凝云术
+1371|action+=|1371_E_EX_B_1|attribute.1371:special_resource>=110
+# 仪玄测试专用APL
+1371|action+=|auto_NA
+
+"""
 
 [characters."仪玄"]
 cinema = [ 0, 1, 2,]

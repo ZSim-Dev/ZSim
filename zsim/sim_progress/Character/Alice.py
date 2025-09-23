@@ -21,7 +21,7 @@ class Alice(Character):
         self.victory_state_max_attack_count: int = 6  # 六画的决胜状态的最大攻击次数
         self.cinema_6_additional_attack_skill_tag: str = "1401_Cinema_6"  # 6画额外攻击的技能tag
         self._na_enhancement_state: bool = False  # 强化平A可用状态
-        self.decibel = 1000.0 if self.cinema < 2 else 2000.0         # 爱丽丝喧响值
+        self.decibel = 1000.0 if self.cinema < 2 else 2000.0  # 爱丽丝喧响值
 
     @property
     def na_enhancement_state(self) -> bool:
@@ -41,6 +41,7 @@ class Alice(Character):
     def victory_state(self) -> bool:
         """决胜状态是否处于激活状态"""
         from zsim.simulator.simulator_class import Simulator
+
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         # 攻击次数尚未耗尽，或是时间为0tick(未发生过更新)，此时的决胜状态都判定为False
         if self.victory_state_update_tick == 0 or self.victory_state_attack_counter == 0:
@@ -67,6 +68,7 @@ class Alice(Character):
     def special_resources(self, *args, **kwargs) -> None:
         """爱丽丝的特殊资源模块"""
         from zsim.simulator.simulator_class import Simulator
+
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         # 输入类型检查
         skill_nodes: list[SkillNode] = _skill_node_filter(*args, **kwargs)
@@ -100,6 +102,7 @@ class Alice(Character):
         # 更新剑仪值的函数
         from zsim.simulator.simulator_class import Simulator
         from zsim.sim_progress.Preload import SkillNode
+
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         if update_obj is None:
             raise ValueError("【剑仪值更新警告】在调用剑仪值更新函数时，必须传入update_obj参数")
@@ -126,34 +129,34 @@ class Alice(Character):
                 f"【爱丽丝事件】爱丽丝 {'恢复' if blade_etiquette > 0 else '消耗'} 了 {abs(blade_etiquette):.2f} 点剑仪值，当前剑仪值为 {self.blade_etiquette:.2f}"
             )
 
-    def POST_INIT_DATA(self, sim_insatnce: "Simulator"):
+    def POST_INIT_DATA(self, sim_instance: "Simulator"):
         """初始化爱丽丝的监听器组"""
-        listener_manager = sim_insatnce.listener_manager
+        listener_manager = sim_instance.listener_manager
         # 组队被动激活时，初始化紊乱回剑仪值的监听器
         if self.additional_abililty_active:
             listener_manager.listener_factory(
-                listener_owner=self, initiate_signal="Alice_1", sim_instance=sim_insatnce
+                listener_owner=self, initiate_signal="Alice_1", sim_instance=sim_instance
             )
 
         # 初始化本体固有监听器（紊乱倍率、物理积蓄效率）
         for listener_id in ["Alice_2", "Alice_3", "Alice_4", "Alice_5"]:
             listener_manager.listener_factory(
-                listener_owner=self, initiate_signal=listener_id, sim_instance=sim_insatnce
+                listener_owner=self, initiate_signal=listener_id, sim_instance=sim_instance
             )
 
         # 1画激活时，初始化1画监听器（减防Buff）
         if self.cinema >= 1:
             listener_manager.listener_factory(
-                listener_owner=self, initiate_signal="Alice_Cinema_1_A", sim_instance=sim_insatnce
+                listener_owner=self, initiate_signal="Alice_Cinema_1_A", sim_instance=sim_instance
             )
             listener_manager.listener_factory(
-                listener_owner=self, initiate_signal="Alice_Cinema_1_B", sim_instance=sim_insatnce
+                listener_owner=self, initiate_signal="Alice_Cinema_1_B", sim_instance=sim_instance
             )
 
         # 2画激活时，初始化2画监听器（紊乱伤害提升）
         if self.cinema >= 2:
             listener_manager.listener_factory(
-                listener_owner=self, initiate_signal="Alice_Cinema_2_A", sim_instance=sim_insatnce
+                listener_owner=self, initiate_signal="Alice_Cinema_2_A", sim_instance=sim_instance
             )
 
     def spawn_extra_attack(self) -> None:

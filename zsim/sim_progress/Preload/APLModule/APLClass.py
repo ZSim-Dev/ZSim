@@ -14,9 +14,9 @@ from ..apl_unit.ActionAPLUnit import ActionAPLUnit
 from .APLOperator import APLOperator
 
 if TYPE_CHECKING:
+    from zsim.sim_progress.Character.character import Character
     from zsim.sim_progress.Preload import PreloadData
     from zsim.simulator.simulator_class import Simulator
-    from zsim.sim_progress.Character.character import Character
 
 
 class APLClass:
@@ -71,8 +71,8 @@ class APLClass:
         )
         final_result = self.perform_action(cid, skill_tag, tick)
         # FIXME: 这里的优先级修改可能存在问题，需要重新考虑一下。
-        if final_result != skill_tag:
-            apl_priority = 0
+        # if final_result != skill_tag:
+        #     apl_priority = 0
         return final_result, apl_priority, apl_unit
 
     def get_game_state(self) -> dict | None:
@@ -134,7 +134,8 @@ class APLClass:
                 else:
                     raise ValueError(f"在构造普攻管理器时，未找到CID为{CID}的角色！")
             current_na_manager = self.na_manager_dict[CID]
-            stack = self.preload_data.personal_node_stack.get(CID, None)
+            # stack = self.preload_data.personal_node_stack.get(CID, None)
+            stack = self.preload_data.personal_active_generation_node_stack.get(CID, None)
             if stack is None:
                 last_action = None
             else:

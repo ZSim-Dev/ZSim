@@ -58,7 +58,7 @@ class APLOperator:
                 preload_data=self.preload_data,
             )
             if not result:
-                # if priority in [4] and tick <= 1200:
+                # if priority in [1] and tick <= 1500:
                 #     print(
                 #         f"这次不通过的APL优先级为{priority}，内容为{apl_unit.result} 判定结果为：{result_box}"
                 #     )

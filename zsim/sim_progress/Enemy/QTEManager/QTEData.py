@@ -56,6 +56,7 @@ class QTEData:
             "qte_triggered_times": SumStrategy,
         }
         self.preload_data = None
+        self.qte_answered_box: list[str | None] = []        # 响应过QTE的角色
 
     def check_myself(self, single_hit: SingleHit | None = None) -> bool:
         """该函数用于检查自身目前的状态，即当前是彩色失衡还是灰色失衡；"""
@@ -155,6 +156,7 @@ class QTEData:
         self.qte_triggered_times = 0
         self.qte_activation_available = True
         self.single_qte = None
+        self.qte_answered_box = []
 
     def restore(self):
         self.qte_received_box = []
@@ -193,6 +195,13 @@ class QTEData:
             return False
         else:
             return int(_hit.skill_tag.split("_")[0]) == self.preload_data.operating_now
+
+    def check_qte_legality(self, qte_skill_tag: str):
+        """
+        检查QTE是否合法，即是否已经被响应过了。
+        """
+        CID = int(qte_skill_tag.split("_")[0])
+        return CID not in self.qte_answered_box
 
 
 class SingleQTE:
@@ -240,6 +249,8 @@ class SingleQTE:
             print(
                 f"【QTE事件】{_single_hit.skill_node.char_name}  取消第{self.qte_data.qte_triggered_times + 1}次QTE，并释放了  {_single_hit.skill_node.skill.skill_text}  "
             )
+            # 当取消QTE时，连续响应QTE的角色列表需要清空
+            self.qte_data.qte_answered_box = []
         else:
             """角色响应了QTE，释放连携技"""
             assert self.active_by.skill_node is not None
@@ -253,6 +264,11 @@ class SingleQTE:
             print(
                 f"【QTE事件】 {_single_hit.skill_node.char_name}  响应了连携，释放连携技（skill_tag为{_single_hit.skill_tag})，返还1秒失衡时间！"
             )
+            # 当角色响应了QTE时，需要将角色的skill_tag添加到qte_answered_box中
+            CID = _single_hit.skill_node.skill.char_obj.CID
+            if CID in self.qte_data.qte_answered_box:
+                raise ValueError(f"一轮连续地QTE中，每名角色只允许响应一次QTE！当前轮次QTE中，已经有{self.qte_data.qte_answered_box}响应过了QTE，{CID}  企图响应QTE两次！")
+            self.qte_data.qte_answered_box.append(_single_hit.skill_node.skill.char_obj.CID)
         self.__is_hitted = True
         self.merge_single_qte()
 

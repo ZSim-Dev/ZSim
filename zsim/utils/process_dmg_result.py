@@ -2,10 +2,11 @@ import json
 import os
 
 import polars as pl
+
 from zsim.define import ANOMALY_MAPPING
 from zsim.sim_progress.Character.skill_class import lookup_name_or_cid
 
-from .constants import results_dir, SKILL_TAG_MAPPING
+from .constants import SKILL_TAG_MAPPING, results_dir
 
 
 def _load_dmg_data(rid: int | str) -> pl.DataFrame | None:
@@ -224,7 +225,7 @@ def _find_consecutive_true_ranges(df: pl.DataFrame, column: str) -> list[tuple[i
     ticks = df["tick"].to_list()
     values = df[column].to_list()
 
-    for i, (tick, value) in enumerate(zip(ticks, values)):
+    for i, (tick, value) in enumerate(zip(ticks, values, strict=False)):
         if value:
             if start is None:
                 start = tick

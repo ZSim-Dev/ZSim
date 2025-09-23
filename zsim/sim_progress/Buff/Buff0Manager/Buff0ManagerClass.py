@@ -1,9 +1,10 @@
 import copy
 import itertools
-from typing import TYPE_CHECKING
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import pandas as pd
+
 from zsim.define import (
     BUFF_0_REPORT,
     CHARACTER_DATA_PATH,

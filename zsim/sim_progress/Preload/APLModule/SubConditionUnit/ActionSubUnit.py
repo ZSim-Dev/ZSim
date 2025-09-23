@@ -192,7 +192,10 @@ class ActionSubUnit(BaseSubConditionUnit):
             check_cid(self.check_target)
             char_cid = int(self.check_target)
             tick = sim_instance.tick
-            result = self.spawn_result(handler.handler(char_cid, game_state, tick))
+            handler_result = handler.handler(char_cid, game_state, tick)
+            # if handler_result is not None:
+            #     print(tick, f"APL优先级为：{self.priority}", self.check_value, handler_result)
+            result = self.spawn_result(handler_result)
             return result
         #     if self.check_stat == 'skill_tag':
         #         checked_value = get_last_action(game_state)

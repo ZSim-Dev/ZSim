@@ -72,7 +72,7 @@ class MiyabiCoreSkill_IceFire(Buff.BuffLogic):
             else:
                 return True
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         """
         冰焰buff的退出机制是检测到霜寒的上升沿就退出
         """
@@ -99,7 +99,7 @@ class MiyabiCoreSkill_IceFire(Buff.BuffLogic):
             self.record.char.special_resources(skill_node)
         return result
 
-    def special_hit_logic(self):
+    def special_hit_logic(self, **kwargs):
         """
         冰焰的生效机制是：根据当前的暴击率，得出当前的Buff层数。
         这个效果本应该是随动的，不需要buff判定通过才改变层数，

@@ -1,13 +1,13 @@
 import json
 
-from zsim.define import APL_NA_ORDER_PATH, HUGO_NA_ORDER, YANAGI_NA_ORDER
+from zsim.define import APL_NA_ORDER_PATH, HUGO_NA_ORDER, SEED_NA_ORDER, YANAGI_NA_ORDER
 
 from .BaseNAManager import BaseNAManager
-from .NAManagerClasses import HugoNAManager, YanagiNAManager
+from .NAManagerClasses import HugoNAManager, SeedNAManager, YanagiNAManager
 
-NA_RULE_INVENTORY_PATH = {1221: YANAGI_NA_ORDER, 1291: HUGO_NA_ORDER}
+NA_RULE_INVENTORY_PATH = {1221: YANAGI_NA_ORDER, 1291: HUGO_NA_ORDER, 1461: SEED_NA_ORDER}
 
-NA_MANAGER_MAP = {1221: YanagiNAManager, 1291: HugoNAManager}
+NA_MANAGER_MAP = {1221: YanagiNAManager, 1291: HugoNAManager, 1461: SeedNAManager}
 
 
 def na_manager_factory(char_obj) -> BaseNAManager:

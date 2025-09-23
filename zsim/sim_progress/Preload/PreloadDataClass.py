@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Iterable
 
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
 from . import SkillNode
 
 if TYPE_CHECKING:
@@ -33,7 +34,8 @@ class PreloadData:
 
         from zsim.sim_progress.data_struct import NodeStack
 
-        self.personal_node_stack: dict[int, "NodeStack[SkillNode]"] = {}  # 个人的技能栈
+        self.personal_node_stack: dict[int, "NodeStack[SkillNode]"] = {}  # 个人的技能栈（包括主动生成的和被动生成的）
+        self.personal_active_generation_node_stack: dict[int, "NodeStack[SkillNode]"] = {}  # 个人的主动生成的技能栈
         self.current_node_stack: "NodeStack" = NodeStack(length=5)  # Preload阶段的总技能栈
         self.latest_active_generation_node: SkillNode | None = (
             None  # 最近一次主动生成的skillnode，#TODO：可能是无用参数！
@@ -65,8 +67,8 @@ class PreloadData:
         self.current_node_stack.push(node)
         if char_cid not in self.personal_node_stack:
             from zsim.sim_progress.data_struct import NodeStack
-
             self.personal_node_stack[char_cid] = NodeStack(length=3)
+            self.personal_active_generation_node_stack[char_cid] = NodeStack(length=3)
 
         if not self.personal_node_stack[char_cid].last_node_is_end(tick):
             """若检测到当前stack中的最新node还未结束，但是SwapCancel还是放行了，那么就说明可能发生了node的顶替，
@@ -82,6 +84,7 @@ class PreloadData:
         self.personal_node_stack[char_cid].push(node)
         if node.active_generation:
             self.latest_active_generation_node = node
+            self.personal_active_generation_node_stack[char_cid].push(node)
         if self.quick_assist_system is None:
             assert self.char_data is not None
             from zsim.sim_progress.data_struct import QuickAssistSystem
@@ -96,7 +99,7 @@ class PreloadData:
             ActionReplaceManager,
         )
 
-        action_replace_manager: "ActionReplaceManager | None" = (
+        action_replace_manager: "ActionReplaceManager" = (
             self.sim_instance.preload.strategy.apl_engine.apl.action_replace_manager
         )
         if action_replace_manager is not None:

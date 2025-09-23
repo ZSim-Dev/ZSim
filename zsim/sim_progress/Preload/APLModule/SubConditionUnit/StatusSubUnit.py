@@ -88,7 +88,8 @@ class StatusSubUnit(BaseSubConditionUnit):
         @classmethod
         def handler(cls, char_cid, found_char_dict, game_state, sim_instance):
             char = find_char(found_char_dict, game_state, char_cid)
-            return char.dynamic.on_field
+            result = char.dynamic.on_field
+            return result
 
     class SingleQTEHandler(CheckHandler):
         @classmethod
@@ -106,8 +107,8 @@ class StatusSubUnit(BaseSubConditionUnit):
         def handler(cls, char_cid, found_char_dict, game_state, sim_instance):
             char = find_char(found_char_dict, game_state, char_cid)
             quick_assist_available = char.dynamic.quick_assist_manager.quick_assist_available
-            from zsim.simulator.simulator_class import Simulator
             from zsim.sim_progress.Character.character import Character
+            from zsim.simulator.simulator_class import Simulator
             assert isinstance(char, Character)
             assert isinstance(sim_instance, Simulator)
             tick = sim_instance.tick

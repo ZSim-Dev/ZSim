@@ -25,7 +25,7 @@ class AnomalyDebuffExitJudge(Buff.BuffLogic):
         self.last_corruption = False
         self.enemy = None
 
-    def special_exit_logic(self):
+    def special_exit_logic(self, **kwargs):
         """
         特殊属性异常退出机制
         即：属性异常结束（检测到下降沿）就结束

@@ -49,7 +49,7 @@ class LighterExtraSkill_IceFireBonus(Buff.BuffLogic):
             self.buff_0.history.record = LighterExtraSkillRecord()
         self.record = self.buff_0.history.record
 
-    def special_hit_logic(self):
+    def special_hit_logic(self, **kwargs):
         self.check_record_module()
         self.get_prepared(char_CID=1161, enemy=1, dynamic_buff_list=1, sub_exist_buff_dict=1)
         tick_now = JudgeTools.find_tick(sim_instance=self.buff_instance.sim_instance)

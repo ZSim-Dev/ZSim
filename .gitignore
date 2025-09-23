@@ -33,7 +33,8 @@ node_modules/
 CLAUDE.md
 .mcp.json
 QWEN.md
-
+# Ai学习用的文件
+knowledge_base*
 # 运行时生成的文件
 build*
 dist*

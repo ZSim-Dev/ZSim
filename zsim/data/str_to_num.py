@@ -66,15 +66,15 @@ if __name__ == "__main__":
     # path = './data'
     # process_all_csv_files(path)
     # 老配置
-    # process_csv_file("./zsim/data/skill.csv")
+    process_csv_file("./zsim/data/skill.csv")
     # process_csv_file("./zsim/data/character.csv")
     # process_csv_file("./zsim/data/enemy.csv")
     # process_csv_file("./zsim/data/enemy_adjustment.csv")
     # process_csv_file("./zsim/data/weapon.csv")
 
-    # 新配置
-    process_csv_file("skill.csv")
-    process_csv_file("character.csv")
-    process_csv_file("enemy.csv")
-    process_csv_file("enemy_adjustment.csv")
-    process_csv_file("weapon.csv")
+    # # 新配置
+    # process_csv_file("skill.csv")
+    # process_csv_file("character.csv")
+    # process_csv_file("enemy.csv")
+    # process_csv_file("enemy_adjustment.csv")
+    # process_csv_file("weapon.csv")

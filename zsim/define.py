@@ -139,6 +139,7 @@ YANAGI_NA_ORDER: str = _config["apl_mode"]["Yanagi"]
 HUGO_NA_ORDER: str = _config["apl_mode"]["Hugo"]
 HUGO_NA_MODE_LEVEL: int = _config["na_mode_level"]["Hugo"]
 ALICE_NA_ORDER: str = _config["apl_mode"]["Alice"]
+SEED_NA_ORDER: str = _config["apl_mode"]["Seed"]
 
 #: 合轴操作完成度系数->根据前一个技能帧数的某个比例来延后合轴
 SWAP_CANCEL_MODE_COMPLETION_COEFFICIENT: float = _config["swap_cancel_mode"][
@@ -182,6 +183,7 @@ YIXUAN_REPORT: bool = _config["char_report"]["Yixuan"]
 TRIGGER_REPORT: bool = _config["char_report"]["Trigger"]
 YUZUHA_REPORT: bool = _config["char_report"]["Yuzuha"]
 ALICE_REPORT: bool = _config["char_report"]["Alice"]
+SEED_REPORT: bool = _config["char_report"]["Seed"]
 
 # Cal计算debug
 CHECK_SKILL_MUL: bool = _config["debug"]["check_skill_mul"]

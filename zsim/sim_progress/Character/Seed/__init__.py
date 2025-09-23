@@ -303,17 +303,20 @@ class Seed(Character):
         else:
             self.vanguard = vanguard
             assert self.vanguard is not None
-            if SEED_REPORT:
-                sim_instance.schedule_data.change_process_state()
-                print(f"【席德事件】本次模拟中，席德找到的正兵为：{self.vanguard.NAME}！")
-            self.onslaught = True
-            self.direct_strike = True
+            # 席德无法指定正兵为自己
+            if self.vanguard.NAME == self.NAME:
+                self.vanguard = None
+            else:
+                if SEED_REPORT:
+                    sim_instance.schedule_data.change_process_state()
+                    print(f"【席德事件】本次模拟中，席德找到的正兵为：{self.vanguard.NAME}！")
+                self.onslaught = True
+                self.direct_strike = True
 
         if self.vanguard is None:
             if SEED_REPORT:
                 sim_instance.schedule_data.change_process_state()
                 print("【席德事件】注意！席德并未在当前队伍里找到正兵！")
-
 
     def reset_myself(self):
         # 重置能量、喧响值

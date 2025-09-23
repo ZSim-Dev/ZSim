@@ -19,6 +19,9 @@ from zsim.models.session.session_run import (
 )
 from zsim.simulator.simulator_class import Simulator
 
+# 导入团队配置
+from .teams import auto_register_teams
+
 
 class TestSimulator:
     """Comprehensive test suite for simulator functionality."""
@@ -109,164 +112,16 @@ class TestSimulator:
             )
 
     def create_multiple_team_configs(self) -> list[tuple[str, CommonCfg]]:
-        """创建多个测试队伍配置，方便编辑和扩展。
+        """创建多个测试队伍配置，使用团队配置注册器。
 
         Returns:
             list[tuple[str, CommonCfg]]: 包含队伍名称和配置的元组列表
         """
-        team_configs = []
+        # 初始化团队配置注册器
+        team_registry = auto_register_teams()
 
-        # 队伍1: 薇薇安-柳-耀嘉音 (物理队)
-        team_configs.append(
-            (
-                "薇薇安物理队",
-                CommonCfg(
-                    session_id="test-team-vivian-physical",
-                    char_config=[
-                        CharConfig(
-                            name="薇薇安",
-                            weapon="青溟笼舍",
-                            weapon_level=5,
-                            cinema=6,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="自由蓝调",
-                            equip_set2_a="灵魂摇滚",
-                        ),
-                        CharConfig(
-                            name="柳",
-                            weapon="时流贤者",
-                            weapon_level=5,
-                            cinema=6,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="自由蓝调",
-                            equip_set2_a="灵魂摇滚",
-                        ),
-                        CharConfig(
-                            name="耀嘉音",
-                            weapon="飞鸟星梦",
-                            weapon_level=1,
-                            cinema=6,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="自由蓝调",
-                            equip_set2_a="灵魂摇滚",
-                        ),
-                    ],
-                    enemy_config=EnemyConfig(index_id=11412, adjustment_id=22412, difficulty=8.74),
-                    apl_path="./zsim/data/APLData/薇薇安-柳-耀嘉音.toml",
-                ),
-            )
-        )
-
-        # # 队伍2: 莱特-扳机-雨果 (火属性队)
-        team_configs.append(
-            (
-                "莱特火属性队",
-                CommonCfg(
-                    session_id="test-team-lighter-fire",
-                    char_config=[
-                        CharConfig(
-                            name="莱特",
-                            weapon="焰心桂冠",
-                            weapon_level=5,
-                            cinema=0,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="震星迪斯科",
-                            equip_set2_a="炎狱重金属",
-                        ),
-                        CharConfig(
-                            name="扳机",
-                            weapon="索魂影眸",
-                            weapon_level=5,
-                            cinema=0,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="如影相随",
-                            equip_set2_a="啄木鸟电音",
-                        ),
-                        CharConfig(
-                            name="雨果",
-                            weapon="千面日陨",
-                            weapon_level=5,
-                            cinema=0,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="啄木鸟电音",
-                            equip_set2_a="激素朋克",
-                        ),
-                    ],
-                    enemy_config=EnemyConfig(index_id=11412, adjustment_id=22412, difficulty=8.74),
-                    apl_path="./zsim/data/APLData/莱特-扳机-雨果.toml",
-                ),
-            )
-        )
-
-        # 队伍3: 青衣-丽娜-雅 (雷属性队)
-        team_configs.append(
-            (
-                "青衣雷属性队",
-                CommonCfg(
-                    session_id="test-team-qingyi-electric",
-                    char_config=[
-                        CharConfig(
-                            name="青衣",
-                            weapon="玉壶青冰",
-                            weapon_level=5,
-                            cinema=6,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="震星迪斯科",
-                            equip_set2_a="啄木鸟电音",
-                        ),
-                        CharConfig(
-                            name="丽娜",
-                            weapon="啜泣摇篮",
-                            weapon_level=5,
-                            cinema=6,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="静听嘉音",
-                            equip_set2_a="摇摆爵士",
-                        ),
-                        CharConfig(
-                            name="雅",
-                            weapon="霰落星殿",
-                            weapon_level=5,
-                            cinema=6,
-                            scATK_percent=47,
-                            scCRIT=30,
-                            scCRIT_DMG=50,
-                            equip_style="4+2",
-                            equip_set4="折枝剑歌",
-                            equip_set2_a="啄木鸟电音",
-                        ),
-                    ],
-                    enemy_config=EnemyConfig(index_id=11412, adjustment_id=22412, difficulty=8.74),
-                    apl_path="./zsim/data/APLData/青衣-丽娜-雅.toml",
-                ),
-            )
-        )
-
-        return team_configs
+        # 获取所有团队配置
+        return team_registry.get_all_team_configs()
 
     # Basic Simulator Tests
     def test_init_simulator_without_config(self):

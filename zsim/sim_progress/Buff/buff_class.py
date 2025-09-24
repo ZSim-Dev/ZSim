@@ -344,7 +344,7 @@ class Buff:
         def special_effect_logic(self, **kwargs):
             pass
 
-        def special_exit_logic(self, **kwargs):
+        def special_exit_logic(self, **kwargs) -> bool | None:
             pass
 
     class BuffSimpleJudgeCondition:

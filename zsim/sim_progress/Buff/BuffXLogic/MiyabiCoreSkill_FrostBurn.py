@@ -19,7 +19,7 @@ class MiyabiCoreSkill_FrostBurn(Buff.BuffLogic):
         self.buff_instance: Buff = buff_instance
         self.xexit = self.special_exit_logic
         self.buff_0 = None
-        self.record = None
+        self.record: MiyabiCoreSkillFB | None = None
 
     def get_prepared(self, **kwargs):
         return check_preparation(buff_instance=self.buff_instance, buff_0=self.buff_0, **kwargs)
@@ -39,6 +39,7 @@ class MiyabiCoreSkill_FrostBurn(Buff.BuffLogic):
         """
         self.check_record_module()
         self.get_prepared(enemy=1)
+        assert self.record is not None
         frostbite_now = self.record.enemy.dynamic.frost_frostbite
         frostbite_statement = [self.record.last_frostbite, frostbite_now]
 

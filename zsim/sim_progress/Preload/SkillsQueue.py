@@ -69,13 +69,7 @@ class SkillNode:
     @property
     def is_additional_damage(self) -> bool:
         """判断当前技能是否为额外伤害"""
-        if self.skill.labels is None:
-            return False
-        else:
-            if "additional_damage" in self.skill.labels:
-                return True
-            else:
-                return False
+        return self.have_label("additional_damage")
 
     @property
     def element_type(self) -> ElementType:
@@ -150,6 +144,11 @@ class SkillNode:
             return False
         else:
             return tick - 1 < self.tick_list[-1] <= tick
+
+    @property
+    def is_after_shock_attack(self) -> bool:
+        """判断当前技能是否为追加攻击"""
+        return self.have_label("after_shock_attack")
 
 
 def spawn_node(tag: str, preload_tick: int, skills: Iterable[Skill], **kwargs) -> SkillNode:

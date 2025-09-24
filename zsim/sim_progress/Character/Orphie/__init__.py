@@ -26,6 +26,7 @@ class Orphie(Character):
         skill_nodes: list[SkillNode] = _skill_node_filter(*args, **kwargs)
         for nodes in skill_nodes:
             self.after_shock_manager.update_myself(skill_node=nodes)
+            self.zeroed_state_manager.update_whole_group(skill_node=nodes)
             if nodes.char_name == self.NAME:
                 # 首先更新畜炎
                 self.update_bottled_heat(update_obj=nodes)

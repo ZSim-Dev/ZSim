@@ -184,6 +184,9 @@ TRIGGER_REPORT: bool = _config["char_report"]["Trigger"]
 YUZUHA_REPORT: bool = _config["char_report"]["Yuzuha"]
 ALICE_REPORT: bool = _config["char_report"]["Alice"]
 SEED_REPORT: bool = _config["char_report"]["Seed"]
+ORPHIE_REPORT: bool = _config["char_report"]["Orphie"]
+
+
 
 # Cal计算debug
 CHECK_SKILL_MUL: bool = _config["debug"]["check_skill_mul"]

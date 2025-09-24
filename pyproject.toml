@@ -49,6 +49,7 @@ dependencies = [
     "httpx>=0.28.1",
     "dotenv>=0.9.9",
     "tomli-w>=1.2.0",
+    "mcp-server-fetch>=2025.1.17",
 ]
 
 [tool.ruff]

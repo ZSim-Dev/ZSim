@@ -20,6 +20,29 @@ class ZeroedState:
         self._last_active_tick: int = 0  # 上一次激活的时间点，单位tick
         self._end_tick: int = 0  # 准星聚焦状态结束的时间点，单位tick
         self._tick_has_extended: int = 0  # 已经延长的时间，单位tick
+        self.buff_index: str = "Buff-角色-奥菲斯-准星聚焦"
+        self.buff_count: float | int = self.manager.buff_count
+
+    @property
+    def end_tick(self) -> int:
+        return self._end_tick
+
+    @end_tick.setter
+    def end_tick(self, value: int) -> None:
+        self._end_tick = value
+        # 当end_tick发生改动，就意味着Buff的状态得到了更新，所以借用这个节点，直接通过buff_add_strategy向角色更新Buff
+        from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
+
+        benefit_list = [self.owner.NAME]
+        specified_count = self.buff_count
+        sim_instance = self.orphie.sim_instance
+        assert sim_instance is not None
+        buff_add_strategy(
+            self.buff_index,
+            specified_count=specified_count,
+            benifit_list=benefit_list,
+            sim_instance=sim_instance,
+        )
 
     @property
     def last_active_tick(self) -> int:
@@ -32,7 +55,7 @@ class ZeroedState:
         assert tick >= self._last_active_tick, "last_active_tick 只能递增"
         self._last_active_tick = tick
         self._tick_has_extended = 0  # 清空已延长的时间
-        self._end_tick = tick + self.initial_duration
+        self.end_tick = tick + self.initial_duration
 
     @property
     def is_active(self) -> bool:
@@ -40,7 +63,7 @@ class ZeroedState:
         sim_instance = self.orphie.sim_instance
         assert sim_instance is not None
         tick = sim_instance.tick
-        return tick <= self._end_tick
+        return tick <= self.end_tick
 
     def extend_duration(self) -> None:
         """延长准星聚焦状态的持续时间"""
@@ -51,7 +74,7 @@ class ZeroedState:
         if self._tick_has_extended >= self.extend_max_duration:
             # 当本轮延长的时间已经达到上限时，无法继续延长
             return
-        self._end_tick += self.extend_tick
+        self.end_tick += self.extend_tick
         self._tick_has_extended += self.extend_tick
 
     def zeroed_active(self) -> None:
@@ -78,7 +101,7 @@ class ZeroedState:
             assert sim_instance is not None
             sim_instance.schedule_data.change_process_state()
             print(
-                f"【奥菲斯事件】检测到来自{self.owner.NAME}的追加攻击：{skill_node.skill.skill_text}，将准星聚焦状态延长至{self._end_tick}tick，当前已延长时间为{self._tick_has_extended}tick"
+                f"【奥菲斯事件】检测到来自{self.owner.NAME}的追加攻击：{skill_node.skill.skill_text}，将准星聚焦状态延长至{self.end_tick}tick，当前已延长时间为{self._tick_has_extended}tick"
             )
 
 
@@ -97,6 +120,16 @@ class ZeroedStateManager:
         )  # 初始持续时间，单位tick，在4画以上时变为16秒（960tick）
         self.zeroed_state_map: dict[int, ZeroedState] = {}  # key为角色id，value为ZeroedState实例
         self.start_symbol: str = "1301_E_EX_C"  # 触发准星聚焦状态的技能标签
+        self.buff_count: float | int = min(
+            max(self.orphie.statement.sp_regen - 1.6, 0) / 0.1 * 20 + 280, 700
+        )
+        if ORPHIE_REPORT:
+            sim_instance = self.orphie.sim_instance
+            assert sim_instance is not None
+            sim_instance.schedule_data.change_process_state()
+            print(
+                f"【奥菲斯事件】奥菲斯的场外回能效率为：{self.orphie.statement.sp_regen:.2f}，准星聚焦Buff可以提供{self.buff_count}点攻击力"
+            )
 
     def update_whole_group(self, skill_node: SkillNode) -> None:
         """更新全队的准星聚焦状态"""

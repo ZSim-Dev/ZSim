@@ -1883,7 +1883,7 @@ wheels = [
 
 [[package]]
 name = "zzz-simulator"
-version = "0.3.4a3"
+version = "0.3.5"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },

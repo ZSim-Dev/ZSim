@@ -20,7 +20,7 @@ class ZeroedState:
         self._last_active_tick: int = 0  # 上一次激活的时间点，单位tick
         self._end_tick: int = 0  # 准星聚焦状态结束的时间点，单位tick
         self._tick_has_extended: int = 0  # 已经延长的时间，单位tick
-        self.buff_index: str = "Buff-角色-奥菲斯-准星聚焦"
+        self.buff_index: str = "Buff-角色-奥菲斯-核心被动-准星聚焦攻击力"
         self.buff_count: float | int = self.manager.buff_count
 
     @property
@@ -156,3 +156,13 @@ class ZeroedStateManager:
                 print(
                     f"【奥菲斯事件】初始化全队准星聚焦状态，已完成初始化的成员：{', '.join([char.NAME for char in char_obj_list])}"
                 )
+
+    def get_zeroed_state_group(self) -> dict[int, bool]:
+        """获取当前全队的准星聚焦状态字典"""
+        returned_dict = {}
+        if self.zeroed_state_map == {}:
+            print("【奥菲斯事件警告】在初始化之前就调取了准星聚焦状态，返回空字典")
+            return returned_dict
+        for cid, zeroed_state in self.zeroed_state_map.items():
+            returned_dict[cid] = zeroed_state.is_active
+        return returned_dict

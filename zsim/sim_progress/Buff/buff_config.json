@@ -1402,5 +1402,53 @@
   "Buff-角色-席德-影画-4画-触发器": {
     "module": ".BuffXLogic.SeedCinema4Trigger",
     "class": "SeedCinema4Trigger"
+  },
+  "Buff-角色-奥菲斯-核心被动-准星聚焦攻击力": {
+    "module": ".BuffXLogic.OrphieCoreSkillAtkBonus",
+    "class": "OrphieCoreSkillAtkBonus"
+  },
+  "Buff-角色-奥菲斯-额外能力-准星聚焦无视防御力": {
+    "module": ".BuffXLogic.OrphieAdditionalAbilityIgnoreDefense",
+    "class": "OrphieAdditionalAbilityIgnoreDefense"
+  },
+  "Buff-角色-奥菲斯-额外能力-准星聚焦无视防御触发器": {
+    "module": ".BuffXLogic.OrphieAdditionalAbilityIgnoreDefenseTrigger",
+    "class": "OrphieAdditionalAbilityIgnoreDefenseTrigger"
+  },
+  "Buff-角色-奥菲斯-影画-1画-准星聚焦增伤": {
+    "module": ".BuffXLogic.OrphieCinema1DmgBonus",
+    "class": "OrphieCinema1DmgBonus"
+  },
+  "Buff-角色-奥菲斯-影画-1画-准星聚焦增伤触发器": {
+    "module": ".BuffXLogic.OrphieCinema1DmgBonusTrigger",
+    "class": "OrphieCinema1DmgBonusTrigger"
+  },
+  "Buff-角色-奥菲斯-影画-2画-喧响恢复触发器": {
+    "module": ".BuffXLogic.OrphieCinema2DecibelRecoverTrigger",
+    "class": "OrphieCinema2DecibelRecoverTrigger"
+  },
+  "Buff-角色-奥菲斯-影画-6画-附加伤害触发器": {
+    "module": ".BuffXLogic.OrphieCinema6AdditionalDmgTrigger",
+    "class": "OrphieCinema6AdditionalDmgTrigger"
+  },
+    "Buff-武器-精1嚣枪喧焰-无视防御力": {
+    "module": ".BuffXLogic.BellicoseBlazeIgnoreDefense",
+    "class": "BellicoseBlazeIgnoreDefense"
+    },
+    "Buff-武器-精2嚣枪喧焰-无视防御力": {
+    "module": ".BuffXLogic.BellicoseBlazeIgnoreDefense",
+    "class": "BellicoseBlazeIgnoreDefense"
+  },
+    "Buff-武器-精3嚣枪喧焰-无视防御力": {
+    "module": ".BuffXLogic.BellicoseBlazeIgnoreDefense",
+    "class": "BellicoseBlazeIgnoreDefense"
+  },
+  "Buff-武器-精4嚣枪喧焰-无视防御力": {
+    "module": ".BuffXLogic.BellicoseBlazeIgnoreDefense",
+    "class": "BellicoseBlazeIgnoreDefense"
+  },
+  "Buff-武器-精5嚣枪喧焰-无视防御力": {
+    "module": ".BuffXLogic.BellicoseBlazeIgnoreDefense",
+    "class": "BellicoseBlazeIgnoreDefense"
   }
 }

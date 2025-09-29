@@ -1,11 +1,14 @@
+import json
 import logging
+from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from zsim.api_src.services.database.session_db import SessionDB, get_session_db
 from zsim.api_src.services.sim_controller.sim_controller import SimController
+from zsim.define import results_dir
 from zsim.models.session.session_create import Session
-from zsim.models.session.session_run import SessionRun
+from zsim.models.session.session_run import ParallelCfg, SessionRun
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -69,6 +72,68 @@ async def run_session(
         background_tasks.add_task(sim_controller.execute_simulation)
 
     if session_run.mode == "parallel" and session_run.parallel_config:
+        result_dir = Path(results_dir) / session.session_id
+        result_dir.mkdir(parents=True, exist_ok=True)
+
+        parallel_cfg = session_run.parallel_config
+        parallel_config_payload: dict[str, object] = {
+            "enabled": True,
+            "func": parallel_cfg.func,
+            "adjust_char": parallel_cfg.adjust_char,
+        }
+
+        adjust_sc_config: dict[str, object] = {"enabled": False}
+        adjust_weapon_config: dict[str, object] = {"enabled": False}
+
+        func_cfg = parallel_cfg.func_config
+        if parallel_cfg.func == "attr_curve":
+            sc_range: list[int | float]
+            sc_list: list[str]
+            remove_equip_list: list[str]
+            if isinstance(func_cfg, ParallelCfg.AttrCurveConfig):
+                sc_range = list(func_cfg.sc_range)
+                sc_list = list(func_cfg.sc_list)
+                remove_equip_list = list(func_cfg.remove_equip_list)
+            elif isinstance(func_cfg, dict):
+                sc_range = list(func_cfg.get("sc_range", []))
+                sc_list = list(func_cfg.get("sc_list", []))
+                remove_equip_list = list(func_cfg.get("remove_equip_list", []))
+            else:
+                sc_range = []
+                sc_list = []
+                remove_equip_list = []
+
+            adjust_sc_config.update(
+                {
+                    "enabled": True,
+                    "sc_range": sc_range,
+                    "sc_list": sc_list,
+                    "remove_equip_list": remove_equip_list,
+                }
+            )
+        elif parallel_cfg.func == "weapon":
+            weapon_list: list[dict[str, object]]
+            if isinstance(func_cfg, ParallelCfg.WeaponConfig):
+                weapon_list = [weapon.model_dump() for weapon in func_cfg.weapon_list]
+            elif isinstance(func_cfg, dict):
+                weapon_list = list(func_cfg.get("weapon_list", []))
+            else:
+                weapon_list = []
+
+            adjust_weapon_config.update(
+                {
+                    "enabled": True,
+                    "weapon_list": weapon_list,
+                }
+            )
+
+        parallel_config_payload["adjust_sc"] = adjust_sc_config
+        parallel_config_payload["adjust_weapon"] = adjust_weapon_config
+
+        config_path = result_dir / ".parallel_config.json"
+        with config_path.open("w", encoding="utf-8") as f:
+            json.dump(parallel_config_payload, f, indent=4, ensure_ascii=False)
+
         args_iterator = sim_controller.generate_parallel_args(session, session_run)
         for sim_cfg in args_iterator:
             await sim_controller.put_into_queue(

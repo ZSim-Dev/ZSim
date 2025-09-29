@@ -1,8 +1,21 @@
+import json
+import shutil
+from pathlib import Path
+
 import pytest
+
+pytest.importorskip("fastapi")
+
+from fastapi import BackgroundTasks
 from fastapi.testclient import TestClient
+
 from zsim.api import app
+from zsim.api_src.routes import session_op
 from zsim.api_src.services.database.session_db import get_session_db
+from zsim.define import results_dir
 from zsim.models.session.session_create import Session
+from zsim.models.session.session_run import SessionRun
+from zsim.utils.process_parallel_data import judge_parallel_result, merge_parallel_dmg_data
 
 client = TestClient(app)
 
@@ -152,3 +165,132 @@ async def test_delete_session(session_data):
 
     response = client.get(f"/api/sessions/{session_data['session_id']}")
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_parallel_run_writes_config_and_merge(session_data, monkeypatch):
+    session_id = "parallel_test_session"
+    result_dir_path = Path(results_dir) / session_id
+    if result_dir_path.exists():
+        shutil.rmtree(result_dir_path)
+
+    db = await get_session_db()
+    await db.delete_session(session_id)
+
+    session_payload = session_data.copy()
+    session_payload["session_id"] = session_id
+    session = Session(**session_payload)
+    await db.add_session(session)
+
+    class DummySimController:
+        def generate_parallel_args(self, _session, _session_run):
+            return [None]
+
+        async def put_into_queue(self, *_args, **_kwargs):
+            return None
+
+        async def execute_simulation_test(self):
+            return []
+
+        async def execute_simulation(self):
+            return []
+
+    monkeypatch.setattr(session_op, "SimController", DummySimController)
+
+    session_run_payload = {
+        "stop_tick": 10,
+        "mode": "parallel",
+        "common_config": {
+            "session_id": session_id,
+            "char_config": [
+                {"name": "仪玄"},
+                {"name": "耀嘉音"},
+                {"name": "扳机"},
+            ],
+            "enemy_config": {"index_id": 11412, "adjustment_id": 22412},
+            "apl_path": "zsim/data/APLData/仪玄-耀嘉音-扳机.toml",
+        },
+        "parallel_config": {
+            "enable": True,
+            "adjust_char": 1,
+            "func": "attr_curve",
+            "func_config": {
+                "sc_range": [0, 0],
+                "sc_list": ["scATK_percent"],
+                "remove_equip_list": [],
+            },
+        },
+    }
+
+    session_run = SessionRun(**session_run_payload)
+    background_tasks = BackgroundTasks()
+
+    try:
+        response = await session_op.run_session(
+            session_id,
+            session_run,
+            background_tasks,
+            db,
+            test_mode=True,
+        )
+        assert response["code"] == 0
+
+        config_path = result_dir_path / ".parallel_config.json"
+        assert config_path.exists()
+
+        config_data = json.loads(config_path.read_text(encoding="utf-8"))
+        assert config_data["enabled"] is True
+        assert config_data["adjust_sc"]["enabled"] is True
+        assert config_data["adjust_sc"]["sc_range"] == [0, 0]
+        assert config_data["adjust_sc"]["sc_list"] == ["scATK_percent"]
+        assert config_data["adjust_weapon"]["enabled"] is False
+
+        sub_dir = result_dir_path / "attr_curve_sample"
+        sub_dir.mkdir(parents=True, exist_ok=True)
+        (sub_dir / "sub.parallel_config.json").write_text(
+            json.dumps(
+                {
+                    "adjust_char": "仪玄",
+                    "sc_name": "scATK_percent",
+                    "sc_value": 0,
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        (sub_dir / "damage_attribution.json").write_text(
+            json.dumps(
+                {
+                    "仪玄": {
+                        "direct_damage": 100.0,
+                        "anomaly_damage": 50.0,
+                    }
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        assert judge_parallel_result(session_id) is True
+
+        alias_config = json.loads(config_path.read_text(encoding="utf-8"))
+        alias_config["enable"] = alias_config.pop("enabled")
+        alias_config["adjust_sc"]["enable"] = alias_config["adjust_sc"].pop("enabled")
+        alias_config["adjust_weapon"]["enable"] = alias_config["adjust_weapon"].pop(
+            "enabled"
+        )
+        config_path.write_text(
+            json.dumps(alias_config, indent=4, ensure_ascii=False), encoding="utf-8"
+        )
+
+        assert judge_parallel_result(session_id) is True
+
+        result = await merge_parallel_dmg_data(session_id)
+        assert result is not None
+        func, merged_data = result
+        assert func == "attr_curve"
+        assert merged_data["仪玄"]["scATK_percent"][0]["result"] == 150.0
+    finally:
+        await db.delete_session(session_id)
+        if result_dir_path.exists():
+            shutil.rmtree(result_dir_path)

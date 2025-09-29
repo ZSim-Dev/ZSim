@@ -15,6 +15,8 @@ from zsim.api_src.services.database.session_db import get_session_db
 from zsim.define import results_dir
 from zsim.models.session.session_create import Session
 from zsim.models.session.session_run import SessionRun
+from zsim.lib_webui import process_parallel_data as webui_parallel_data
+from zsim.lib_webui.process_simulator import generate_parallel_args
 from zsim.utils.process_parallel_data import judge_parallel_result, merge_parallel_dmg_data
 
 client = TestClient(app)
@@ -244,6 +246,7 @@ async def test_parallel_run_writes_config_and_merge(session_data, monkeypatch):
         assert config_data["adjust_sc"]["sc_range"] == [0, 0]
         assert config_data["adjust_sc"]["sc_list"] == ["scATK_percent"]
         assert config_data["adjust_weapon"]["enabled"] is False
+        assert config_data["func_config"] == session_run_payload["parallel_config"]["func_config"]
 
         sub_dir = result_dir_path / "attr_curve_sample"
         sub_dir.mkdir(parents=True, exist_ok=True)
@@ -284,6 +287,7 @@ async def test_parallel_run_writes_config_and_merge(session_data, monkeypatch):
         )
 
         assert judge_parallel_result(session_id) is True
+        assert webui_parallel_data.judge_parallel_result(session_id) is True
 
         result = await merge_parallel_dmg_data(session_id)
         assert result is not None
@@ -294,3 +298,29 @@ async def test_parallel_run_writes_config_and_merge(session_data, monkeypatch):
         await db.delete_session(session_id)
         if result_dir_path.exists():
             shutil.rmtree(result_dir_path)
+
+
+def test_generate_parallel_args_accepts_enable_alias():
+    args = list(
+        generate_parallel_args(
+            stop_tick=10,
+            parallel_cfg={
+                "func": "attr_curve",
+                "adjust_char": 1,
+                "adjust_sc": {
+                    "enable": True,
+                    "sc_range": [0, 0],
+                    "sc_list": ["攻击力%"],
+                    "remove_equip_list": [],
+                },
+                "adjust_weapon": {"enable": False, "weapon_list": []},
+            },
+            run_turn_uuid="uuid",
+        )
+    )
+
+    assert len(args) == 1
+    first_arg = args[0]
+    assert first_arg.func == "attr_curve"
+    assert first_arg.adjust_char == 1
+    assert first_arg.sc_name == "scATK_percent"

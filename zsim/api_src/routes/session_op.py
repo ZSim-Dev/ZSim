@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
@@ -76,54 +77,35 @@ async def run_session(
         result_dir.mkdir(parents=True, exist_ok=True)
 
         parallel_cfg = session_run.parallel_config
-        parallel_config_payload: dict[str, object] = {
+        parallel_cfg_dump: dict[str, Any] = parallel_cfg.model_dump(mode="json")
+
+        parallel_config_payload: dict[str, Any] = {
             "enabled": True,
             "func": parallel_cfg.func,
             "adjust_char": parallel_cfg.adjust_char,
+            "func_config": parallel_cfg_dump.get("func_config"),
         }
 
-        adjust_sc_config: dict[str, object] = {"enabled": False}
-        adjust_weapon_config: dict[str, object] = {"enabled": False}
+        adjust_sc_config: dict[str, Any] = {"enabled": False}
+        adjust_weapon_config: dict[str, Any] = {"enabled": False}
 
-        func_cfg = parallel_cfg.func_config
+        func_cfg_dump = parallel_cfg_dump.get("func_config")
         if parallel_cfg.func == "attr_curve":
-            sc_range: list[int | float]
-            sc_list: list[str]
-            remove_equip_list: list[str]
-            if isinstance(func_cfg, ParallelCfg.AttrCurveConfig):
-                sc_range = list(func_cfg.sc_range)
-                sc_list = list(func_cfg.sc_list)
-                remove_equip_list = list(func_cfg.remove_equip_list)
-            elif isinstance(func_cfg, dict):
-                sc_range = list(func_cfg.get("sc_range", []))
-                sc_list = list(func_cfg.get("sc_list", []))
-                remove_equip_list = list(func_cfg.get("remove_equip_list", []))
-            else:
-                sc_range = []
-                sc_list = []
-                remove_equip_list = []
-
+            sc_config = func_cfg_dump if isinstance(func_cfg_dump, dict) else {}
             adjust_sc_config.update(
                 {
                     "enabled": True,
-                    "sc_range": sc_range,
-                    "sc_list": sc_list,
-                    "remove_equip_list": remove_equip_list,
+                    "sc_range": list(sc_config.get("sc_range", [])),
+                    "sc_list": list(sc_config.get("sc_list", [])),
+                    "remove_equip_list": list(sc_config.get("remove_equip_list", [])),
                 }
             )
         elif parallel_cfg.func == "weapon":
-            weapon_list: list[dict[str, object]]
-            if isinstance(func_cfg, ParallelCfg.WeaponConfig):
-                weapon_list = [weapon.model_dump() for weapon in func_cfg.weapon_list]
-            elif isinstance(func_cfg, dict):
-                weapon_list = list(func_cfg.get("weapon_list", []))
-            else:
-                weapon_list = []
-
+            weapon_config = func_cfg_dump if isinstance(func_cfg_dump, dict) else {}
             adjust_weapon_config.update(
                 {
                     "enabled": True,
-                    "weapon_list": weapon_list,
+                    "weapon_list": list(weapon_config.get("weapon_list", [])),
                 }
             )
 

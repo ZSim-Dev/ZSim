@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from .buff_class import Buff
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
     from zsim.sim_progress.Enemy import Enemy
+    from zsim.simulator.simulator_class import Simulator
 
 
 def _buff_filter(*args, **kwargs):
@@ -23,10 +23,10 @@ def _buff_filter(*args, **kwargs):
 
 
 def buff_add_strategy(
-    *added_buffs: str | Buff,
+    *added_buffs: str | Buff | None,
     benifit_list: list[str] | None = None,
     specified_count: int | float | None = None,
-    sim_instance: "Simulator" = None,
+    sim_instance: "Simulator | None" = None,
 ):
     """
     这个函数是暴力添加buff用的，比如霜寒、畏缩等debuff，
@@ -39,6 +39,8 @@ def buff_add_strategy(
     """
     if sim_instance is None:
         raise ValueError("调用buff_add_strategy函数时，sim_instance是None")
+    assert added_buffs is not None
+    assert benifit_list is not None
     buff_name_list: list[str] = _buff_filter(*added_buffs)
 
     all_name_order_box = sim_instance.load_data.all_name_order_box
@@ -56,26 +58,32 @@ def buff_add_strategy(
 
     for buff_name in buff_name_list:
         # FIXME: 这里可能存在Bug，指定受益人（benifit_list）可能与自动查找的逻辑冲突。
-        selected_characters = confirm_selected_character(exist_buff_dict, buff_name, all_name_order_box, benifit_list)
+        selected_characters = confirm_selected_character(
+            exist_buff_dict, buff_name, all_name_order_box, benifit_list
+        )
         if selected_characters is None:
-            print(f"【BuffAddStrategy警告】并未找到适用于{buff_name}的受益人！本次Buff添加将被跳过！")
+            print(
+                f"【BuffAddStrategy警告】并未找到适用于{buff_name}的受益人！本次Buff添加将被跳过！"
+            )
             continue
 
         # 针对每位受益人，都执行一次Buff添加
         for names in selected_characters:
-            let_buff_start(DYNAMIC_BUFF_DICT, buff_name, enemy, exist_buff_dict, names, specified_count, tick)
+            let_buff_start(
+                DYNAMIC_BUFF_DICT, buff_name, enemy, exist_buff_dict, names, specified_count, tick
+            )
     # __check_buff_add_result(buff_name, selected_characters, exist_buff_dict, DYNAMIC_BUFF_DICT, sim_instance)
 
 
 def let_buff_start(
-        DYNAMIC_BUFF_DICT: dict[str, list[Buff]],
-        buff_name: str,
-        enemy: "Enemy",
-        exist_buff_dict: dict[str, dict[str, Buff]],
-        names: str,
-        specified_count: int,
-        tick: int
-    ):
+    DYNAMIC_BUFF_DICT: dict[str, list[Buff]],
+    buff_name: str,
+    enemy: "Enemy",
+    exist_buff_dict: dict[str, dict[str, Buff]],
+    names: str,
+    specified_count: int | float | None,
+    tick: int,
+):
     """
     这个函数是buff_add_strategy函数的添加Buff的核心业务函数。
     Args:
@@ -88,6 +96,7 @@ def let_buff_start(
         tick: int: 当前时间
     """
     from copy import deepcopy
+
     # 对于不同的Buff受益人，sub_exist_buff_dict是不同的，需要重新获取
     sub_exist_buff_dict = exist_buff_dict[names]
     copyed_buff = sub_exist_buff_dict[buff_name]
@@ -108,9 +117,11 @@ def let_buff_start(
 
     elif not copyed_buff.ft.simple_start_logic:
         # print(buff_new.ft.index)
+        assert buff_new.logic.xstart is not None
         buff_new.logic.xstart(benifit=names)
     elif not copyed_buff.ft.simple_effect_logic:
         # print(buff_new.ft.index)
+        assert buff_new.logic.xeffect is not None
         buff_new.logic.xeffect()
     # 更新 DYNAMIC_BUFF_DICT
     dynamic_buff_list = DYNAMIC_BUFF_DICT.get(names, [])
@@ -153,7 +164,12 @@ def get_selected_character(adding_buff_code, all_name_order_box, copyed_buff):
     return selected_characters
 
 
-def confirm_selected_character(exist_buff_dict: dict[str, dict[str, Buff]], buff_name: str, all_name_order_box: dict[str, list[str]], benifit_list: list[str] = None) -> list[str] | None:
+def confirm_selected_character(
+    exist_buff_dict: dict[str, dict[str, Buff]],
+    buff_name: str,
+    all_name_order_box: dict[str, list[str]],
+    benifit_list: list[str] | None = None,
+) -> list[str] | None:
     """
     确认选中的角色是否存在。
     Args:
@@ -163,7 +179,6 @@ def confirm_selected_character(exist_buff_dict: dict[str, dict[str, Buff]], buff
         benifit_list: list[str]: 外部制定的受益者名单
     """
     for char_name, sub_dict in exist_buff_dict.items():
-
         # 首先判断Buff是否在当前检查角色(char_name)的收益列表中
         if buff_name not in sub_dict:
             continue
@@ -182,7 +197,13 @@ def confirm_selected_character(exist_buff_dict: dict[str, dict[str, Buff]], buff
         return None
 
 
-def __check_buff_add_result(buff_name: str, selected_characters: list[str], exist_buff_dict: dict[str, dict[str, Buff]], DYNAMIC_BUFF_DICT: dict[str, list[Buff]], sim_instance: "Simulator"):
+def __check_buff_add_result(
+    buff_name: str,
+    selected_characters: list[str],
+    exist_buff_dict: dict[str, dict[str, Buff]],
+    DYNAMIC_BUFF_DICT: dict[str, list[Buff]],
+    sim_instance: "Simulator",
+):
     """
     检查Buff添加结果是否符合预期。
     Args:
@@ -198,9 +219,15 @@ def __check_buff_add_result(buff_name: str, selected_characters: list[str], exis
             assert isinstance(buffs, Buff)
             buff_0 = exist_buff_dict[char_name][buffs.ft.index]
             if buffs.ft.index == buff_name:
-                if all([buffs.dy.startticks == buff_0.dy.startticks,
+                if all(
+                    [
+                        buffs.dy.startticks == buff_0.dy.startticks,
                         buffs.dy.endticks == buff_0.dy.endticks,
-                        buffs.dy.count == buff_0.dy.count]):
-                    print(f"【BuffAddStrategy检查】{tick}tick：{char_name}成功添加了{buff_name}, 其层数为{buffs.dy.count}，{buffs.dy.startticks} - {buffs.dy.endticks}")
+                        buffs.dy.count == buff_0.dy.count,
+                    ]
+                ):
+                    print(
+                        f"【BuffAddStrategy检查】{tick}tick：{char_name}成功添加了{buff_name}, 其层数为{buffs.dy.count}，{buffs.dy.startticks} - {buffs.dy.endticks}"
+                    )
                     return
-    print(f"【BuffAddStrategy检查】{tick}tick：{char_name}未添加{buff_name}")
+        print(f"【BuffAddStrategy检查】{tick}tick：{char_name}未添加{buff_name}")

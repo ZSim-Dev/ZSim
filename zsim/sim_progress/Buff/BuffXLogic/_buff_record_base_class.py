@@ -24,12 +24,13 @@ class BuffRecordBaseClass:
         self.char_obj_list: "list[Character] | None" = None
         self.na_skill_level: "int | None" = None
         self.trans_ratio: float = 0
-        self.cd: int = 60   # 内置CD：1秒一次
+        self.cd: int = 60  # 内置CD：1秒一次
         self.last_active_tick: int = 0  # 上次触发的时间点
         self.buff_index: str | None = None
         self.trigger_buff_0: "Buff | None" = None
         self.additional_damage_skill_tag: str | None = None
         self.trigger_skill_tag: str | None = None
+        self.decibel_recover_value: int | float = 0  # 喧响恢复值
 
     def check_cd(self, tick_now: int):
         """检查内置CD是否就绪"""

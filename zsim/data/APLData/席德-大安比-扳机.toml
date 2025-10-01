@@ -3,7 +3,7 @@ title = "席德-大安比-扳机"
 comment = "开发组为席德、大安比、扳机 提供的默认APL"
 author = "虎皮"
 create_time = "2025-04-15T23:00:00.000+08:00"
-latest_change_time = "2025-09-20T14:33:15.900+08:00"
+latest_change_time = "2025-09-28T13:05:29.531+08:00"
 
 [characters]
 required = [
@@ -36,6 +36,12 @@ equip_set4 = ""
 [characters."席德"]
 cinema = [
     0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
 ]
 weapon = ""
 equip_set4 = ""

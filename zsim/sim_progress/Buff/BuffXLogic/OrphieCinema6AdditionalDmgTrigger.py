@@ -1,3 +1,5 @@
+from zsim.define import ORPHIE_REPORT
+
 from .. import Buff, JudgeTools, check_preparation
 from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 
@@ -5,6 +7,8 @@ from ._buff_record_base_class import BuffRecordBaseClass as BRBC
 class OrphieCinema6AdditionalDmgTriggerRecord(BRBC):
     def __init__(self):
         super().__init__()
+        self.additional_damage_skill_tag = "1301_Cinema_6"
+        self.cd = 30  # 内置CD：0.5秒一次
 
 
 class OrphieCinema6AdditionalDmgTrigger(Buff.BuffLogic):
@@ -12,8 +16,8 @@ class OrphieCinema6AdditionalDmgTrigger(Buff.BuffLogic):
         """这是奥菲斯影画6画附加伤害触发器Buff的脚本"""
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
-        self.xstart = self.special_start_logic
-        self.xeffect = self.special_effect_logic
+        self.xjudge = self.special_judge_logic
+        self.xhit = self.special_hit_logic
         self.buff_0: "Buff | None" = None
         self.record: BRBC | None = None
 
@@ -32,16 +36,17 @@ class OrphieCinema6AdditionalDmgTrigger(Buff.BuffLogic):
             self.buff_0.history.record = OrphieCinema6AdditionalDmgTriggerRecord()
         self.record = self.buff_0.history.record
 
-    def special_start_logic(self, **kwargs):
+    def special_judge_logic(self, **kwargs):
+        """"""
         self.check_record_module()
-        self.get_prepared(char_CID=0000)
+        self.get_prepared(char_CID=1301)
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
 
-    def special_effect_logic(self, **kwargs):
+    def special_hit_logic(self, **kwargs):
         self.check_record_module()
-        self.get_prepared(char_CID=0000)
+        self.get_prepared(char_CID=1301)
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )

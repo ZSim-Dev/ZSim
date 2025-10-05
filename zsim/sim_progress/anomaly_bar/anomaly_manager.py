@@ -65,3 +65,6 @@ class AnomalyManager:
         else:
             # 更新指定异常条的最大值
             self.anomaly_bars_dict[element_type].max_anomaly = value
+
+    def update_build_up(self):
+        pass

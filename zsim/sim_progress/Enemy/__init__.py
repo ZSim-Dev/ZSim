@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 
 from zsim.define import ENEMY_ADJUSTMENT_PATH, ENEMY_DATA_PATH
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
 from zsim.sim_progress.anomaly_bar import (
     AuricInkAnomaly,
     ElectricAnomaly,
@@ -15,14 +17,12 @@ from zsim.sim_progress.anomaly_bar import (
 )
 from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
 from zsim.sim_progress.data_struct import SingleHit
+from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
 from zsim.sim_progress.Report import report_to_log
-from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
 
 from .EnemyAttack import EnemyAttackMethod
 from .EnemyUniqueMechanic import unique_mechanic_factory
 from .QTEManager import QTEManager
-from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator

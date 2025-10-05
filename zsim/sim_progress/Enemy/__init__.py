@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 
 from zsim.define import ENEMY_ADJUSTMENT_PATH, ENEMY_DATA_PATH
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
 from zsim.sim_progress.anomaly_bar import (
     AuricInkAnomaly,
     ElectricAnomaly,
@@ -15,14 +17,12 @@ from zsim.sim_progress.anomaly_bar import (
 )
 from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
 from zsim.sim_progress.data_struct import SingleHit
+from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
 from zsim.sim_progress.Report import report_to_log
-from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
-
+from zsim.sim_progress.anomaly_bar.anomaly_manager import AnomalyManager, AnomalyRequiredContext
 from .EnemyAttack import EnemyAttackMethod
 from .EnemyUniqueMechanic import unique_mechanic_factory
 from .QTEManager import QTEManager
-from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
@@ -189,6 +189,7 @@ class Enemy:
             5: "frost_frostbite",
             6: "auricink_corruption",
         }
+        self.anomaly_manager = self._creat_anomaly_manager()
 
         # enemy实例化的时候，6种异常积蓄条也随着一起实例化
         self.frost_anomaly_bar = FrostAnomaly(sim_instance=self.sim_instance)
@@ -207,22 +208,21 @@ class Enemy:
         所以将其挪到Enemy的init中，这样，这个dict只在Enemy实例化时被创建一次，
         然后update_anomaly函数将通过enemy.anomaly_bars_dict来调出对应的anomaly_bars实例。
         """
-        self.anomaly_bars_dict: dict[int, AnomalyBar] = {
-            0: self.physical_anomaly_bar,
-            1: self.fire_anomaly_bar,
-            2: self.ice_anomaly_bar,
-            3: self.electric_anomaly_bar,
-            4: self.ether_anomaly_bar,
-            5: self.frost_anomaly_bar,
-            6: self.auricink_anomaly_bar,
-        }
+        # self.anomaly_bars_dict: dict[int, AnomalyBar] = {
+        #     0: self.physical_anomaly_bar,
+        #     1: self.fire_anomaly_bar,
+        #     2: self.ice_anomaly_bar,
+        #     3: self.electric_anomaly_bar,
+        #     4: self.ether_anomaly_bar,
+        #     5: self.frost_anomaly_bar,
+        #     6: self.auricink_anomaly_bar,
+        # }
         # 在初始化阶段更新属性异常条最大值。
-        for element_type in self.anomaly_bars_dict:
-            anomaly_bar = self.anomaly_bars_dict[element_type]
+        for element_type in self.trans_element_number_to_str.keys():
             max_value = getattr(
                 self, f"max_anomaly_{self.trans_element_number_to_str[element_type]}"
             )
-            anomaly_bar.max_anomaly = max_value
+            self.anomaly_manager.update_max_buildup(value=max_value, element_type=element_type)
 
         if self.data_dict["进攻策略"] is None or self.data_dict["进攻策略"] is np.nan:
             attack_method_code = 0
@@ -236,8 +236,17 @@ class Enemy:
 
         report_to_log(f"[ENEMY]: 怪物对象 {self.name} 已创建，怪物ID {self.index_ID}", level=4)
 
+    @property
+    def anomaly_bars_dict(self) -> dict[int, AnomalyBar]:
+        return self.anomaly_manager.anomaly_bars_dict
+
     def __restore_stun_recovery_time(self):
         self.stun_recovery_time = float(self.data_dict["失衡恢复时间"]) * 60
+
+    def _creat_anomaly_manager(self) -> AnomalyManager:
+        """注册异常条管理器"""
+        context = AnomalyRequiredContext(sim_instance=self.sim_instance)
+        return AnomalyManager(anomaly_context=context)
 
     def restore_stun(self):
         """还原 Enemy 本身的失衡恢复时间，与QTE计数"""
@@ -675,8 +684,9 @@ class Enemy:
             if value:
                 # 检查更新值并且广播给各监听器（目前只为爱丽丝核心被动Dot触发器服务）
                 sim_instance = self.enemy.sim_instance
-                sim_instance.listener_manager.broadcast_event(signal=LBS.ASSAULT_STATE_ON, event=self.enemy.anomaly_bars_dict[0])
-
+                sim_instance.listener_manager.broadcast_event(
+                    signal=LBS.ASSAULT_STATE_ON, event=self.enemy.anomaly_bars_dict[0]
+                )
 
         def __str__(self):
             return f"失衡: {self.stun}, 失衡条: {self.stun_bar:.2f}, 冻结: {self.frozen}, 霜寒: {self.frostbite}, 畏缩: {self.assault}, 感电: {self.shock}, 灼烧: {self.burn}, 侵蚀：{self.corruption}, 烈霜霜寒：{self.frost_frostbite}"

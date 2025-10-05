@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from zsim.define import saved_char_config
 from zsim.models.session.session_run import CharConfig, CommonCfg
@@ -55,7 +55,7 @@ class InitData:
             self.char_1 = config[self.name_box[1]]
             self.char_2 = config[self.name_box[2]]
         except KeyError as e:
-            raise AssertionError(f"Missing key in character init configuration: {e}")
+            raise AssertionError(f"Missing key in character init configuration: {e}") from e
         self.__adjust_weapon_with_sim_cfg()
         for name in self.name_box:
             char = getattr(self, f"char_{self.name_box.index(name)}")
@@ -225,8 +225,8 @@ class LoadData:
 
     def reset_exist_buff_dict(self):
         """重置buff_exist_dict"""
-        for char_name, sub_exist_buff_dict in self.exist_buff_dict.items():
-            for buff_name, buff in sub_exist_buff_dict.items():
+        for _char_name, sub_exist_buff_dict in self.exist_buff_dict.items():
+            for _buff_name, buff in sub_exist_buff_dict.items():
                 buff.reset_myself()
 
     def reset_myself(self, name_box, Judge_list_set, weapon_dict, cinema_dict):
@@ -247,7 +247,7 @@ class LoadData:
 class ScheduleData:
     enemy: Enemy
     char_obj_list: list[Character]
-    event_list: list = field(default_factory=list)
+    event_list: list[Any] = field(default_factory=list)
     # judge_required_info_dict = {"skill_node": None}
     loading_buff: dict[str, list[Buff]] = field(default_factory=dict)
     dynamic_buff: dict[str, list[Buff]] = field(default_factory=dict)
@@ -285,7 +285,7 @@ class ScheduleData:
 
 @dataclass
 class GlobalStats:
-    name_box: list
+    name_box: list[str]
     DYNAMIC_BUFF_DICT: dict[str, list[Buff]] = field(default_factory=dict)
     sim_instance: "Simulator | None" = None
 

@@ -6,12 +6,8 @@ from typing import TYPE_CHECKING, Any
 from .context import EventContext
 
 if TYPE_CHECKING:
-    from zsim.sim_progress.data_struct import (
-        ActionStack,
-    )
     from zsim.sim_progress.Enemy import Enemy
     from zsim.simulator.dataclasses import ScheduleData
-    from zsim.simulator.simulator_class import Simulator
 
 
 class EventHandlerABC(ABC):
@@ -78,19 +74,19 @@ class BaseEventHandler(EventHandlerABC):
         """从上下文中获取敌人对象"""
         return context.get_enemy()
 
-    def _get_context_dynamic_buff(self, context: EventContext) -> dict:
+    def _get_context_dynamic_buff(self, context: EventContext):
         """从上下文中获取动态buff"""
         return context.get_dynamic_buff()
 
-    def _get_context_exist_buff_dict(self, context: EventContext) -> dict:
+    def _get_context_exist_buff_dict(self, context: EventContext):
         """从上下文中获取已存在buff字典"""
         return context.get_exist_buff_dict()
 
-    def _get_context_action_stack(self, context: EventContext) -> ActionStack:
+    def _get_context_action_stack(self, context: EventContext):
         """从上下文中获取动作栈"""
         return context.get_action_stack()
 
-    def _get_context_sim_instance(self, context: EventContext) -> Simulator:
+    def _get_context_sim_instance(self, context: EventContext):
         """从上下文中获取模拟器实例"""
         return context.get_sim_instance()
 
@@ -132,12 +128,14 @@ class BaseEventHandler(EventHandlerABC):
         Raises:
             ValueError: 当上下文无效时
         """
-        if not isinstance(context, EventContext):
+        if not isinstance(context, EventContext):  # type: ignore
             raise TypeError("上下文必须是EventContext类型")
 
         # Pydantic模型已经确保了数据的完整性和有效性
 
-    def _handle_error(self, error: Exception, operation: str, event: Any = None) -> None:
+    def _handle_error(
+        self, error: Exception, operation: str, event: Any = None
+    ) -> None:
         """
         统一错误处理方法
 

@@ -7,11 +7,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from zsim.sim_progress.Buff import Buff
     from zsim.sim_progress.data_struct import ActionStack
     from zsim.sim_progress.Enemy import Enemy
+    from zsim.sim_progress.Preload.SkillsQueue import SkillNode
     from zsim.simulator.dataclasses import ScheduleData
     from zsim.simulator.simulator_class import Simulator
 
@@ -27,9 +29,9 @@ class EventContext:
     data: ScheduleData
     tick: int
     enemy: Enemy
-    dynamic_buff: dict[str, Any]
-    exist_buff_dict: dict[str, Any]
-    action_stack: ActionStack
+    dynamic_buff: dict[str, list[Buff]]
+    exist_buff_dict: dict[str, dict[str, Buff]]
+    action_stack: ActionStack[SkillNode]
     sim_instance: Simulator
 
     def get_data(self) -> ScheduleData:
@@ -44,15 +46,15 @@ class EventContext:
         """获取敌人对象"""
         return self.enemy
 
-    def get_dynamic_buff(self) -> dict[str, Any]:
+    def get_dynamic_buff(self) -> dict[str, list[Buff]]:
         """获取动态buff字典"""
         return self.dynamic_buff
 
-    def get_exist_buff_dict(self) -> dict[str, Any]:
+    def get_exist_buff_dict(self) -> dict[str, dict[str, Buff]]:
         """获取已存在buff字典"""
         return self.exist_buff_dict
 
-    def get_action_stack(self) -> ActionStack:
+    def get_action_stack(self) -> ActionStack[SkillNode]:
         """获取动作栈"""
         return self.action_stack
 

@@ -228,7 +228,7 @@ class APLDatabase:
             await session.flush()
             try:
                 await session.commit()
-            except SQLAlchemyError as exc:  # noqa: BLE001
+            except SQLAlchemyError as exc:
                 await session.rollback()
                 raise exc
             return True
@@ -290,15 +290,28 @@ class APLDatabase:
         try:
             config = self.get_apl_config(config_id)
             if config is None:
+                print(f"APL config {config_id} not found")
                 return False
+
             export_data = config.copy()
             export_data.pop("create_time", None)
             export_data.pop("latest_change_time", None)
+
+            # 确保目标目录存在
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+            # 使用tomli_w.dump写入文件对象
             with open(file_path, "wb") as file:
                 tomli_w.dump(export_data, file)
             return True
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error exporting APL config {config_id}: {exc}")
+        except OSError as exc:
+            print(f"文件操作错误 - 导出APL配置 {config_id} 到 {file_path}: {exc}")
+            return False
+        except ValueError as exc:
+            print(f"TOML编码错误 - 导出APL配置 {config_id}: {exc}")
+            return False
+        except Exception as exc:
+            print(f"导出APL配置 {config_id} 时发生未知错误: {exc}")
             return False
 
     def import_apl_config(self, file_path: str) -> str | None:
@@ -319,8 +332,17 @@ class APLDatabase:
                 self._create_apl_config_async(config_id, config_data)
             )
             return config_id
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error importing APL config from {file_path}: {exc}")
+        except FileNotFoundError:
+            print(f"文件未找到 - 无法从 {file_path} 导入APL配置")
+            return None
+        except PermissionError:
+            print(f"权限不足 - 无法读取文件 {file_path}")
+            return None
+        except tomllib.TOMLDecodeError as exc:
+            print(f"TOML解析错误 - 文件 {file_path}: {exc}")
+            return None
+        except Exception as exc:
+            print(f"从 {file_path} 导入APL配置时发生未知错误: {exc}")
             return None
 
     def get_apl_files(self) -> list[dict[str, Any]]:
@@ -353,15 +375,26 @@ class APLDatabase:
                 rel_path = file_id[len("custom_") :]
                 base_dir = COSTOM_APL_DIR
             else:
+                print(f"无效的文件ID格式: {file_id}")
                 return None
             file_path = os.path.join(base_dir, rel_path)
             if not os.path.exists(file_path):
+                print(f"文件不存在: {file_path}")
                 return None
             with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
             return {"file_id": file_id, "content": content, "file_path": file_path}
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error reading APL file {file_id}: {exc}")
+        except FileNotFoundError:
+            print(f"文件未找到 - APL文件 {file_id}")
+            return None
+        except PermissionError:
+            print(f"权限不足 - 无法读取APL文件 {file_id}")
+            return None
+        except UnicodeDecodeError as exc:
+            print(f"文件编码错误 - APL文件 {file_id}: {exc}")
+            return None
+        except Exception as exc:
+            print(f"读取APL文件 {file_id} 时发生未知错误: {exc}")
             return None
 
     def create_apl_file(self, file_data: dict[str, Any]) -> str:
@@ -387,8 +420,12 @@ class APLDatabase:
             with open(file_path, "w", encoding="utf-8") as file:
                 file.write(content)
             return f"custom_{name}"
-        except Exception as exc:  # noqa: BLE001
-            raise Exception(f"Failed to create APL file: {exc}") from exc
+        except PermissionError as exc:
+            raise Exception(f"权限不足 - 无法创建APL文件 {file_path}: {exc}") from exc
+        except OSError as exc:
+            raise Exception(f"文件系统错误 - 创建APL文件 {file_path}: {exc}") from exc
+        except Exception as exc:
+            raise Exception(f"创建APL文件时发生未知错误: {exc}") from exc
 
     def update_apl_file(self, file_id: str, content: str) -> bool:
         """更新APL文件内容。
@@ -403,18 +440,27 @@ class APLDatabase:
 
         try:
             if file_id.startswith("default_"):
+                print("不允许更新默认APL文件")
                 return False
             if not file_id.startswith("custom_"):
+                print(f"无效的文件ID格式: {file_id}")
                 return False
             rel_path = file_id[len("custom_") :]
             file_path = os.path.join(COSTOM_APL_DIR, rel_path)
             if not os.path.exists(file_path):
+                print(f"文件不存在: {file_path}")
                 return False
             with open(file_path, "w", encoding="utf-8") as file:
                 file.write(content)
             return True
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error updating APL file {file_id}: {exc}")
+        except PermissionError:
+            print(f"权限不足 - 无法更新APL文件 {file_id}")
+            return False
+        except OSError as exc:
+            print(f"文件系统错误 - 更新APL文件 {file_id}: {exc}")
+            return False
+        except Exception as exc:
+            print(f"更新APL文件 {file_id} 时发生未知错误: {exc}")
             return False
 
     def delete_apl_file(self, file_id: str) -> bool:
@@ -429,17 +475,26 @@ class APLDatabase:
 
         try:
             if file_id.startswith("default_"):
+                print("不允许删除默认APL文件")
                 return False
             if not file_id.startswith("custom_"):
+                print(f"无效的文件ID格式: {file_id}")
                 return False
             rel_path = file_id[len("custom_") :]
             file_path = os.path.join(COSTOM_APL_DIR, rel_path)
             if not os.path.exists(file_path):
+                print(f"文件不存在: {file_path}")
                 return False
             os.remove(file_path)
             return True
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error deleting APL file {file_id}: {exc}")
+        except PermissionError:
+            print(f"权限不足 - 无法删除APL文件 {file_id}")
+            return False
+        except OSError as exc:
+            print(f"文件系统错误 - 删除APL文件 {file_id}: {exc}")
+            return False
+        except Exception as exc:
+            print(f"删除APL文件 {file_id} 时发生未知错误: {exc}")
             return False
 
     def _get_apl_from_dir(self, apl_dir: str, source_type: str) -> list[dict[str, Any]]:

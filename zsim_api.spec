@@ -74,6 +74,7 @@ hiddenimports = [
     "aiosqlite",
     "sqlalchemy",
     "alembic",
+    "greenlet",
     "httpx",
     "zsim",
     "plotly",

@@ -51,6 +51,7 @@ dependencies = [
     "tomli-w>=1.2.0",
     "sqlalchemy>=2.0.43",
     "alembic>=1.16.5",
+    "greenlet>=3.0.3",
 ]
 
 [tool.ruff]

@@ -81,7 +81,7 @@ async def get_async_session() -> AsyncIterator[AsyncSession]:
     session = _async_session_factory()
     try:
         yield session
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         await session.rollback()
         raise RuntimeError("异步数据库会话执行失败") from exc
     finally:

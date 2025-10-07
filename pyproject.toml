@@ -49,6 +49,8 @@ dependencies = [
     "httpx>=0.28.1",
     "dotenv>=0.9.9",
     "tomli-w>=1.2.0",
+    "sqlalchemy>=2.0.43",
+    "alembic>=1.16.5",
 ]
 
 [tool.ruff]

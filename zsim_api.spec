@@ -72,6 +72,8 @@ hiddenimports = [
     "fastapi",
     "uvicorn",
     "aiosqlite",
+    "sqlalchemy",
+    "alembic",
     "httpx",
     "zsim",
     "plotly",

@@ -5,20 +5,6 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, Any, Iterator, Literal
 
 from zsim.api_src.services.database.session_db import get_session_db
-from zsim.utils.constants import stats_trans_mapping
-from zsim.utils.process_buff_result import (
-    prepare_buff_data_and_cache as process_buff,
-)
-from zsim.utils.process_dmg_result import (
-    prepare_dmg_data_and_cache as process_dmg,
-)
-from zsim.utils.process_parallel_data import (
-    judge_parallel_result,
-    merge_parallel_dmg_data,
-)
-from zsim.utils.process_parallel_data import (
-    prepare_parallel_data_and_cache as prepare_parallel_cache,
-)
 from zsim.models.session.session_create import Session
 from zsim.models.session.session_result import (
     AttrCurvePayload,
@@ -43,6 +29,20 @@ from zsim.models.session.session_run import (
     SimulationConfig as SimCfg,
 )
 from zsim.simulator import Simulator
+from zsim.utils.constants import stats_trans_mapping
+from zsim.utils.process_buff_result import (
+    prepare_buff_data_and_cache as process_buff,
+)
+from zsim.utils.process_dmg_result import (
+    prepare_dmg_data_and_cache as process_dmg,
+)
+from zsim.utils.process_parallel_data import (
+    judge_parallel_result,
+    merge_parallel_dmg_data,
+)
+from zsim.utils.process_parallel_data import (
+    prepare_parallel_data_and_cache as prepare_parallel_cache,
+)
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Confirmation
@@ -144,21 +144,27 @@ class SimController:
                     else session.session_run.stop_tick
                 )
                 if stop_tick is None:
-                    logger.warning(f"会话 {session_id} 未设置 stop_tick，使用默认值 3600")
+                    logger.warning(
+                        f"会话 {session_id} 未设置 stop_tick，使用默认值 3600"
+                    )
                     stop_tick = 3600
 
                 def run_simulator(
                     _common_cfg: CommonCfg, _sim_cfg: SimCfg | None, _stop_tick: int
                 ) -> "Confirmation":
                     simulator = Simulator()
-                    return simulator.api_run_simulator(_common_cfg, _sim_cfg, _stop_tick)
+                    return simulator.api_run_simulator(
+                        _common_cfg, _sim_cfg, _stop_tick
+                    )
 
                 # 创建模拟器实例并提交任务
                 future: asyncio.Future["Confirmation"] = event_loop.run_in_executor(
                     self.executor, run_simulator, common_cfg, sim_cfg, stop_tick
                 )
                 self._running_tasks.add(future)
-                future.add_done_callback(lambda f: self._task_done_callback(f, session_id))
+                future.add_done_callback(
+                    lambda f: self._task_done_callback(f, session_id)
+                )
                 # 让出控制权给其他协程
                 await asyncio.sleep(0)
 
@@ -201,14 +207,18 @@ class SimController:
                     else session.session_run.stop_tick
                 )
                 if stop_tick is None:
-                    logger.warning(f"会话 {session_id} 未设置 stop_tick，使用默认值 3600")
+                    logger.warning(
+                        f"会话 {session_id} 未设置 stop_tick，使用默认值 3600"
+                    )
                     stop_tick = 3600
 
                 def run_simulator(
                     _common_cfg: CommonCfg, _sim_cfg: SimCfg | None, _stop_tick: int
                 ) -> "Confirmation":
                     simulator = Simulator()
-                    return simulator.api_run_simulator(_common_cfg, _sim_cfg, _stop_tick)
+                    return simulator.api_run_simulator(
+                        _common_cfg, _sim_cfg, _stop_tick
+                    )
 
                 # 使用 ThreadPoolExecutor 避免序列化问题
                 with ThreadPoolExecutor() as thread_executor:
@@ -265,7 +275,10 @@ class SimController:
             return completed_sessions
 
         def run_simulator(
-            session_id_inner: str, common_cfg: CommonCfg, sim_cfg: SimCfg | None, stop_tick: int
+            session_id_inner: str,
+            common_cfg: CommonCfg,
+            sim_cfg: SimCfg | None,
+            stop_tick: int,
         ) -> tuple[str, "Confirmation"]:
             simulator = Simulator()
             result = simulator.api_run_simulator(common_cfg, sim_cfg, stop_tick)
@@ -289,7 +302,12 @@ class SimController:
                     stop_tick = 1000
 
                 future = event_loop.run_in_executor(
-                    thread_executor, run_simulator, session_id_inner, common_cfg, sim_cfg, stop_tick
+                    thread_executor,
+                    run_simulator,
+                    session_id_inner,
+                    common_cfg,
+                    sim_cfg,
+                    stop_tick,
                 )
                 futures.append(future)
 
@@ -348,7 +366,9 @@ class SimController:
         else:
             return await loop.run_in_executor(self.executor, _run_simulator)
 
-    def _task_done_callback(self, future: asyncio.Future["Confirmation"], session_id: str) -> None:
+    def _task_done_callback(
+        self, future: asyncio.Future["Confirmation"], session_id: str
+    ) -> None:
         """
         任务完成时的回调函数。
 
@@ -377,13 +397,16 @@ class SimController:
 
             # 处理模拟结果确认信息
             if isinstance(result, dict) and "run_turn_uuid" in result:
-                processed_result: (
-                    NormalModeResult | ParallelModeResult
-                ) = await self._process_simulation_result(result)
+                processed_result: NormalModeResult | ParallelModeResult = (
+                    await self._process_simulation_result(result)
+                )
                 try:
                     session.session_result = [processed_result]
                 except Exception as e:
-                    logger.error(f"TODO: 模拟任务 {session_id} 结果处理: {repr(e)}", exc_info=True)
+                    logger.error(
+                        f"TODO: 模拟任务 {session_id} 结果处理: {repr(e)}",
+                        exc_info=True,
+                    )
 
         except Exception as e:
             logger.error(f"模拟任务 {session_id} 执行失败: {e}", exc_info=True)
@@ -502,9 +525,13 @@ class SimController:
         func_cfg = parallel_cfg.func_config
 
         if func == "attr_curve" and isinstance(func_cfg, ParallelCfg.AttrCurveConfig):
-            yield from self._generate_attr_curve_args(func_cfg, parallel_cfg, stop_tick, session_id)
+            yield from self._generate_attr_curve_args(
+                func_cfg, parallel_cfg, stop_tick, session_id
+            )
         elif func == "weapon" and isinstance(func_cfg, ParallelCfg.WeaponConfig):
-            yield from self._generate_weapon_args(func_cfg, parallel_cfg, stop_tick, session_id)
+            yield from self._generate_weapon_args(
+                func_cfg, parallel_cfg, stop_tick, session_id
+            )
         else:
             error_msg = f"未知的func类型: {func}, 完整配置: {parallel_cfg}"
             logger.error(error_msg)

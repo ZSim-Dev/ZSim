@@ -1,152 +1,215 @@
+"""模拟会话数据库访问层"""
+
+from __future__ import annotations
+
 import json
+from datetime import datetime
 from typing import Any
 
-import aiosqlite
+from sqlalchemy import String, Text, delete, select
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Mapped, mapped_column
 
-from zsim.define import SQLITE_PATH
+from zsim.api_src.services.database.orm import Base, get_async_engine, get_async_session
 from zsim.models.session.session_create import Session
 
-_session_db: "SessionDB | None" = None  # 单例实例
+_session_db: "SessionDB | None" = None
+
+
+class SessionORM(Base):
+    """模拟会话ORM模型"""
+
+    __tablename__ = "sessions"
+
+    session_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    session_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    create_time: Mapped[str] = mapped_column(String(32), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    session_run: Mapped[str | None] = mapped_column(Text, nullable=True)
+    session_result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class SessionDB:
-    def __init__(self):
+    """会话数据库访问对象"""
+
+    def __init__(self) -> None:
+        """初始化数据库访问对象"""
         self._cache: dict[str, Any] = {}
-        self._db_init: bool = False
+        self._db_init = False
 
     async def _init_db(self) -> None:
-        """初始化数据库，创建 sessions 表"""
+        """确保数据库表结构已建立"""
         if self._db_init:
             return
-        async with aiosqlite.connect(SQLITE_PATH) as db:
-            # Check if the table exists and has the session_name column
-            cursor = await db.execute("PRAGMA table_info(sessions)")
-            columns = await cursor.fetchall()
-            column_names = [column[1] for column in columns]
-
-            if not columns:
-                # Table doesn't exist, create it with all columns
-                await db.execute(
-                    """CREATE TABLE sessions (
-                        session_id TEXT PRIMARY KEY,
-                        session_name TEXT NOT NULL DEFAULT '',
-                        create_time TEXT NOT NULL,
-                        status TEXT NOT NULL,
-                        session_run TEXT,
-                        session_result TEXT
-                    )"""
-                )
-            elif "session_name" not in column_names:
-                # Table exists but doesn't have session_name column, add it
-                await db.execute(
-                    "ALTER TABLE sessions ADD COLUMN session_name TEXT NOT NULL DEFAULT ''"
-                )
-
-            await db.commit()
+        async with get_async_engine().begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
         self._db_init = True
 
-    async def add_session(self, session: Session) -> None:
-        """添加一个新的会话到数据库"""
+    async def add_session(self, session_data: Session) -> None:
+        """添加一个新的模拟会话。
+
+        Args:
+            session_data (Session): 会话数据。
+
+        Raises:
+            SQLAlchemyError: 当数据库写入失败时抛出。
+        """
+
         await self._init_db()
-        async with aiosqlite.connect(SQLITE_PATH) as db:
-            await db.execute(
-                "INSERT INTO sessions (session_id, session_name, create_time, status, session_run, session_result) VALUES (?, ?, ?, ?, ?, ?)",
-                (
-                    session.session_id,
-                    session.session_name,
-                    session.create_time.isoformat(),
-                    session.status,
-                    session.session_run.model_dump_json(indent=4) if session.session_run else None,
-                    json.dumps([r.model_dump() for r in session.session_result])
-                    if session.session_result
-                    else None,
-                ),
+        async with get_async_session() as session:
+            session.add(
+                SessionORM(
+                    session_id=session_data.session_id,
+                    session_name=session_data.session_name,
+                    create_time=session_data.create_time.isoformat(),
+                    status=session_data.status,
+                    session_run=(
+                        session_data.session_run.model_dump_json(indent=4)
+                        if session_data.session_run
+                        else None
+                    ),
+                    session_result=(
+                        json.dumps(
+                            [
+                                result.model_dump()
+                                for result in session_data.session_result
+                            ]
+                        )
+                        if session_data.session_result
+                        else None
+                    ),
+                )
             )
-            await db.commit()
+            try:
+                await session.commit()
+            except SQLAlchemyError as exc:  # noqa: BLE001
+                await session.rollback()
+                raise exc
 
     async def get_session(self, session_id: str) -> Session | None:
-        """根据 session_id 从数据库获取会话"""
-        await self._init_db()
-        async with aiosqlite.connect(SQLITE_PATH) as db:
-            cursor = await db.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,))
-            row = await cursor.fetchone()
-            if row:
-                # Get column names to ensure correct indexing
-                column_names = [description[0] for description in cursor.description]
-                row_dict = dict(zip(column_names, row))
+        """根据ID获取模拟会话。
 
-                return Session(
-                    session_id=row_dict["session_id"],
-                    session_name=row_dict["session_name"],
-                    create_time=row_dict["create_time"],
-                    status=row_dict["status"],
-                    session_run=json.loads(row_dict["session_run"])
-                    if row_dict["session_run"]
-                    else None,
-                    session_result=json.loads(row_dict["session_result"])
-                    if row_dict["session_result"]
-                    else None,
-                )
-        return None
+        Args:
+            session_id (str): 会话ID。
 
-    async def update_session(self, session: Session) -> None:
-        """更新数据库中的会话"""
+        Returns:
+            Session | None: 匹配的会话数据，未找到时返回None。
+        """
+
         await self._init_db()
-        async with aiosqlite.connect(SQLITE_PATH) as db:
-            await db.execute(
-                """UPDATE sessions
-                SET session_name = ?, create_time = ?, status = ?, session_run = ?, session_result = ?
-                WHERE session_id = ?
-                """,
-                (
-                    session.session_name,
-                    session.create_time.isoformat(),
-                    session.status,
-                    session.session_run.model_dump_json(indent=4) if session.session_run else None,
-                    json.dumps([r.model_dump() for r in session.session_result])
-                    if session.session_result
-                    else None,
-                    session.session_id,
+        async with get_async_session() as session:
+            result = await session.execute(
+                select(SessionORM).where(SessionORM.session_id == session_id)
+            )
+            record = result.scalar_one_or_none()
+            if record is None:
+                return None
+            return Session(
+                session_id=record.session_id,
+                session_name=record.session_name,
+                create_time=datetime.fromisoformat(record.create_time),
+                status=record.status,
+                session_run=(
+                    json.loads(record.session_run) if record.session_run else None
+                ),
+                session_result=(
+                    json.loads(record.session_result) if record.session_result else None
                 ),
             )
-            await db.commit()
+
+    async def update_session(self, session_data: Session) -> None:
+        """更新模拟会话。
+
+        Args:
+            session_data (Session): 会话数据。
+
+        Raises:
+            SQLAlchemyError: 当数据库写入失败时抛出。
+        """
+
+        await self._init_db()
+        async with get_async_session() as session:
+            result = await session.execute(
+                select(SessionORM).where(
+                    SessionORM.session_id == session_data.session_id
+                )
+            )
+            record = result.scalar_one_or_none()
+            if record is None:
+                return
+            record.session_name = session_data.session_name
+            record.create_time = session_data.create_time.isoformat()
+            record.status = session_data.status
+            record.session_run = (
+                session_data.session_run.model_dump_json(indent=4)
+                if session_data.session_run
+                else None
+            )
+            record.session_result = (
+                json.dumps(
+                    [result.model_dump() for result in session_data.session_result]
+                )
+                if session_data.session_result
+                else None
+            )
+            await session.flush()
+            try:
+                await session.commit()
+            except SQLAlchemyError as exc:  # noqa: BLE001
+                await session.rollback()
+                raise exc
 
     async def delete_session(self, session_id: str) -> None:
-        """从数据库删除会话"""
+        """删除模拟会话。
+
+        Args:
+            session_id (str): 会话ID。
+        """
+
         await self._init_db()
-        async with aiosqlite.connect(SQLITE_PATH) as db:
-            await db.execute("DELETE FROM sessions WHERE session_id = ?", (session_id,))
-            await db.commit()
+        async with get_async_session() as session:
+            await session.execute(
+                delete(SessionORM).where(SessionORM.session_id == session_id)
+            )
+            await session.commit()
 
     async def list_sessions(self) -> list[Session]:
-        """从数据库获取所有会话列表"""
+        """列出所有模拟会话。
+
+        Returns:
+            list[Session]: 会话数据列表。
+        """
+
         await self._init_db()
-        sessions = []
-        async with aiosqlite.connect(SQLITE_PATH) as db:
-            cursor = await db.execute("SELECT * FROM sessions ORDER BY create_time DESC")
-            rows = await cursor.fetchall()
-            column_names = [description[0] for description in cursor.description]
-            for row in rows:
-                row_dict = dict(zip(column_names, row))
-                sessions.append(
-                    Session(
-                        session_id=row_dict["session_id"],
-                        session_name=row_dict["session_name"],
-                        create_time=row_dict["create_time"],
-                        status=row_dict["status"],
-                        session_run=json.loads(row_dict["session_run"])
-                        if row_dict["session_run"]
-                        else None,
-                        session_result=json.loads(row_dict["session_result"])
-                        if row_dict["session_result"]
-                        else None,
-                    )
-                )
-        return sessions
+        async with get_async_session() as session:
+            result = await session.execute(
+                select(SessionORM).order_by(SessionORM.create_time.desc())
+            )
+            records = result.scalars().all()
+        return [
+            Session(
+                session_id=record.session_id,
+                session_name=record.session_name,
+                create_time=datetime.fromisoformat(record.create_time),
+                status=record.status,
+                session_run=(
+                    json.loads(record.session_run) if record.session_run else None
+                ),
+                session_result=(
+                    json.loads(record.session_result) if record.session_result else None
+                ),
+            )
+            for record in records
+        ]
 
 
 async def get_session_db() -> SessionDB:
-    """便捷函数：获取 SessionDB 的单例实例"""
+    """获取SessionDB单例。
+
+    Returns:
+        SessionDB: 会话数据库访问对象。
+    """
+
     global _session_db
     if _session_db is None:
         _session_db = SessionDB()

@@ -15,11 +15,12 @@ from zsim.sim_progress.anomaly_bar import (
     IceAnomaly,
     PhysicalAnomaly,
 )
+from zsim.sim_progress.anomaly_bar.anomaly_manager import AnomalyManager, AnomalyRequiredContext
 from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
 from zsim.sim_progress.data_struct import SingleHit
 from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
 from zsim.sim_progress.Report import report_to_log
-from zsim.sim_progress.anomaly_bar.anomaly_manager import AnomalyManager, AnomalyRequiredContext
+
 from .EnemyAttack import EnemyAttackMethod
 from .EnemyUniqueMechanic import unique_mechanic_factory
 from .QTEManager import QTEManager
@@ -493,7 +494,7 @@ class Enemy:
         # 怪物的扣血逻辑。
         self.__HP_update(single_hit.dmg_expect)
         # 更新异常值
-        self.__anomaly_prod(single_hit.snapshot, single_hit=single_hit)
+        self.anomaly_manager.update_build_up(single_hit.snapshot, single_hit=single_hit)
 
         if self.unique_machanic_manager is not None:
             self.unique_machanic_manager.update_myself(single_hit, tick)
@@ -592,15 +593,6 @@ class Enemy:
         if (minus := self.max_HP - self.dynamic.lost_hp) <= 0:
             self.dynamic.lost_hp = -1 * minus
             report_to_log(f"怪物{self.name}死亡！")
-
-    def __anomaly_prod(
-        self, snapshot: tuple[int, np.float64, np.ndarray], single_hit: SingleHit
-    ) -> None:
-        """用于更新异常条的角色面板快照"""
-        if snapshot[1] >= 1e-6:  # 确保非零异常值才更新
-            element_type_code = snapshot[0]
-            updated_bar = self.anomaly_bars_dict[element_type_code]
-            updated_bar.update_snap_shot(snapshot, single_hit=single_hit)
 
     def reset_myself(self):
         self.dynamic.reset_myself()
@@ -712,7 +704,7 @@ class Enemy:
             self.frozen: bool = False
             self.frostbite: bool = False
             self.frost_frostbite: bool = False
-            self.assault: bool = False
+            self._assault: bool = False
             self.shock: bool = False
             self.burn: bool = False
             self.corruption: bool = False

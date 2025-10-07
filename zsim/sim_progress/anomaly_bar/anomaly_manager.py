@@ -1,6 +1,9 @@
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from zsim.define import ELEMENT_TYPE_MAPPING
+from zsim.sim_progress.data_struct.single_hit import SingleHit
 
 from . import (
     AuricInkAnomaly,
@@ -66,5 +69,12 @@ class AnomalyManager:
             # 更新指定异常条的最大值
             self.anomaly_bars_dict[element_type].max_anomaly = value
 
-    def update_build_up(self):
-        pass
+    def update_build_up(
+        self, snapshot: tuple[int, np.float64, np.ndarray], single_hit: SingleHit
+    ) -> None:
+        """更新积蓄值和异常快照"""
+        assert self.anomaly_bars_dict, "异常条未初始化"
+        if snapshot[1] >= 1e-6:  # 确保非零异常值才更新
+            element_type_code = snapshot[0]
+            updated_bar = self.anomaly_bars_dict[element_type_code]
+            updated_bar.update_snap_shot(snapshot, single_hit=single_hit)

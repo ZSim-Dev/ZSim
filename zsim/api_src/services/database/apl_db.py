@@ -14,7 +14,6 @@ from typing import Any
 
 import tomli_w
 from sqlalchemy import String, Text, delete, select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Mapped, mapped_column
 
 from zsim.api_src.services.database.orm import Base, get_async_engine, get_async_session
@@ -70,14 +69,12 @@ class APLDatabase:
         Returns:
             dict[str, Any] | None: APL配置内容，未找到时返回None。
         """
-
-        try:
-            return asyncio.get_event_loop().run_until_complete(
-                self._get_apl_config_async(config_id)
-            )
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error loading APL config {config_id}: {exc}")
+        if not config_id or not isinstance(config_id, str):
             return None
+
+        return asyncio.get_event_loop().run_until_complete(
+            self._get_apl_config_async(config_id)
+        )
 
     async def _get_apl_config_async(self, config_id: str) -> dict[str, Any] | None:
         """异步获取特定APL配置。
@@ -119,15 +116,14 @@ class APLDatabase:
         Raises:
             Exception: 当写入数据库失败时抛出。
         """
+        if not config_data or not isinstance(config_data, dict):
+            raise ValueError("配置数据不能为空且必须是字典类型")
 
         config_id = str(uuid.uuid4())
-        try:
-            asyncio.get_event_loop().run_until_complete(
-                self._create_apl_config_async(config_id, config_data)
-            )
-            return config_id
-        except Exception as exc:  # noqa: BLE001
-            raise Exception(f"Failed to create APL config: {exc}") from exc
+        asyncio.get_event_loop().run_until_complete(
+            self._create_apl_config_async(config_id, config_data)
+        )
+        return config_id
 
     async def _create_apl_config_async(
         self, config_id: str, config_data: dict[str, Any]
@@ -164,11 +160,7 @@ class APLDatabase:
                     content=content,
                 )
             )
-            try:
-                await session.commit()
-            except SQLAlchemyError as exc:  # noqa: BLE001
-                await session.rollback()
-                raise exc
+            await session.commit()
 
     def update_apl_config(self, config_id: str, config_data: dict[str, Any]) -> bool:
         """更新APL配置。
@@ -180,14 +172,14 @@ class APLDatabase:
         Returns:
             bool: 更新成功返回True，否则False。
         """
-
-        try:
-            return asyncio.get_event_loop().run_until_complete(
-                self._update_apl_config_async(config_id, config_data)
-            )
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error updating APL config {config_id}: {exc}")
+        if not config_id or not isinstance(config_id, str):
             return False
+        if not config_data or not isinstance(config_data, dict):
+            return False
+
+        return asyncio.get_event_loop().run_until_complete(
+            self._update_apl_config_async(config_id, config_data)
+        )
 
     async def _update_apl_config_async(
         self, config_id: str, config_data: dict[str, Any]
@@ -226,11 +218,7 @@ class APLDatabase:
             record.content = tomli_w.dumps(content_data)
 
             await session.flush()
-            try:
-                await session.commit()
-            except SQLAlchemyError as exc:
-                await session.rollback()
-                raise exc
+            await session.commit()
             return True
 
     def delete_apl_config(self, config_id: str) -> bool:
@@ -242,14 +230,12 @@ class APLDatabase:
         Returns:
             bool: 删除成功返回True，否则False。
         """
-
-        try:
-            return asyncio.get_event_loop().run_until_complete(
-                self._delete_apl_config_async(config_id)
-            )
-        except Exception as exc:  # noqa: BLE001
-            print(f"Error deleting APL config {config_id}: {exc}")
+        if not config_id or not isinstance(config_id, str):
             return False
+
+        return asyncio.get_event_loop().run_until_complete(
+            self._delete_apl_config_async(config_id)
+        )
 
     async def _delete_apl_config_async(self, config_id: str) -> bool:
         """异步删除APL配置。
@@ -269,11 +255,7 @@ class APLDatabase:
             if result.rowcount == 0:
                 await session.rollback()
                 return False
-            try:
-                await session.commit()
-            except SQLAlchemyError as exc:  # noqa: BLE001
-                await session.rollback()
-                raise exc
+            await session.commit()
             return True
 
     def export_apl_config(self, config_id: str, file_path: str) -> bool:
@@ -286,33 +268,26 @@ class APLDatabase:
         Returns:
             bool: 导出成功返回True，否则False。
         """
-
-        try:
-            config = self.get_apl_config(config_id)
-            if config is None:
-                print(f"APL config {config_id} not found")
-                return False
-
-            export_data = config.copy()
-            export_data.pop("create_time", None)
-            export_data.pop("latest_change_time", None)
-
-            # 确保目标目录存在
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            # 使用tomli_w.dump写入文件对象
-            with open(file_path, "wb") as file:
-                tomli_w.dump(export_data, file)
-            return True
-        except OSError as exc:
-            print(f"文件操作错误 - 导出APL配置 {config_id} 到 {file_path}: {exc}")
+        if not config_id or not isinstance(config_id, str):
             return False
-        except ValueError as exc:
-            print(f"TOML编码错误 - 导出APL配置 {config_id}: {exc}")
+        if not file_path or not isinstance(file_path, str):
             return False
-        except Exception as exc:
-            print(f"导出APL配置 {config_id} 时发生未知错误: {exc}")
+
+        config = self.get_apl_config(config_id)
+        if config is None:
             return False
+
+        export_data = config.copy()
+        export_data.pop("create_time", None)
+        export_data.pop("latest_change_time", None)
+
+        # 确保目标目录存在
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # 使用tomli_w.dump写入文件对象
+        with open(file_path, "wb") as file:
+            tomli_w.dump(export_data, file)
+        return True
 
     def import_apl_config(self, file_path: str) -> str | None:
         """从TOML文件导入APL配置。
@@ -323,27 +298,19 @@ class APLDatabase:
         Returns:
             str | None: 导入成功时返回新配置ID，否则None。
         """
+        if not file_path or not isinstance(file_path, str):
+            return None
+        if not os.path.exists(file_path):
+            return None
 
-        try:
-            with open(file_path, "rb") as file:
-                config_data = tomllib.load(file)
-            config_id = str(uuid.uuid4())
-            asyncio.get_event_loop().run_until_complete(
-                self._create_apl_config_async(config_id, config_data)
-            )
-            return config_id
-        except FileNotFoundError:
-            print(f"文件未找到 - 无法从 {file_path} 导入APL配置")
-            return None
-        except PermissionError:
-            print(f"权限不足 - 无法读取文件 {file_path}")
-            return None
-        except tomllib.TOMLDecodeError as exc:
-            print(f"TOML解析错误 - 文件 {file_path}: {exc}")
-            return None
-        except Exception as exc:
-            print(f"从 {file_path} 导入APL配置时发生未知错误: {exc}")
-            return None
+        with open(file_path, "rb") as file:
+            config_data = tomllib.load(file)
+
+        config_id = str(uuid.uuid4())
+        asyncio.get_event_loop().run_until_complete(
+            self._create_apl_config_async(config_id, config_data)
+        )
+        return config_id
 
     def get_apl_files(self) -> list[dict[str, Any]]:
         """获取所有APL文件列表。
@@ -366,36 +333,25 @@ class APLDatabase:
         Returns:
             dict[str, Any] | None: 文件内容信息，未找到时返回None。
         """
+        if not file_id or not isinstance(file_id, str):
+            return None
 
-        try:
-            if file_id.startswith("default_"):
-                rel_path = file_id[len("default_") :]
-                base_dir = DEFAULT_APL_DIR
-            elif file_id.startswith("custom_"):
-                rel_path = file_id[len("custom_") :]
-                base_dir = COSTOM_APL_DIR
-            else:
-                print(f"无效的文件ID格式: {file_id}")
-                return None
-            file_path = os.path.join(base_dir, rel_path)
-            if not os.path.exists(file_path):
-                print(f"文件不存在: {file_path}")
-                return None
-            with open(file_path, "r", encoding="utf-8") as file:
-                content = file.read()
-            return {"file_id": file_id, "content": content, "file_path": file_path}
-        except FileNotFoundError:
-            print(f"文件未找到 - APL文件 {file_id}")
+        if file_id.startswith("default_"):
+            rel_path = file_id[len("default_") :]
+            base_dir = DEFAULT_APL_DIR
+        elif file_id.startswith("custom_"):
+            rel_path = file_id[len("custom_") :]
+            base_dir = COSTOM_APL_DIR
+        else:
             return None
-        except PermissionError:
-            print(f"权限不足 - 无法读取APL文件 {file_id}")
+
+        file_path = os.path.join(base_dir, rel_path)
+        if not os.path.exists(file_path):
             return None
-        except UnicodeDecodeError as exc:
-            print(f"文件编码错误 - APL文件 {file_id}: {exc}")
-            return None
-        except Exception as exc:
-            print(f"读取APL文件 {file_id} 时发生未知错误: {exc}")
-            return None
+
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+        return {"file_id": file_id, "content": content, "file_path": file_path}
 
     def create_apl_file(self, file_data: dict[str, Any]) -> str:
         """创建新的APL文件。
@@ -409,23 +365,18 @@ class APLDatabase:
         Raises:
             Exception: 当写入文件失败时抛出。
         """
+        if not file_data or not isinstance(file_data, dict):
+            raise ValueError("文件数据不能为空且必须是字典类型")
 
-        try:
-            name = file_data.get("name", "new_apl.toml")
-            content = file_data.get("content", "")
-            if not name.endswith(".toml"):
-                name += ".toml"
-            file_path = os.path.join(COSTOM_APL_DIR, name)
-            os.makedirs(COSTOM_APL_DIR, exist_ok=True)
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write(content)
-            return f"custom_{name}"
-        except PermissionError as exc:
-            raise Exception(f"权限不足 - 无法创建APL文件 {file_path}: {exc}") from exc
-        except OSError as exc:
-            raise Exception(f"文件系统错误 - 创建APL文件 {file_path}: {exc}") from exc
-        except Exception as exc:
-            raise Exception(f"创建APL文件时发生未知错误: {exc}") from exc
+        name = file_data.get("name", "new_apl.toml")
+        content = file_data.get("content", "")
+        if not name.endswith(".toml"):
+            name += ".toml"
+        file_path = os.path.join(COSTOM_APL_DIR, name)
+        os.makedirs(COSTOM_APL_DIR, exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(content)
+        return f"custom_{name}"
 
     def update_apl_file(self, file_id: str, content: str) -> bool:
         """更新APL文件内容。
@@ -437,31 +388,23 @@ class APLDatabase:
         Returns:
             bool: 更新成功返回True，否则False。
         """
+        if not file_id or not isinstance(file_id, str):
+            return False
+        if content is None or not isinstance(content, str):
+            return False
+        if file_id.startswith("default_"):
+            return False
+        if not file_id.startswith("custom_"):
+            return False
 
-        try:
-            if file_id.startswith("default_"):
-                print("不允许更新默认APL文件")
-                return False
-            if not file_id.startswith("custom_"):
-                print(f"无效的文件ID格式: {file_id}")
-                return False
-            rel_path = file_id[len("custom_") :]
-            file_path = os.path.join(COSTOM_APL_DIR, rel_path)
-            if not os.path.exists(file_path):
-                print(f"文件不存在: {file_path}")
-                return False
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write(content)
-            return True
-        except PermissionError:
-            print(f"权限不足 - 无法更新APL文件 {file_id}")
+        rel_path = file_id[len("custom_") :]
+        file_path = os.path.join(COSTOM_APL_DIR, rel_path)
+        if not os.path.exists(file_path):
             return False
-        except OSError as exc:
-            print(f"文件系统错误 - 更新APL文件 {file_id}: {exc}")
-            return False
-        except Exception as exc:
-            print(f"更新APL文件 {file_id} 时发生未知错误: {exc}")
-            return False
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(content)
+        return True
 
     def delete_apl_file(self, file_id: str) -> bool:
         """删除APL文件。
@@ -472,30 +415,20 @@ class APLDatabase:
         Returns:
             bool: 删除成功返回True，否则False。
         """
+        if not file_id or not isinstance(file_id, str):
+            return False
+        if file_id.startswith("default_"):
+            return False
+        if not file_id.startswith("custom_"):
+            return False
 
-        try:
-            if file_id.startswith("default_"):
-                print("不允许删除默认APL文件")
-                return False
-            if not file_id.startswith("custom_"):
-                print(f"无效的文件ID格式: {file_id}")
-                return False
-            rel_path = file_id[len("custom_") :]
-            file_path = os.path.join(COSTOM_APL_DIR, rel_path)
-            if not os.path.exists(file_path):
-                print(f"文件不存在: {file_path}")
-                return False
-            os.remove(file_path)
-            return True
-        except PermissionError:
-            print(f"权限不足 - 无法删除APL文件 {file_id}")
+        rel_path = file_id[len("custom_") :]
+        file_path = os.path.join(COSTOM_APL_DIR, rel_path)
+        if not os.path.exists(file_path):
             return False
-        except OSError as exc:
-            print(f"文件系统错误 - 删除APL文件 {file_id}: {exc}")
-            return False
-        except Exception as exc:
-            print(f"删除APL文件 {file_id} 时发生未知错误: {exc}")
-            return False
+
+        os.remove(file_path)
+        return True
 
     def _get_apl_from_dir(self, apl_dir: str, source_type: str) -> list[dict[str, Any]]:
         """从指定目录获取APL模板。
@@ -516,26 +449,23 @@ class APLDatabase:
                 if not file_name.endswith(".toml"):
                     continue
                 file_path = os.path.join(root, file_name)
-                try:
-                    with open(file_path, "rb") as file:
-                        apl_data = tomllib.load(file)
-                    general_info = apl_data.get("general", {})
-                    apl_list.append(
-                        {
-                            "id": f"{source_type}_{os.path.relpath(file_path, apl_dir).replace(os.sep, '_')}",
-                            "title": general_info.get("title", ""),
-                            "author": general_info.get("author", ""),
-                            "comment": general_info.get("comment", ""),
-                            "create_time": general_info.get("create_time", ""),
-                            "latest_change_time": general_info.get(
-                                "latest_change_time", ""
-                            ),
-                            "source": source_type,
-                            "file_path": file_path,
-                        }
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    print(f"Error loading APL file {file_path}: {exc}")
+                with open(file_path, "rb") as file:
+                    apl_data = tomllib.load(file)
+                general_info = apl_data.get("general", {})
+                apl_list.append(
+                    {
+                        "id": f"{source_type}_{os.path.relpath(file_path, apl_dir).replace(os.sep, '_')}",
+                        "title": general_info.get("title", ""),
+                        "author": general_info.get("author", ""),
+                        "comment": general_info.get("comment", ""),
+                        "create_time": general_info.get("create_time", ""),
+                        "latest_change_time": general_info.get(
+                            "latest_change_time", ""
+                        ),
+                        "source": source_type,
+                        "file_path": file_path,
+                    }
+                )
         return apl_list
 
     def _get_apl_files_from_dir(

@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from zsim.define import __version__
+from zsim.api_src.services.database.migrate import run_migrations_to_head
 
 dotenv.load_dotenv()
 
@@ -35,6 +36,13 @@ if os.getenv("ZSIM_DISABLE_ROUTES") != "1":
     )  # defer import to avoid side effects in tests
 
     app.include_router(api_router, prefix="/api", tags=["ZSim API"])
+
+
+@app.on_event("startup")
+def apply_database_migrations() -> None:
+    """在应用启动时自动执行数据库迁移。"""
+
+    run_migrations_to_head()
 
 
 @app.get("/health")

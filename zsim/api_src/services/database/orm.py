@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -55,6 +56,7 @@ def get_sync_database_url() -> str:
 
 _async_engine: AsyncEngine = create_async_engine(get_async_database_url(), future=True)
 _async_session_factory = async_sessionmaker(_async_engine, expire_on_commit=False)
+_sync_engine: Engine | None = None
 
 
 def get_async_engine() -> AsyncEngine:
@@ -65,6 +67,15 @@ def get_async_engine() -> AsyncEngine:
     """
 
     return _async_engine
+
+
+def get_sync_engine() -> Engine:
+    """返回复用的同步SQLAlchemy引擎实例。"""
+
+    global _sync_engine
+    if _sync_engine is None:
+        _sync_engine = create_engine(get_sync_database_url(), future=True)
+    return _sync_engine
 
 
 @asynccontextmanager
@@ -94,4 +105,5 @@ __all__ = [
     "get_async_session",
     "get_async_database_url",
     "get_sync_database_url",
+    "get_sync_engine",
 ]

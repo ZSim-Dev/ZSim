@@ -28,8 +28,51 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
 - 新结构：
   - `GlobalBuffController`
     - `buff_initiate_factory`——原`buff_0_manager`，负责Buff初始化
+
+    ```python
+    class GlobalBuffController:
+      def __init__(self):
+        self._buff_box: dict[int, Buff] = defaultdict()
+
+      def buff_initiate_factory(self, sim_config: "SimConfig") -> None:
+        """读取配置单（SimConfig）、筛选出所有和本次模拟有关的Buff，初始化并构造注册函数"""
+        buff_candidate_list: list[dataframe] = self.select_buff(sim_config)       # 根据配置单从数据库筛选、读取出有关buff的原数据并返回列表
+        for df in buff_candidate_list:          # 构造这些Buff，存入本地的buff_box中。
+          buff_new = Buff()
+          self._buff_box[buff_new.id] = buff_new
+
+    ```
+
   - `event_router`——解析事件，转化为结构更简单的上下文，防止复杂对象在不同阶段流动、传递。
     - `event_label_factory`——负责事件解析，将事件标签化，返回`environment_profile`（事件画像）
+      - `ZSimEvent`——模拟器事件，这是ZSim中的一个重要概念，涵盖了大部分主要业务逻辑。
+
+      ```python
+      ZSimEventType = Literal["skill_event", "anomaly_event", "schedule_preload_event", ...]
+      event_type_map = {
+        SkillNode: "skill_event", 
+        AnomalyBar: "anomaly_event",
+        SchedulePreload: "schedule_preload_event",
+        ...
+      }
+      class ZSimEvent:
+        def __init__(self, event: SkillNode | AnomalyBar | ...):
+          try:
+            self.event_type: ZSimEventType = event_type_map.get(type(event))
+          except KeyError:
+            raise f"未找到{type(event).__name__}类对象对应的事件类型"
+          self.event_labels = self.split_event_to_labels(event)
+      ```
+
+      - `EventProfile`——事件画像，这是ZSim内部对于“战斗当前环境的抽象参数集”，该对象将主要用于Buff的判断和APL的判断。
+
+      ```python
+      class EventProfile:
+        def __init__(self)
+
+
+      ```
+
     - `buff_filter`——根据事件画像，筛选出可能触发的Buff（缩小遍历范围）
     - `condition_evaluator`——负责遍历`event_router`筛选出的Buff集，通过Buff记录的`logic_id`调用对应的逻辑判定脚本，结合传入的事件标签，决定Buff是否触发
     - `buff_activator`——调用`BuffManager`实现Buff的触发

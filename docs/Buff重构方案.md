@@ -27,6 +27,7 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
 
 - 新结构：
   - `GlobalBuffController`
+    - `_buff_box`——内部的Buff仓库，存储本次模拟中构造的所有Buff对象。
     - `buff_initiate_factory`——原`buff_0_manager`，负责Buff初始化
 
     ```python
@@ -34,18 +35,67 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
       def __init__(self):
         self._buff_box: dict[int, Buff] = defaultdict()
 
+      def buff_register(self, buff: Buff):
+        """注册传入的Buff"""
+        assert buff.id not in self._buff_box.keys(), f"企图对id为{buff.id}的Buff进行重复注册！" 
+        self._buff_box[buff.id] = buff
+
       def buff_initiate_factory(self, sim_config: "SimConfig") -> None:
-        """读取配置单（SimConfig）、筛选出所有和本次模拟有关的Buff，初始化并构造注册函数"""
+        """读取配置单（SimConfig）、筛选出所有和本次模拟有关的Buff，初始化并进行注册"""
         buff_candidate_list: list[dataframe] = self.select_buff(sim_config)       # 根据配置单从数据库筛选、读取出有关buff的原数据并返回列表
         for df in buff_candidate_list:          # 构造这些Buff，存入本地的buff_box中。
           buff_new = Buff()
-          self._buff_box[buff_new.id] = buff_new
-
+          self.buff_register(buff_new)
     ```
 
-  - `event_router`——解析事件，转化为结构更简单的上下文，防止复杂对象在不同阶段流动、传递。
-    - `event_label_factory`——负责事件解析，将事件标签化，返回`environment_profile`（事件画像）
-      - `ZSimEvent`——模拟器事件，这是ZSim中的一个重要概念，涵盖了大部分主要业务逻辑。
+    - `BuffManager`——虽然Buff自身可以完成最基础的`start`、`end`等操作，但是角色对象持有的有效Buff的CRUD还是需要通过`BuffManager`进行的。
+      - `BuffOperator`——对角色的`active_buff_list`进行操作，新增、去除Buff。
+
+      ```python
+      class GlobalBuffController:
+        class BuffManager:
+          class BuffOperator:
+            def add_buff(self, buff: Buff, target: str | Character | ...) -> None:
+              ...
+
+            def remove_buff(self, buff: Buff, target: str | Character | ...) -> None:
+              ...
+      ```
+
+  - `event_router`——解析复杂对象，触发事件。
+    - `__init__`——包含一个HandlerMap、一个Buff事件树，以及一个激活事件列表。
+
+    ```python
+    from abc import ABC, abstract_method
+
+    class EventHandler(ABC):
+      @abstract_method
+      def excute():     # 具体业务逻辑
+        ...
+    
+    class SkillEventHandler(EventHandler):
+      def excute():
+        ...
+
+    class EventRouter:
+      def __init__(self):
+        self.event_handler_map: dict[str, EventHandler] = {
+          "skill_event": SkillEventHandler,
+          "buff_event": BuffEventHandler,
+          ...
+        }     # Handler仓库，随业务拓展，在开发时，要注意所有Handler所需要的信息都通过Context传递，Context高度解耦处理。
+        self.event_trigger_tree = None       # 事件触发器树
+        self.active_event_list: list[ZSimEvent] = []           # 动态事件列表
+      
+      def update_event_list():      # 更新事件列表的业务逻辑，可能是多个函数。
+        ...
+      
+      def register_event() -> None:      # 在触发器树中注册事件,
+        ...
+    ```
+
+    - `ZSimEvent`和`EventProfile`——模拟器事件和事件画像。这是ZSim的两个重要概念，是新架构得以成立的基石。
+      - `ZSimEvent`——ZSim中的事件，这里只展示基类。
 
       ```python
       ZSimEventType = Literal["skill_event", "anomaly_event", "schedule_preload_event", ...]
@@ -55,31 +105,32 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
         SchedulePreload: "schedule_preload_event",
         ...
       }
+
       class ZSimEvent:
         def __init__(self, event: SkillNode | AnomalyBar | ...):
           try:
             self.event_type: ZSimEventType = event_type_map.get(type(event))
+            self.event_obj = event
           except KeyError:
             raise f"未找到{type(event).__name__}类对象对应的事件类型"
-          self.event_labels = self.split_event_to_labels(event)
+        
+        """对于不同的封装对象，应该构造不同的事件，这样不同的事件就可以分别重写同名方法来获取对应属性了。"""
       ```
 
-      - `EventProfile`——事件画像，这是ZSim内部对于“战斗当前环境的抽象参数集”，该对象将主要用于Buff的判断和APL的判断。
+      - `EventProfile`——事件画像类，对ZSim事件的封装。并且提供对外接口，以获取内部所封装的复杂对象的参数。
 
       ```python
       class EventProfile:
-        def __init__(self)
+        def __init__(self, event_group: list[ZSimEvent]):
+          self.event_group: list[ZSimEvent | None] = []
+        
+        def get_skill_type(self) -> int:
+          ...
 
-
+        def get_trigger_buff_level(self) -> int:
+          ...
       ```
 
-    - `buff_filter`——根据事件画像，筛选出可能触发的Buff（缩小遍历范围）
-    - `condition_evaluator`——负责遍历`event_router`筛选出的Buff集，通过Buff记录的`logic_id`调用对应的逻辑判定脚本，结合传入的事件标签，决定Buff是否触发
-    - `buff_activator`——调用`BuffManager`实现Buff的触发
-    - `buff_terminator`——负责调用`BuffManager`实现Buff的终止
-  - `BuffManager`——全局Buff管理器，负责对所有Buff进行CRUD操作
-    - `buff_box`——全局Buff实例的存储地，存储所有Buff对象
-    - `buff_operator`——实现Buff的查找、注册等基础操作
   - `Buff`——原`buff_class`，定义了Buff类
     - `buff_feature`——原`buff_feature`或`buff.ft`，记录了Buff的静态信息（最大持续时间、层数、更新规则）
     - `buff_dynamic`——原`buff_dynamic`或`buff.dy`，记录了Buff的动态信息（更新时间、动态层数等）
@@ -88,6 +139,28 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
   - `Character`和`Calculator`中进行的对应适配改动：
     - `dynamic_attribute`——重构动态属性类
       - `attribute_calculator`——负责动态属性的计算（需要调用`buff_manager.bonus_applier`）
+  - `Load`阶段的关于技能事件相关的功能整合进`event_router`中。
+
+-----------------------------------
+
+## **关于EventRouter和新触发器系统的运作方式**
+
+### **“事件”与“计划事件”的区别**
+
+> ***ZSim中，抛出并立刻处理的是“事件”，而抛出后，等待未来某个tick再处理的是“计划事件”。***
+> “事件”没有中转地，在被`publish`时，会被立刻调用对应的`handler`进行处理，
+> 而“计划事件”则需要构造成一个新的业务类（类似于`SchedulePreload`），并将其抛入`Schedule.event_list`中，在`Schedule`阶段再进行处理。
+> 在本次Buff系统重构中，绝大部分的对象都会被封装为“事件”而非“计划事件”
+
+### **事件触发器树`event_trigger_tree`的构造**
+
+> `event_trigger_tree`是本次重构中提出的一个新概念，在初始化时，会有一个基本的树，包含了技能事件、异常事件的节点，然后在初始化Buff的过程中，不断根据Buff的需要，在事件树中注册不同的Buff触发器事件。
+
+### **事件画像`EventProfile`和`event_trigger_tree`的交互**
+
+> ZSim在每个tick（频率存疑，可能还需要进一步讨论）构造一个事件画像，并且`event_trigger_tree`的各个节点调用该对象的各种方法获取自己关心的信息。一旦满足条件，就执行自身的`publish`方法，调用对应的handler实现事件的触发。
+
+-----------------------------------
 
 ## **关于Buff系统新架构的一些重要信息**
 
@@ -128,11 +201,20 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
 >
 >```mermaid
 > graph LR
-> A[buff_manager] -->|委托调用| B[Buff.start/end]
-> C[event_router] -->|发布触发事件|S[Schedule]
-> S -->|执行触发事件<br>抛出触发信号| H[buff_active_handler]
-> H -->|调用BuffManager| A
-> A -->|委托执行| B
+> A[Buff] -->|根据自身LogicID<br>注册对应Handler|B[event_router.<br>event_trigger_tree]
+> E[复杂对象] -->|封装|ZE[ZSimEvent1]
+> ZE -->|封装|EP
+> ZE1[ZSimEvent2] -->|封装|EP[事件画像<br>EventProfile]
+> ZE2[ZSimEvent3] -->|封装|EP
+> ZE3[ZSimEvent4] -->|封装|EP
+> ZE4[...] -->|封装|EP
+> EP -->|提供信息|B
+> B -->|激活|N[节点]
+> N-->|执行|P[publish<br>事件]
+> P -->|调用|H[BuffHandler]
+> H -->|调用|B1[buff.start<br>buff.end<br>...]
+> H-->|发布|B2[Buff更新事件]
+> B2-->|调用|BM[BuffManager<br>执行CRUD]
 > ```
 
 ## **Buff的分类**
@@ -142,7 +224,7 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
 - 增减益Buff：这类Buff总是会给予对象**数值上的改变**，比如：增幅、削弱属性，影响乘区等；
 - 触发器Buff：这类Buff不包含任何的数值改变，但是它的触发本身会导致一些其他事情的发生——可能是造成一些附加伤害、可能是触发别的Buff、或者是修改角色某个特殊状态等
 不光是ZSim，可以说所有游戏中的Buff都可以被概括为这两个类别。
-**这一Buff分类准则作为ZSimBuff系统的底层设计，在本次重构中并未改变。**
+**这一Buff分类准则作为ZSimBuff系统的底层设计，在本次重构中并未改变。只是，新系统重，不同类型的Buff需要构建不同给的Handler来处理它们的业务逻辑**
 
 ## **Buff的生命周期管理（CRUD）：**
 
@@ -151,206 +233,33 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
   - Buff在创建时，还需要根据自身的`logic_id`中记录的子条件组合，调用`event_router`的注册器，将自己注册到对应的逻辑树节点上。
 - Buff的新增/刷新：
   - Buff的新增、刷新事件业务链：
-    1. `event_router`提供的事件画像触发了逻辑树上的对应节点，此时节点会抛出一个触发事件`BuffTriggerEvent`，
-    2. 在Schedule阶段，该事件会被解析，并且于对应的时间执行，转化为更新信号`EventExcuteSignal`类，其中记录了Buff的ID、本次新增的受益人、新增的层数、时间等信息，
-    3. 信号被传输给`EventHander`，并且被对应的`buff_update_hander`接收，
-    4. `buff_update_hander`接收信号后，调用`buff_manager`的对应方法`buff_start`，执行Buff的新增，该方法只接受一个`EventExcuteSignal`类，该方法通过`buff.id`为键值，直接访问内部的Buff仓库，找到对应Buff对象，并且修改其`buff.dynamic`下的对应参数。
+    1. `event_router`提供的事件画像触发了逻辑树上的对应节点，节点激活时，会调用`publish`方法，调用`buff_event_handler`来调用buff的`start`和`end`方法，同时发布一个`buff更新事件`.
+    2. `buff.start()`或者`buff.end()`方法调用时，会更新自身的信息，
+    3. `BuffManager`收到`buff更新事件`时，会执行对应角色的Buff增删操作。
+
 - Buff的查找：
   - 通过调用`buff_manager`的对应接口来实现Buff的查找
 - Buff的消退：
-  - Buff的消退的流程和其新增流程类似，同样是通过`event_router`抛出事件、Schedule抛出信号、被对应的Handler接收、最后调用`buff.end()`执行。注意，部分Buff的消退不依赖于自然时间的流逝，而是具有特殊的判定行为，这部分业务交由`event_router`的逻辑树管理，Buff自身不负责判定何时消退。
+  - Buff的消退的流程和其新增流程类似，同样是通过`event_router`或是`GlobalBuffController`抛出事件、调用对应的Handler执行。注意，部分Buff的消退不依赖于自然时间的流逝，而是具有特殊的判定行为，这部分业务交由`event_router`的逻辑树管理，Buff自身不负责判定何时消退。
 
-    ```mermaid
-        flowchart LR
-    A[事件画像] --> B[逻辑树节点]
-    B --> C[抛出BuffTriggerEvent]
-    C --> D[Schedule阶段]
-    D --> E[解析事件]
-    E --> F[生成EventExcuteSignal]
-    F --> G[EventHander]
-    G --> H[buff_update_hander]
-    H --> I[buff_manager.buff_start]
-    I --> J[访问Buff仓库]
-    J --> K[委托Buff执行状态更新]
-    
-    subgraph 事件触发阶段
-        A --> B --> C
-    end
-    
-    subgraph 调度执行阶段
-        D --> E --> F
-    end
-    
-    subgraph 信号处理阶段
-        G --> H --> I
-    end
-    
-    subgraph Buff更新阶段
-        J --> K
-    end
-    ```
+-----------------------------------
 
-    ```python
-    from dataclasses import dataclass
-    from typing import Literal, Optional, Dict, List
+## **关于Buff效果系统的重构（待讨论）**
 
-    @dataclass
-    class BuffUpdateSignal:
-        """Buff更新信号，用于传递Buff的动态信息"""
-        buff_id: int
-        beneficiary: int            # 受益人CID
-        start_tick: int
-        end_tick: int
-        count: int | float
+### 老框架
 
-    @dataclass
-    class BuffAddSignal(EventExcuteSignal):
-        """Buff添加信号，继承自事件执行信号基类"""
-        buff_id: int
-        buff_operation_type: Literal["start", "end"]
-        buff_update_info: List[BuffUpdateSignal]
-
-    class BuffManager:
-        """全局Buff管理器，负责对所有Buff进行CRUD操作"""
-        def __init__(self):
-            self._buff_inventory: Dict[int, Buff] = {}       # {buff.id: buff对象}
-
-        def start_buff(self, signal: BuffUpdateSignal) -> None:
-            """启动Buff，委托给Buff对象执行具体逻辑"""
-            buff = self._buff_inventory.get(signal.buff_id, None)
-            assert buff is not None, f"未找到ID为{signal.buff_id}的Buff"
-
-            # 委托给Buff对象执行启动逻辑
-            buff.start(signal)
-
-        def end_buff(self, signal: BuffUpdateSignal) -> None:
-            """结束Buff，委托给Buff对象执行具体逻辑"""
-            buff = self._buff_inventory.get(signal.buff_id, None)
-            assert buff is not None, f"未找到ID为{signal.buff_id}的Buff"
-
-            # 委托给Buff对象执行结束逻辑
-            buff.end(signal)
-
-    ```
-
-    ```python
-    class Buff:
-        """Buff类，定义了Buff的基础行为和数据结构"""
-        def __init__(self, buff_id: int):
-            self.id = buff_id
-            self.feature = BuffFeature()    # 静态特征（最大持续时间、层数等）
-            self.dynamic = BuffDynamic()    # 动态状态（当前持续时间、层数等）
-            self.effect_list: List[effect_base_class] = []  # Buff效果列表
-
-        def start(self, signal: BuffUpdateSignal) -> None:
-            """启动Buff，更新动态信息并激活效果"""
-            # 更新动态状态
-            self.dynamic.start_tick = signal.start_tick
-            self.dynamic.end_tick = signal.end_tick
-            self.dynamic.count = signal.count
-            self.dynamic.is_active = True
-
-            # 执行启动时的内部逻辑
-            self._on_start()
-
-        def end(self, signal: BuffUpdateSignal) -> None:
-            """结束Buff，清理动态信息"""
-            # 重置动态状态
-            self.dynamic.is_active = False
-            self.dynamic.start_tick = 0
-            self.dynamic.end_tick = 0
-            self.dynamic.count = 0
-
-            # 执行结束时的内部逻辑
-            self._on_end()
-
-        def refresh(self, signal: BuffUpdateSignal) -> None:
-            """刷新Buff，根据特性决定刷新策略"""
-            if self.feature.refresh_rule == "extend":
-                # 延长时间：新结束时间 = 当前tick + 持续时间
-                self.dynamic.end_tick = max(
-                    self.dynamic.end_tick,
-                    signal.start_tick + self.feature.duration
-                )
-            elif self.feature.refresh_rule == "reset":
-                # 重置时间
-                self.dynamic.start_tick = signal.start_tick
-                self.dynamic.end_tick = signal.end_tick
-
-            # 更新层数（如果是叠加类Buff）
-            if self.feature.can_stack:
-                self.dynamic.count = min(
-                    signal.count,
-                    self.feature.max_stack
-                )
-
-            # 执行刷新时的内部逻辑
-            self._on_refresh()
-
-        def is_active(self, current_tick: int) -> bool:
-            """检查Buff是否处于激活状态"""
-            return (self.dynamic.is_active and
-                   self.dynamic.start_tick <= current_tick <= self.dynamic.end_tick)
-
-        # 私有方法，保证内部状态一致性
-        def _on_start(self) -> None:
-            """Buff启动时的内部逻辑"""
-            # 准备效果对象
-            for effect in self.effect_list:
-                effect.on_buff_start(self)
-
-        def _on_end(self) -> None:
-            """Buff结束时的内部逻辑"""
-            # 清理效果对象
-            for effect in self.effect_list:
-                effect.on_buff_end(self)
-
-        def _on_refresh(self) -> None:
-            """Buff刷新时的内部逻辑"""
-            # 刷新相关效果
-            for effect in self.effect_list:
-                effect.on_buff_refresh(self)
-    ```
-
-
-# **事件画像与事件标签**
-> ### 条件 即 事件（底层逻辑！！）
-> #### 事件画像`environment_profile`是本次重构中提出的一个新概念。
-> 由于**"Buff的触发依赖事件**的这一底层逻辑并未改变，所以ZSim的新Buff系统的运行依旧需要明确的事件信号。
-> 在以往，这一信号往往是通过直接传递事件本身（`SkillNode | AnomalyBar | ……`）以及其他附带的简单`str`格式的上下文来实现的。
-> 而新的Buff系统为了实现解耦，必须要避免直接传递事件对象本身，
-> 所以我们安排`event_router`对事件进行解析，拆解成事件标签`event_label`，并且封装进事件画像`environment_profile`中。
->> 注意：模拟器中某个tick的事件画像可能是极为复杂的，如果仅从"抽象描绘事件和环境"的角度出发，我们难以得到最简练的事件画像。
->> 由于事件画像目前仅服务于Buff系统（在肉眼可见的未来，它的服务对象或有拓展，但是方式不会有巨大的改变），
->> 我们完全可以根据需求侧的情况，来定制事件标签的种类。
->> 即，我们需要一个"标签仓库"，来存放目前已经开发的Buff所有可能用到的标签，并且对他们进行归纳、分类。
->> 而`event_router`在构建事件画像时，仅根据这个"标签仓库"中已有的标签类别进行构建。
->> 这样，我们就实现了标签类的最简化处理，还能满足所有的Buff触发的需求。
-> 以上，就是我们在重构会议中提到的——**条件 即 事件**。
-> ```mermaid
-> graph LR
->     A[原始事件] --> B[event_router]
->     B --> C[事件解析]
->     D[标签仓库] --> C
->     C --> E[生成事件标签]
->     E --> F[封装事件画像]
->     F --> G[Buff系统判定]
->     G --> H[Buff触发]
-> ```
-
-
-# **关于Buff效果系统的重构**
-## 老框架
 - 通过读取`buff_effect.csv`获取Buff对应的效果`dict[str, int | float]`，然后借助`data_analyzer.py`等模块，最终在构造乘区类`MultiplierData`时，转译成各属性、乘区加成
 - 缺陷：
   - `data_analyzer.py`的业务逻辑基本就是字符串解释器，扩展性较差，而且维护、拓展非常烧脑，并且运行需要传入`Generator`来构造`list[Buff]`，耦合程度太高，难以测试。
   - `MultiplierData`框架设计于立项初期，完全做拆分，算任何属性都需要把全部属性、乘区都构造一遍，且生命周期极短，用完就扔，性能浪费严重，
   - `MultiplierData`没有设计供外部调用的接口，导致外部模块（例如`Buff.logic`或是`Character`）需要知道角色的动态属性时，就不得不调用大量参数就地构建一个新的`MultiplierData`
 
----------------------------
-## 新框架
+### 新框架
+
 - 新框架将对整个系统（涉及到：`Buff`, `Character`, `Calculator`等多个模块）进行了重构，彻底实现“Buff生效”功能的解耦。
-## 相关重构细节如下（仅限于`buff_effect`以及角色属性、乘区相关）：
+
+### 相关重构细节如下（仅限于`buff_effect`以及角色属性、乘区相关）
+
 - `Character`相关
   - 在`Character`下，构建一个新的`dynamic_attribute`（暂时名）类，与原有的`Statement`并列
   - 将原本属于`MultiplierData`管理的动态属性和乘区占位符合并、转移到`dynamic_attribute`下

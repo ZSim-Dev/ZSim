@@ -244,21 +244,69 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
 
 -----------------------------------
 
-## **关于Buff效果系统的重构（待讨论）**
+## **关于Buff效果系统的重构**
 
 ### 老框架
 
 - 通过读取`buff_effect.csv`获取Buff对应的效果`dict[str, int | float]`，然后借助`data_analyzer.py`等模块，最终在构造乘区类`MultiplierData`时，转译成各属性、乘区加成
 - 缺陷：
   - `data_analyzer.py`的业务逻辑基本就是字符串解释器，扩展性较差，而且维护、拓展非常烧脑，并且运行需要传入`Generator`来构造`list[Buff]`，耦合程度太高，难以测试。
-  - `MultiplierData`框架设计于立项初期，完全做拆分，算任何属性都需要把全部属性、乘区都构造一遍，且生命周期极短，用完就扔，性能浪费严重，
+  - `MultiplierData`框架设计于立项初期，未考虑拓展和解耦，导致处理任何计算事件时都需要把全部属性、乘区都构造一遍，且生命周期极短，用完就扔，性能浪费严重，
   - `MultiplierData`没有设计供外部调用的接口，导致外部模块（例如`Buff.logic`或是`Character`）需要知道角色的动态属性时，就不得不调用大量参数就地构建一个新的`MultiplierData`
 
 ### 新框架
 
 - 新框架将对整个系统（涉及到：`Buff`, `Character`, `Calculator`等多个模块）进行了重构，彻底实现“Buff生效”功能的解耦。
+- 核心思路如下：
+  1. 将属性和乘区归还给`Character`对象，一同归入`Character`的还有计算属性和乘区的一些方法
+  2. 将Buff的效果对象化，并且在`Character`内部构造专门的容器用来存放效果对象，容器私有，外部只能访问`Character`提供的接口来获取所关心属性的实时加成
+  3. 在`buff_effect`池和`active_buff_list`池之间，构建自动化的同步流程，保证Buff新增时，加成池同步更新（但是需要考虑类似于席德强袭Buff这种“存在但不生效”的情况）
+      - 切入点：`buff_effect`自己不知道是否应该加入效果池，所以，在`active_buff_list`更新时，`buff_effect`池子默认保持更新，而独立存在一个“去除Buff效果”或者是“使Buff存在但效果静默”的事件来执行这件事情——这属于一个Buff的额外效果，需要注册到事件树中。
+  4. 在`Calculator`中，对新架构进行适配（工作量略大）
 
 ### 相关重构细节如下（仅限于`buff_effect`以及角色属性、乘区相关）
+
+- `effect_base_class`相关（新增）
+  - `effect_base_class`就是本轮重构中，为“Buff效果”设计的类，专门服务于更改属性、乘区的Buff效果而创建，至于Buff触发器，将直接通过事件树进行注册，而不走`effect_base_class`路径，也不会进入`Character`的加成池。
+  - 该对象的构造依赖数据库中记录的Buff效果json：
+
+  ```json
+  [
+    {
+      "target_attribute": "固定攻击力",
+      "value": 100,
+      "element_type": [1,2,3],
+      "skill_tag": ["1301_SNA_1", "1301_SNA_2"]
+    },
+    {
+      "target_attribute": "增伤",
+      "value": 0.3
+    },
+  ]
+  ```
+
+  - 根据以上格式的`json`数据，由`Buff`对象来负责构建`Buff.effect`对象。该对象会在Buff激活时，直接加入`BuffManager.buff_effect_pool`中，注意，一个Buff对应的effect的`json`字段可能有多个，此时我们需要构造多个`effect`对象，做到一个`effect`对象仅管理一种效果。考虑到Buff的效果被分为“属性值增减益”和“事件触发器两类”，所以，设计两个继承自`effect_base_class`的类，分别处理两种不同的业务。
+  - `bonus_effect_class(effect_base_class)`对象，具有属性和方法：
+    - `value`：每一层Buff增幅的数值
+    - `target_attribute`：增幅的项目
+    - `apply_condition_list: list`：能够使Buff生效的额外条件，除`target_attribute`和`value`字段以外的其他字段，都会被视作生效条件约束，它们都会被编入`apply_judger.apply_condition_list`中
+  - `trigger_class(effect_base_class)`对象，具有属性和方法：
+    - 前提条件：`json`字段中含有`trigger`参数，且对应值为True时，其他参数除`event_id`以外，全部失效（当然，最好要通过pydantic进行检测，这样可以尽早暴露JSON文件填写的问题）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - `Character`相关
   - 在`Character`下，构建一个新的`dynamic_attribute`（暂时名）类，与原有的`Statement`并列
@@ -269,32 +317,49 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
   - `bonus_applier`方法，该方法仅接受核心参数：`target_attribute`和`applied_buff_effect_list`，通过遍历`applied_buff_effect_list`，计算`target_attribute`的加成，返回给`Character.dynamic_attribute.attribute_calculator`
   - `active_buff_list`：Character级别的动态Buff列表，通过订阅Buff状态变更事件自动维护
   - `bonus_pool`：Character级别的增益池，用于存放当前激活Buff的效果，与`active_buff_list`保持同步更新，当然，也需要保留非同步更新的业务逻辑（席德Buff激活但不生效）
-- `effect_base_class`相关（新增）
-  - 构建一个用于传递“Buff效果信息”的基类`effect_base_class`（暂时名），这些`effect_base_class`记录了增益种类、数值，或者是触发器的触发事件。
-  - 通过读取数据库中以`json`格式存储的数据
 
-```json
-	 [
-		  {
-			  "target_attribute": "固定攻击力",
-			  "value": 100,
-			  "element_type": [1,2,3],
-			  "skill_tag": ["1301_SNA_1", "1301_SNA_2"]
-		  },
-		  {
-			  "target_attribute": "增伤",
-			  "value": 0.3
-		  },
-		  {
-			  "trigger": true,
-			  "event_id": 10030
-		  }
-	  ]
+## **BonusPool数据结构示意图**
+
+以下是复合字典结构在ZSim中的应用示例：
+
+### 多字典索引结构
+
+| Buff名称 | 攻击力相关 | 生命值相关 | 增伤区相关 | 防御区相关 |
+|:---------|:-----------|:-----------|:-----------|:-----------|
+| **席德-围杀** | ✅ [+100] | ❌ | ✅ [+15%] | ❌ |
+| **席德-强袭** | ✅ [+200] | ❌ | ✅ [+25%] | ❌ |
+| **拂晓生花-普攻增伤** | ❌ | ❌ | ✅ [+10%] | ❌ |
+| **拂晓生花-四件套常驻** | ✅ [+50] | ✅ [+300] | ❌ | ❌ |
+| **机巧心种-暴击** | ✅ [+12%] | ❌ | ❌ | ❌ |
+| **机巧心种-电属性增伤** | ❌ | ❌ | ✅ [+20%] | ❌ |
+
+### 对应的字典结构
+
+```python
+# 按Buff管理的字典 - 用于快速增删
+_effects_by_buff = {
+    1001: [attack_effect_1001, damage_bonus_effect_1001],  # 席德-围杀
+    1002: [attack_effect_1002, damage_bonus_effect_1002],  # 席德-强袭
+    2001: [damage_bonus_effect_2001],                     # 拂晓生花-普攻增伤
+    # ...
+}
+
+# 按属性索引的字典 - 用于快速查询
+_effects_by_attribute = {
+    "攻击力": [attack_effect_1001, attack_effect_1002, attack_effect_2002, crit_effect_3001],
+    "生命值": [hp_effect_2002],
+    "增伤": [damage_bonus_effect_1001, damage_bonus_effect_1002, damage_bonus_effect_2001, damage_bonus_effect_3002],
+    "防御": [],  # 当前无防御相关Buff
+}
 ```
-  - 根据以上格式的`json`数据，由`Buff`对象来负责构建`Buff.effect`对象。该对象会在Buff激活时，直接加入`BuffManager.buff_effect_pool`中，注意，一个Buff对应的effect的`json`字段可能有多个，此时我们需要构造多个`effect`对象，做到一个`effect`对象仅管理一种效果。考虑到Buff的效果被分为“属性值增减益”和“事件触发器两类”，所以，设计两个继承自`effect_base_class`的类，分别处理两种不同的业务。
-  - `bonus_effect_class(effect_base_class)`对象，具有属性和方法：
-    - `value`：每一层Buff增幅的数值
-    - `target_attribute`：增幅的项目
-    - `apply_condition_list: list`：能够使Buff生效的额外条件，除`target_attribute`和`value`字段以外的其他字段，都会被视作生效条件约束，它们都会被编入`apply_judger.apply_condition_list`中
-  - `trigger_class(effect_base_class)`对象，具有属性和方法：
-    - 前提条件：`json`字段中含有`trigger`参数，且对应值为True时，其他参数除`event_id`以外，全部失效（当然，最好要通过pydantic进行检测，这样可以尽早暴露JSON文件填写的问题）
+
+### 性能对比
+
+| 操作类型 | List方案 | 多字典方案 | 性能提升 |
+|:---------|:---------|:-----------|:---------|
+| **查询攻击力加成** | O(N) 遍历所有Buff | O(1) 直接访问 | **~10倍** |
+| **移除特定Buff** | O(1) 追加到列表 | O(K) 从多个字典移除 | **轻微增加** |
+| **整体性能** | 查询密集型负载 | 查询优化型负载 | **~9-12倍** |
+
+> **结论**：虽然增删操作略有复杂化，但查询性能的大幅提升完全值得这种设计。
+

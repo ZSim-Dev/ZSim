@@ -293,21 +293,6 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
   - `trigger_class(effect_base_class)`对象，具有属性和方法：
     - 前提条件：`json`字段中含有`trigger`参数，且对应值为True时，其他参数除`event_id`以外，全部失效（当然，最好要通过pydantic进行检测，这样可以尽早暴露JSON文件填写的问题）
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 - `Character`相关
   - 在`Character`下，构建一个新的`dynamic_attribute`（暂时名）类，与原有的`Statement`并列
   - 将原本属于`MultiplierData`管理的动态属性和乘区占位符合并、转移到`dynamic_attribute`下
@@ -316,15 +301,23 @@ ZSim开发进程推进至今，`Buff`模块已经成为了最大的瓶颈，也�
   - `buff_effect_selector`方法，接收核心参数`environment_profile`（事件画像），该参数由外部结构`event_router`抛出，根据该对象中记录的事件标签组合，从当前激活的Buff中筛选出适配的效果
   - `bonus_applier`方法，该方法仅接受核心参数：`target_attribute`和`applied_buff_effect_list`，通过遍历`applied_buff_effect_list`，计算`target_attribute`的加成，返回给`Character.dynamic_attribute.attribute_calculator`
   - `active_buff_list`：Character级别的动态Buff列表，通过订阅Buff状态变更事件自动维护
-  - `bonus_pool`：Character级别的增益池，用于存放当前激活Buff的效果，与`active_buff_list`保持同步更新，当然，也需要保留非同步更新的业务逻辑（席德Buff激活但不生效）
+  - `bonus_pool`：Character级别的增益池对象，封装了效果池，以及效果池所需的CRUD方法。
+    - `buff_effect_data`：这是整个`bonus_pool`对象的核心，是一个手动搭建的二维数据结构，但不能`data_frame`
+    > 需要二维数据结构但又不选择`data_frame`的原因：
+    > - 要满足Buff的CRUD操作中，通过buff的id或是index来锁定对应buff_effect的需求，
+    > - 要满足计算阶段，搜索某类属性加成时能够返回全部的适配buff_effect
+    > - 而`data_frame`的内核其实是遍历，无法真正做到性能的节省。在buff系统中， 关于`buff_effect`的操作是非常频繁的，所以必须考虑性能问题。
+    - `add_buff_effect`：向`buff_effect_data`中新增Buff效果的方法
+    - `cancel_buff_effect`：向`buff_effect_data`中删除Buff效果的方法
+    - 其他方法按照业务需求进行拓展。
 
-## **BonusPool数据结构示意图**
+## **buff_effect_data数据结构示意图**
 
 以下是复合字典结构在ZSim中的应用示例：
 
 ### 多字典索引结构
 
-| Buff名称 | 攻击力相关 | 生命值相关 | 增伤区相关 | 防御区相关 |
+| Buff名称或者id | 攻击力相关 | 生命值相关 | 增伤区相关 | 防御区相关 |
 |:---------|:-----------|:-----------|:-----------|:-----------|
 | **席德-围杀** | ✅ [+100] | ❌ | ✅ [+15%] | ❌ |
 | **席德-强袭** | ✅ [+200] | ❌ | ✅ [+25%] | ❌ |
@@ -352,14 +345,3 @@ _effects_by_attribute = {
     "防御": [],  # 当前无防御相关Buff
 }
 ```
-
-### 性能对比
-
-| 操作类型 | List方案 | 多字典方案 | 性能提升 |
-|:---------|:---------|:-----------|:---------|
-| **查询攻击力加成** | O(N) 遍历所有Buff | O(1) 直接访问 | **~10倍** |
-| **移除特定Buff** | O(1) 追加到列表 | O(K) 从多个字典移除 | **轻微增加** |
-| **整体性能** | 查询密集型负载 | 查询优化型负载 | **~9-12倍** |
-
-> **结论**：虽然增删操作略有复杂化，但查询性能的大幅提升完全值得这种设计。
-

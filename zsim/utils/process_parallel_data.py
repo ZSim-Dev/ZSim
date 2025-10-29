@@ -18,6 +18,21 @@ from .process_dmg_result import prepare_dmg_data_and_cache
 reversed_stats_trans_mapping = {v: k for k, v in stats_trans_mapping.items()}
 
 
+def _get_enabled_flag(config: dict[str, Any] | None) -> bool:
+    """返回配置中的启用标志，兼容 enable/enabled 命名。"""
+
+    if not isinstance(config, dict):
+        return False
+
+    if "enabled" in config:
+        return bool(config.get("enabled"))
+
+    if "enable" in config:
+        return bool(config.get("enable"))
+
+    return False
+
+
 def judge_parallel_result(rid: int | str) -> bool:
     """判断对应的rid是否为并行模式。
 
@@ -37,8 +52,15 @@ def judge_parallel_result(rid: int | str) -> bool:
 
     try:
         with open(parallel_config_path, "r", encoding="utf-8") as f:
-            parallel_config: dict = json.load(f)
-        if not parallel_config.get("enabled", False):
+            parallel_config: dict[str, Any] = json.load(f)
+
+        enabled_flag = _get_enabled_flag(parallel_config)
+        if not enabled_flag:
+            func_name = parallel_config.get("func")
+            if isinstance(func_name, str) and func_name in {"attr_curve", "weapon"}:
+                enabled_flag = True
+
+        if not enabled_flag:
             return False
     except (json.JSONDecodeError, IOError):
         # 如果文件读取或解析失败，也视为非并行模式
@@ -90,7 +112,11 @@ async def prepare_parallel_data_and_cache(rid: int | str) -> None:
         print(f"读取或解析并行配置文件 {parallel_config_path} 失败: {e}")
         return
 
-    if parallel_config.get("adjust_sc", {}).get("enabled", False):
+    adjust_sc_enabled = _get_enabled_flag(parallel_config.get("adjust_sc"))
+    if not adjust_sc_enabled and parallel_config.get("func") == "attr_curve":
+        adjust_sc_enabled = True
+
+    if adjust_sc_enabled:
         merged_sc_file_path = os.path.join(result_dir, "merged_sc_data.json")
         if os.path.exists(merged_sc_file_path):
             return
@@ -126,7 +152,11 @@ async def merge_parallel_dmg_data(
     async with aiofiles.open(parallel_config_path, "r", encoding="utf-8") as f:
         parallel_config: dict = json.loads(await f.read())
 
-    if parallel_config.get("adjust_sc", {}).get("enabled", False):
+    adjust_sc_enabled = _get_enabled_flag(parallel_config.get("adjust_sc"))
+    if not adjust_sc_enabled and parallel_config.get("func") == "attr_curve":
+        adjust_sc_enabled = True
+
+    if adjust_sc_enabled:
         # 属性收益曲线功能
         func = "attr_curve"
         merged_sc_file_path = os.path.join(result_dir, "merged_sc_data.json")
@@ -150,7 +180,11 @@ async def merge_parallel_dmg_data(
             except Exception as e:
                 print(f"合并属性收益曲线数据时出错: {e}")
         return func, sc_merged_data
-    elif parallel_config.get("adjust_weapon", {}).get("enabled", False):
+    adjust_weapon_enabled = _get_enabled_flag(parallel_config.get("adjust_weapon"))
+    if not adjust_weapon_enabled and parallel_config.get("func") == "weapon":
+        adjust_weapon_enabled = True
+
+    if adjust_weapon_enabled:
         # 武器切换功能
         func = "weapon"
         merged_weapon_file_path = os.path.join(result_dir, "merged_weapon_data.json")

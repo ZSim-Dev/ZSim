@@ -16,6 +16,9 @@ exclude = [
     "knowledge_base*",
 ]
 
+[tool.setuptools.package-data]
+"zsim" = ["api_src/services/database/migrations/**"]
+
 [tool.pyinstaller]
 # ZSim API 配置
 spec_file = "zsim_api.spec"

@@ -49,6 +49,15 @@ if config_json.exists():
     datas.append((str(config_json), "zsim/config.json"))
     print(f"Added configuration file: {config_json} -> zsim/config.json")
 
+# Add packaged Alembic migrations so upgrades work after bundling
+migrations_dir = project_root / "zsim" / "api_src" / "services" / "database" / "migrations"
+if migrations_dir.exists():
+    datas.append((str(migrations_dir), "zsim/api_src/services/database/migrations"))
+    print(
+        "Added Alembic migrations directory: "
+        f"{migrations_dir} -> zsim/api_src/services/database/migrations"
+    )
+
 # Add buff configuration file
 buff_config_json = project_root / "zsim" / "sim_progress" / "Buff" / "buff_config.json"
 if buff_config_json.exists():

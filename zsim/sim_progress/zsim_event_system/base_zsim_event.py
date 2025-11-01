@@ -22,6 +22,7 @@ class BaseZSimEventContext(BaseModel):
     core_info: Dict[str, Any] = {}  # 事件处理的核心信息
 
     def with_state(self, node_id: str) -> "BaseZSimEventContext":
+        """基于当前上下文创建一个新的上下文, 并在状态路径上添加新的节点ID"""
         return BaseZSimEventContext(
             state_path=self.state_path + (node_id,),
             core_info=self.core_info,

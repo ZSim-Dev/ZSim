@@ -24,3 +24,4 @@ class ZSimBaseEvent(ABC, BaseModel):
 
     event_id: str = Field(default_factory=lambda: str(uuid4()))  # 事件唯一标识符
     context: BaseZSimEventContext = Field(default_factory=BaseZSimEventContext)  # 事件上下文信息
+

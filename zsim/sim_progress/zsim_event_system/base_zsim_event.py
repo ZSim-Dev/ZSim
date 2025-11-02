@@ -4,14 +4,10 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from ..Buff.buff_class import Buff
-from ..Character.character import Character
-from ..Preload.SkillsQueue import SkillNode
-
 
 class BaseZSimEventContext(BaseModel):
-    """ZSim事件上下文, 用于记录事件处理过程中的路径和信息变化"""
-    event_id: str = Field(default_factory=lambda: str(uuid4()))  # 事件唯一标识符
+    """ZSim事件上下文,但通常不包含事件本身对应的复杂对象"""
+
     state_path: tuple[str, ...] = ()  # 事件处理的路径
     core_info: Dict[str, Any] = {}  # 事件处理的核心信息
 
@@ -23,44 +19,8 @@ class BaseZSimEventContext(BaseModel):
         )
 
 
-class CharacterEventContext(BaseZSimEventContext):
-    """角色事件信息载荷"""
+class ZSimBaseEvent(ABC, BaseModel):
+    """ZSim事件基类, 所有事件均应继承自此类"""
 
-    character: Character  # 角色对象
-
-    @property
-    def character_name(self) -> str:
-        """获取角色名称"""
-        return self.character.NAME
-
-    @property
-    def character_cid(self) -> int:
-        """获取角色CID"""
-        return self.character.CID
-
-
-class SkillEventContext(BaseZSimEventContext):
-    """技能事件信息载荷"""
-
-    skill_node: SkillNode
-
-    @property
-    def skill_tag(self) -> str:
-        """获取技能标签"""
-        return self.skill_node.skill_tag
-
-    @property
-    def trigger_buff_level(self) -> int:
-        """获取技能的触发类型"""
-        return self.skill_node.skill.trigger_buff_level
-
-class BuffEventContext(BaseZSimEventContext):
-    """Buff事件信息载荷"""
-
-    buff: Buff
-
-    @property
-    def buff_index(self) -> str:
-        """获取技能标签"""
-        return self.buff.ft.index
-
+    event_id: str = Field(default_factory=lambda: str(uuid4()))  # 事件唯一标识符
+    context: BaseZSimEventContext = Field(default_factory=BaseZSimEventContext)  # 事件上下文信息

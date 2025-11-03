@@ -2,26 +2,26 @@ import json
 import shutil
 import sys
 import tomllib
-from enum import ENUM
+from enum import Enum
 from pathlib import Path
 from typing import Callable, Literal
 
 
 # ZSim事件类型定义
-class ZSimEventTypes(str, ENUM):
+class ZSimEventTypes(str, Enum):
     DEFAULT = "default"
     SKILL_EVENT = "skill_event"
     BUFF_EVENT = "buff_event"
 
 
-class SkillEventTypes(str, ENUM):
+class SkillEventTypes(str, Enum):
     SKILL_START = "skill.start"
     SKILL_HIT = "skill.hit"
     SKILL_END = "skill.end"
     SKILL_INTERUPT = "skill.interrupt"
 
 
-class BuffEventTypes(str, ENUM):
+class BuffEventTypes(str, Enum):
     BUFF_START = "buff.start"
     BUFF_END = "buff.end"
     BUFF_REFRESH = "buff.refresh"

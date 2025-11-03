@@ -3,4 +3,8 @@ from collections import defaultdict
 
 
 class ZSimEventHandler(ABC):
-    pass
+    @abstractmethod
+    def handle(self, event):
+        pass
+
+

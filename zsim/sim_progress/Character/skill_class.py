@@ -1,13 +1,12 @@
-import ast
+import ast  # noqa: I001
 from functools import lru_cache
-
 import polars as pl
-
 from zsim.define import (
     CHARACTER_DATA_PATH,
     DEFAULT_SKILL_PATH,
     SKILL_DATA_PATH,
     ElementType,
+    SkillType,
 )
 from zsim.sim_progress import Report
 
@@ -306,7 +305,7 @@ class Skill:
             self.CN_skill_tag: str = _raw_skill_data["CN_skill_tag"]
             self.skill_text: str = _raw_skill_data["skill_text"]
             # 确定使用的技能等级
-            self.skill_type: int = int(_raw_skill_data["skill_type"])
+            self.skill_type: SkillType = _raw_skill_data["skill_type"]
             self.skill_level: int = self.__init_skill_level(
                 self.skill_type,
                 normal_level,

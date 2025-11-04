@@ -14,20 +14,9 @@ class ZSimEventTypes(str, Enum):
     BUFF_EVENT = "buff_event"
 
 
-class SkillEventTypes(str, Enum):
-    SKILL_START = "skill.start"
-    SKILL_HIT = "skill.hit"
-    SKILL_END = "skill.end"
-    SKILL_INTERUPT = "skill.interrupt"
-
-
-class BuffEventTypes(str, Enum):
-    BUFF_START = "buff.start"
-    BUFF_END = "buff.end"
-    BUFF_REFRESH = "buff.refresh"
-
 # 属性类型：
 ElementType = Literal[0, 1, 2, 3, 4, 5, 6]
+SkillType = Literal[1, 2, 3, 4, 5]
 Number = int | float
 
 INVALID_ELEMENT_ERROR = "Invalid element type"
@@ -53,7 +42,6 @@ else:
 data_dir.mkdir(exist_ok=True, parents=True)
 char_config_file = data_dir / "character_config.toml"
 saved_char_config = {}
-
 
 
 # 修复：将char_config_file作为参数传递给initialize_config_files

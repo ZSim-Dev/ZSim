@@ -1,10 +1,18 @@
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from typing import Generic, Iterable, TypeVar
+
+from ..zsim_events import BaseZSimEventContext, ZSimEventABC
+
+T = TypeVar("T", bound=BaseZSimEventContext)
 
 
-class ZSimEventHandler(ABC):
+class ZSimEventHandler(Generic[T], ABC):
     @abstractmethod
-    def handle(self, event):
-        pass
+    def supports(self, event: ZSimEventABC[T]) -> bool:
+        """检查该处理器是否支持处理给定的事件"""
+        ...
 
-
+    @abstractmethod
+    def handle(self, event: ZSimEventABC[T]) -> Iterable[ZSimEventABC[BaseZSimEventContext]]:
+        """处理给定的事件, 并可能产生新的事件"""
+        ...

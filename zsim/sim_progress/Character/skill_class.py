@@ -1,6 +1,8 @@
-import ast  # noqa: I001
+import ast
 from functools import lru_cache
+
 import polars as pl
+
 from zsim.define import (
     CHARACTER_DATA_PATH,
     DEFAULT_SKILL_PATH,
@@ -14,7 +16,7 @@ try:
     # 读取角色数据
     char_lf = pl.scan_csv(CHARACTER_DATA_PATH)
 except Exception as e:
-    raise IOError(f"无法读取文件 {CHARACTER_DATA_PATH}: {e}")
+    raise IOError(f"无法读取文件 {CHARACTER_DATA_PATH}: {e}") from e
 
 
 @lru_cache(maxsize=64)

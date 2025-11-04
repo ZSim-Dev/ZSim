@@ -14,7 +14,6 @@ _global_hander_registry: ZSimEventHandlerRegistry | None = None
 
 HandlerFunc = Callable[..., Iterable[ZSimEventABC[BaseZSimEventContext]]]
 F = TypeVar("F", bound=HandlerFunc)
-HandlerType = TypeVar("HandlerType", bound=ZSimEventHandler[Any])
 
 
 def get_global_handler_registry() -> ZSimEventHandlerRegistry:

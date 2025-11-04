@@ -24,7 +24,7 @@ class ZSimEventHandlerRegistry:
             if handler.supports(event):
                 yield handler
 
-    def handle(self, event: ZSimEventABC[T]) -> Generator[ZSimEventABC[Any], Any, None]:
+    def handle(self, event: ZSimEventABC[T]) -> Generator[ZSimEventABC[BaseZSimEventContext]]:
         """处理给定的事件, 并可能产生新的事件"""
         for handler in self.iter_handlers(event):
             yield from handler.handle(event)

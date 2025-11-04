@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, Union
-from uuid import uuid4
+from typing import TYPE_CHECKING, Any, Dict, TypeVar, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from ....define import ZSimEventTypes
+from .base_zsim_event import BaseZSimEventContext
 
 if TYPE_CHECKING:
     from ...anomaly_bar import AnomalyBar
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 
 EventOriginType = Union["SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent", None]
+T = TypeVar("T", bound=BaseZSimEventContext)
 
 
 class BaseZSimEventContext(BaseModel):
@@ -23,10 +24,7 @@ class BaseZSimEventContext(BaseModel):
     state_path: tuple[str, ...] = ()  # 事件处理的路径
     core_info: Dict[str, Any] = {}  # 事件处理的核心信息
 
-    def append_state_node(
-        self,
-        node_id: str,
-    ) -> None:
+    def append_state_node(self, node_id: str) -> None:
         """为事件上下文添加状态路径, 作为事件处理的最后一步"""
         self.state_path += (node_id,)
 
@@ -58,7 +56,7 @@ class ZSimBaseEvent[T: BaseZSimEventContext](ZSimEventABC[T]):
         return self._event_type
 
     @property
-    def event_context(self) -> BaseZSimEventContext:
+    def event_context(self) -> T:
         return self._event_context
 
     @property
@@ -66,7 +64,7 @@ class ZSimBaseEvent[T: BaseZSimEventContext](ZSimEventABC[T]):
         return self._event_origin
 
 
-class ExecutionEvent(ZSimBaseEvent):
+class ExecutionEvent(ZSimBaseEvent[T]):
     """动态事件,表示一段时间内持续存在的事件,具有多时间点执行的特性"""
 
     pass

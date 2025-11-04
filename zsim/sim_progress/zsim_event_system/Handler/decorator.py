@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, Iterable, TypeVar, cast
+from typing import Callable, Iterable, Protocol, TypeVar, cast
 
 from ....define import ZSimEventTypes
 from ..zsim_events import (
@@ -11,8 +11,17 @@ from .zsim_event_handler_registry import ZSimEventHandlerRegistry
 
 # 全局的注册表实例
 _global_hander_registry: ZSimEventHandlerRegistry | None = None
+T = TypeVar("T", bound=BaseZSimEventContext)
 
-HandlerFunc = Callable[..., Iterable[ZSimEventABC[BaseZSimEventContext]]]
+
+class HandlerFunc(Protocol):
+    """事件处理函数协议"""
+
+    def __call__(self, event: ZSimEventABC[T]) -> Iterable[ZSimEventABC[BaseZSimEventContext]]: ...
+
+    __name__: str
+
+
 F = TypeVar("F", bound=HandlerFunc)
 
 
@@ -24,7 +33,7 @@ def get_global_handler_registry() -> ZSimEventHandlerRegistry:
     return _global_hander_registry
 
 
-def event_handler(event_type: ZSimEventTypes) -> Callable[[F], F]:
+def event_handler(event_type: ZSimEventTypes) -> Callable[[HandlerFunc], HandlerFunc]:
     """
     事件处理装饰器, 用于自动注册Handler到全局注册表
 
@@ -38,20 +47,20 @@ def event_handler(event_type: ZSimEventTypes) -> Callable[[F], F]:
 
     def decorator(func: F) -> F:
         @wraps(func)
-        def wrapper(event: ZSimEventABC[Any]) -> Iterable[ZSimEventABC[BaseZSimEventContext]]:
+        def wrapper(
+            event: ZSimEventABC[T],
+        ) -> Iterable[ZSimEventABC[BaseZSimEventContext]]:
             return func(event)
 
         class FunctionEventHandler(ZSimEventHandler[BaseZSimEventContext]):
-            def __init__(self, handler_func: HandlerFunc):
+            def __init__(self, handler_func: F):
                 self._handler_func = handler_func
                 self._event_type = event_type
 
-            def supports(self, event: ZSimEventABC[BaseZSimEventContext]) -> bool:
+            def supports(self, event: ZSimEventABC[T]) -> bool:
                 return event.event_type == self._event_type
 
-            def handle(
-                self, event: ZSimEventABC[BaseZSimEventContext]
-            ) -> list[ZSimEventABC[BaseZSimEventContext]]:
+            def handle(self, event: ZSimEventABC[T]) -> list[ZSimEventABC[BaseZSimEventContext]]:
                 return list(self._handler_func(event))
 
             def __repr__(self) -> str:

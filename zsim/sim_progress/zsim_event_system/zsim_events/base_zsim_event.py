@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, TypeVar, Union
+from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ....define import ZSimEventTypes
-from .base_zsim_event import BaseZSimEventContext
 
 if TYPE_CHECKING:
     from ...anomaly_bar import AnomalyBar
@@ -14,8 +14,16 @@ if TYPE_CHECKING:
     from .skill_event import SkillEvent
 
 
-EventOriginType = Union["SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent", None]
-T = TypeVar("T", bound=BaseZSimEventContext)
+class EventMessage(BaseModel):
+    """事件信息基类,用于记录事件的基本信息"""
+
+    event_id: str = Field(default_factory=lambda: str(uuid4()))
+
+T = TypeVar("T", bound=EventMessage)
+
+EventOriginType = Union[
+    "SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent[EventMessage]", None
+]
 
 
 class BaseZSimEventContext(BaseModel):
@@ -29,7 +37,7 @@ class BaseZSimEventContext(BaseModel):
         self.state_path += (node_id,)
 
 
-class ZSimEventABC[T: BaseZSimEventContext](ABC):
+class ZSimEventABC[T: EventMessage](ABC):
     """ZSim事件接口, 所有事件均应实现此接口"""
 
     @property
@@ -38,17 +46,17 @@ class ZSimEventABC[T: BaseZSimEventContext](ABC):
 
     @property
     @abstractmethod
-    def event_context(self) -> T: ...
+    def event_message(self) -> T: ...
 
 
-class ZSimBaseEvent[T: BaseZSimEventContext](ZSimEventABC[T]):
+class ZSimBaseEvent[T: EventMessage](ZSimEventABC[T]):
     """ZSim事件基类, 所有事件均应继承自此类"""
 
     def __init__(
-        self, event_type: ZSimEventTypes, event_context: T, event_origin: EventOriginType
+        self, event_type: ZSimEventTypes, event_message: T, event_origin: EventOriginType
     ) -> None:
         self._event_type = event_type
-        self._event_context: T = event_context
+        self._event_message: T = event_message
         self._event_origin: EventOriginType = event_origin  # 构造事件的源头复杂对象
 
     @property
@@ -56,15 +64,15 @@ class ZSimBaseEvent[T: BaseZSimEventContext](ZSimEventABC[T]):
         return self._event_type
 
     @property
-    def event_context(self) -> T:
-        return self._event_context
+    def event_message(self) -> T:
+        return self._event_message
 
     @property
     def event_origin(self) -> EventOriginType:
         return self._event_origin
 
 
-class ExecutionEvent(ZSimBaseEvent[T]):
+class ExecutionEvent(ZSimBaseEvent[EventMessage]):
     """动态事件,表示一段时间内持续存在的事件,具有多时间点执行的特性"""
 
     pass

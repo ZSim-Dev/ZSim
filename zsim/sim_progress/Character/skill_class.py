@@ -303,7 +303,7 @@ class Skill:
             self.char_name: str = char_name
             # 储存技能Tag
             self.cid = CID
-            self.skill_tag = f"{CID}_{key}" if str(CID) not in key else key
+            self.skill_tag: str = f"{CID}_{key}" if str(CID) not in key else key
             self.CN_skill_tag: str = _raw_skill_data["CN_skill_tag"]
             self.skill_text: str = _raw_skill_data["skill_text"]
             # 确定使用的技能等级
@@ -404,6 +404,7 @@ class Skill:
                     _raw_skill_data["aid_lag_ticks"]
                 )  # 技能激活快速支援的滞后时间
             tick_value = _raw_skill_data["tick_list"]
+            self.tick_list: list[int | float] | None = None
             if tick_value is None:
                 self.tick_list = None
             elif isinstance(tick_value, str):
@@ -416,7 +417,7 @@ class Skill:
                         self.tick_list = ast.literal_eval(str(tick_value).strip())
                         # self.tick_list = [int(v.strip()) for v in split_values]
                     except ValueError as e:
-                        raise ValueError(f"{self.skill_tag} 的 tick_list 包含无效整数: {e}")
+                        raise ValueError(f"{self.skill_tag} 的 tick_list 包含无效整数: {e}") from e
             else:
                 # 处理非字符串类型（如意外数值）
                 self.tick_list = None

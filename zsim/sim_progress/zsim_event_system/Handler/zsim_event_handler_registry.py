@@ -2,10 +2,10 @@ from collections import defaultdict
 from typing import Any, DefaultDict, Generator, Iterable, TypeVar
 
 from ....define import ZSimEventTypes
-from ..zsim_events import BaseZSimEventContext, ZSimEventABC
+from ..zsim_events import BaseZSimEventContext, EventMessage, ZSimEventABC
 from .base_handler_class import ZSimEventHandler
 
-T = TypeVar("T", bound=BaseZSimEventContext)
+T = TypeVar("T", bound=EventMessage)
 
 
 class ZSimEventHandlerRegistry:
@@ -24,7 +24,9 @@ class ZSimEventHandlerRegistry:
             if handler.supports(event):
                 yield handler
 
-    def handle(self, event: ZSimEventABC[T]) -> Generator[ZSimEventABC[BaseZSimEventContext]]:
+    def handle(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> Generator[ZSimEventABC[EventMessage]]:
         """处理给定的事件, 并可能产生新的事件"""
         for handler in self.iter_handlers(event):
-            yield from handler.handle(event)
+            yield from handler.handle(event, context)

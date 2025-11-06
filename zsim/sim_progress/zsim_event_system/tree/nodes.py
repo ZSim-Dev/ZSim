@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Iterable, Protocol, TypeVar
+from dataclasses import dataclass, field
+from typing import Iterable, Protocol, Sequence, TypeVar
 
 from ....define import ZSimEventTypes
-from ..zsim_events import BaseZSimEventContext, ZSimEventABC
+from ..zsim_events import BaseZSimEventContext, EventMessage, ZSimEventABC
 
-T = TypeVar("T", bound=BaseZSimEventContext)
+T = TypeVar("T", bound=EventMessage)
 
 
 class EventConditionFn(Protocol):
@@ -15,8 +15,32 @@ class EventConditionFn(Protocol):
 
 
 class EventCondition(ABC):
+    """事件条件判断基类"""
+
     @abstractmethod
     def evaluate(self, event: ZSimEventABC[T]) -> bool: ...
+
+
+class EventAction(ABC):
+    """当节点的条件被满足时, 会执行的操作"""
+
+    @abstractmethod
+    def produce(self, event: ZSimEventABC[T]) -> Iterable[ZSimEventABC[EventMessage]]: ...
+
+
+@dataclass(frozen=True)
+class LeafConfiguration:
+    """描述动态叶子运行方式的配置"""
+
+    listen_event: ZSimEventTypes  # 监听的事件类型
+    condition: EventCondition  # 事件条件判断
+    actions: Sequence[EventAction] = field(default_factory=tuple)  # 事件满足条件时,执行的操作
+
+
+class EventConfigRepository(Protocol):
+    """加载事件配置的仓库协议"""
+
+    def load_leaf_config(self, node_id: str) -> Sequence[LeafConfiguration]: ...
 
 
 @dataclass
@@ -37,12 +61,16 @@ class EventTreeNode(ABC):
         self.node_id = node_id
 
     @abstractmethod
-    def _handle(self, event: ZSimEventABC[T]) -> Iterable[ZSimEventABC[BaseZSimEventContext]]: ...
+    def _handle(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> Iterable[ZSimEventABC[EventMessage]]: ...
 
-    def handle(self, event: ZSimEventABC[T]) -> Iterable[ZSimEventABC[BaseZSimEventContext]]:
-        context = event.event_context
+    def handle(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> Iterable[ZSimEventABC[EventMessage]]:
+        """新增一个节点"""
         context.append_state_node(self.node_id)
-        yield from self._handle(event=event)
+        yield from self._handle(event=event, context=context)
 
 
 class EventBranchNode(EventTreeNode):
@@ -53,12 +81,62 @@ class EventBranchNode(EventTreeNode):
         self._transitions: dict[ZSimEventTypes, list[EventTransition]] = {}
 
     def add_transition(self, listen_event: ZSimEventTypes, transition: EventTransition) -> None:
-        """"""
+        """添加一个事件转换"""
         self._transitions.setdefault(listen_event, []).append(transition)
 
-    def _handle(self, event: ZSimEventABC[T]) -> Iterable[ZSimEventABC[BaseZSimEventContext]]:
-        """"""
+    def _handle(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> Iterable[ZSimEventABC[EventMessage]]:
+        """处理事件,将事件路由到对应目标节点"""
         transitions = self._transitions.get(event.event_type, [])
         for transition in transitions:
             if transition.matches(event=event):
-                yield from transition.target.handle(event=event)
+                yield from transition.target.handle(event=event, context=context)
+
+
+class DynamicLeafNode(EventTreeNode):
+    """动态叶子节点,承担具体的业务"""
+
+    def __init__(self, node_id: str, repository: EventConfigRepository):
+        super().__init__(node_id)
+        self._repository = repository
+        self._config: Sequence[LeafConfiguration] | None = None
+
+    def _ensure_config_loaded(self) -> Sequence[LeafConfiguration]:
+        """确保配置已经被正确加载"""
+        if self._config is None:
+            self._config = self._repository.load_leaf_config(self.node_id)
+        return self._config
+
+    def _handle(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> Iterable[ZSimEventABC[EventMessage]]:
+        """处理事件,根据配置判断是否执行操作"""
+        configs = self._ensure_config_loaded()
+        for config in configs:
+            if config.listen_event != event.event_type:
+                # 不是监听的事件类型, 跳过
+                continue
+            if not config.condition.evaluate(event=event):
+                # 事件条件不满足, 跳过
+                continue
+            # 事件条件满足, 执行操作
+            for action in config.actions:
+                # 执行操作, 并将产生的事件返回
+                for produced in action.produce(event=event):
+                    yield produced
+
+
+class EventStateTree:
+    """事件状态树, 负责分发事件并路由到对应节点"""
+
+    def __init__(self, root: EventTreeNode):
+        self._root = root
+
+    def dispatch(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> list[ZSimEventABC[EventMessage]]:
+        """
+        分发事件,将接收到的事件路由到对应节点,并返回所有产生的事件
+        """
+        return list(self._root.handle(event=event, context=context))

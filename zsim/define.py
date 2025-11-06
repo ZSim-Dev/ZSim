@@ -14,6 +14,12 @@ class ZSimEventTypes(str, Enum):
     BUFF_EVENT = "buff_event"
 
 
+class SkillSubEventTypes(str, Enum):
+    HIT = "hit"
+    START = "start"
+    END = "end"
+
+
 # 属性类型：
 ElementType = Literal[0, 1, 2, 3, 4, 5, 6]
 SkillType = Literal[1, 2, 3, 4, 5]

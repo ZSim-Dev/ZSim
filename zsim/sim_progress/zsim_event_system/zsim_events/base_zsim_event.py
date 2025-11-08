@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -30,7 +30,7 @@ class BaseZSimEventContext(BaseModel):
     """ZSim事件上下文,但通常不包含事件本身对应的复杂对象"""
 
     state_path: tuple[str, ...] = ()  # 事件处理的路径
-    core_info: Dict[str, Any] = {}  # 事件处理的核心信息
+    core_info: dict[str, Any] = {}  # 事件处理的核心信息
 
     def append_state_node(self, node_id: str) -> None:
         """为事件上下文添加状态路径, 作为事件处理的最后一步"""

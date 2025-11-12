@@ -141,7 +141,7 @@ PARRY_BASE_PARAMETERS: dict[str, int | float] = {
 # 该字典的key为CID，value为招架动作的skill_tag
 # 注意，不同的招架策略有时候存在着影画或是其他的限制条件，
 # 所以若是在不满足这些条件的情况下强行使用这些招架策略，那么character中的审查函数会报错而中断程序运行。
-CHAR_PARRY_STRATEGY_MAP: dict = {1411: "1411_Assault_Aid_A"}
+CHAR_PARRY_STRATEGY_MAP: dict[int, str] = {1411: "1411_Assault_Aid_A"}
 
 # debug参数，用于检查APL在窗口期间的想法
 APL_THOUGHT_CHECK: bool = _config["apl_mode"].get("apl_thought_check", False)
@@ -206,6 +206,7 @@ CHECK_SKILL_MUL_TAG: list[str] = _config["debug"]["check_skill_mul_tag"]
 
 # 开发变量
 NEW_SIM_BOOT: bool = _config.get("dev", {}).get("new_sim_boot", True)
+ZSIM_EVENT_SYSTEM_DEV: bool = _config.get("dev", {}).get("zsim_event_system_dev", False)
 
 compare_methods_mapping: dict[str, Callable[[float | int, float | int], bool]] = {
     "<": lambda a, b: a < b,

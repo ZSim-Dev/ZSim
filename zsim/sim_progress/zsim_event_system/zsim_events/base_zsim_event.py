@@ -15,9 +15,10 @@ if TYPE_CHECKING:
 
 
 class EventMessage(BaseModel):
-    """事件信息基类,用于记录事件的基本信息"""
+    """事件信息基类,用于记录事件的基本信息(一经设定不可更改)"""
 
     event_id: str = Field(default_factory=lambda: str(uuid4()))
+
 
 T = TypeVar("T", bound=EventMessage)
 

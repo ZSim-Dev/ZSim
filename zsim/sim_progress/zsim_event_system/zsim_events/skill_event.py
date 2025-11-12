@@ -9,7 +9,18 @@ T = TypeVar("T", bound=EventMessage)
 
 
 class SkillEventMessage(EventMessage):
-    preload_tick: int
+    skill_tag: str
+    _preload_tick: int | None = None  # 技能加载的时刻(技能开始时刻)
+
+    @property
+    def preload_tick(self) -> int | None:
+        return self._preload_tick
+
+    @preload_tick.setter
+    def preload_tick(self, value: int) -> None:
+        if self._preload_tick is not None:
+            raise ValueError("preload_tick 已经被设置过了")
+        self._preload_tick = value
 
 
 class SkillEventContext(BaseZSimEventContext):
@@ -17,7 +28,7 @@ class SkillEventContext(BaseZSimEventContext):
         super().__init__()
         self._is_active: bool = False
         self._hitted_count: int = 0
-        self.preload_tick: int | None = None
+        self.preload_tick: int | None = None  # 【技能开始事件】发出的时刻
 
     @property
     def hitted_count(self) -> int:

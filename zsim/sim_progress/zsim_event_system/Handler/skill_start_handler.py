@@ -28,7 +28,8 @@ def skill_start_handler(
     )
     assert isinstance(event.event_origin, SkillNode)
     assert context.preload_tick is not None, "preload_tick不能为None"
-    event_message = SkillEventMessage(preload_tick=context.preload_tick)
+    event_message = SkillEventMessage(skill_tag=event.event_origin.skill_tag)
+    event_message.preload_tick = context.preload_tick
     skill_execution_event = SkillExecutionEvent(
         event_type=ZSimEventTypes.SKILL_EVENT, event_origin=event, event_message=event_message
     )

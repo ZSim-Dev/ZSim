@@ -2,6 +2,7 @@ import json
 import shutil
 import sys
 import tomllib
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Literal, cast
 
@@ -14,8 +15,23 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
+
+# ZSim事件类型定义
+class ZSimEventTypes(str, Enum):
+    DEFAULT = "default"
+    SKILL_EVENT = "skill_event"
+    BUFF_EVENT = "buff_event"
+
+
+class SkillSubEventTypes(str, Enum):
+    HIT = "hit"
+    START = "start"
+    END = "end"
+
+
 # 属性类型：
 ElementType = Literal[0, 1, 2, 3, 4, 5, 6]
+SkillType = Literal[1, 2, 3, 4, 5]
 Number = int | float
 
 INVALID_ELEMENT_ERROR = "Invalid element type"
@@ -128,6 +144,7 @@ class NaModeLevelConfig(BaseModel):
 
 class DevConfig(BaseModel):
     new_sim_boot: bool = True
+    zsim_event_system_dev: bool = False
 
 
 class Config(BaseSettings):
@@ -334,6 +351,7 @@ CHECK_SKILL_MUL_TAG: list[str] = config.debug.check_skill_mul_tag
 
 # 开发变量
 NEW_SIM_BOOT: bool = config.dev.new_sim_boot
+ZSIM_EVENT_SYSTEM_DEV: bool = config.dev.zsim_event_system_dev
 
 compare_methods_mapping: dict[str, Callable[[float | int, float | int], bool]] = {
     "<": lambda a, b: a < b,

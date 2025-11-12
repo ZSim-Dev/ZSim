@@ -93,7 +93,8 @@ ensure_newline_before_comments = true
 skip_glob = ["*/migrations/*", "venv/*", ".venv/*"]
 
 [[tool.uv.index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+# url = "https://pypi.tuna.tsinghua.edu.cn/simple"        2025.10后，清华源限制了API访问，需要改用官方源
+url = "https://pypi.org/simple"
 default = true
 
 [tool.pytest.ini_options]

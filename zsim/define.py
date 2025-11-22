@@ -5,7 +5,7 @@ import tomllib
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Literal, cast
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_pascal
 from pydantic_settings import (
     BaseSettings,
@@ -33,7 +33,7 @@ class DebugConfig(BaseModel):
     enabled: bool = True
     level: int = 4
     check_skill_mul: bool = False
-    check_skill_mul_tag: list[str] = Field(default_factory=list)
+    check_skill_mul_tag: list[str] = []
 
 
 class WatchdogConfig(BaseModel):
@@ -47,9 +47,11 @@ class CharacterConfig(BaseModel):
 
 
 class EnemyConfig(BaseModel):
-    index_id: int = Field(alias="index_ID")
-    adjust_id: int = Field(alias="adjust_ID")
+    index_id: int
+    adjust_id: int
     difficulty: float
+
+    model_config = ConfigDict(alias_generator=lambda x: x.replace("id", "ID"))
 
 
 class AplModeConfig(BaseModel):

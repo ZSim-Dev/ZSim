@@ -246,7 +246,7 @@ def save_enemy_selection(index_id: int, adjust_id: int):
     """
 
     # 创建配置文件临时备份
-    backup_path = config_path + ".bak"
+    backup_path = config_path.parent / "config.json.bak"
     shutil.copy(config_path, backup_path)
 
     try:

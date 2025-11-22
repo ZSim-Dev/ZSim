@@ -105,8 +105,6 @@ class DatabaseConfig(BaseModel):
 class Buff0ReportConfig(BaseModel):
     enabled: bool = False
 
-    model_config = ConfigDict()
-
 
 class CharReportConfig(BaseModel):
     vivian: bool

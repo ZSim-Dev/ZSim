@@ -69,12 +69,7 @@ class SessionDB:
                         else None
                     ),
                     session_result=(
-                        json.dumps(
-                            [
-                                result.model_dump()
-                                for result in session_data.session_result
-                            ]
-                        )
+                        json.dumps([result.model_dump() for result in session_data.session_result])
                         if session_data.session_result
                         else None
                     ),
@@ -109,9 +104,7 @@ class SessionDB:
                 session_name=record.session_name,
                 create_time=datetime.fromisoformat(record.create_time),
                 status=record.status,
-                session_run=(
-                    json.loads(record.session_run) if record.session_run else None
-                ),
+                session_run=(json.loads(record.session_run) if record.session_run else None),
                 session_result=(
                     json.loads(record.session_result) if record.session_result else None
                 ),
@@ -130,9 +123,7 @@ class SessionDB:
         await self._init_db()
         async with get_async_session() as session:
             result = await session.execute(
-                select(SessionORM).where(
-                    SessionORM.session_id == session_data.session_id
-                )
+                select(SessionORM).where(SessionORM.session_id == session_data.session_id)
             )
             record = result.scalar_one_or_none()
             if record is None:
@@ -146,9 +137,7 @@ class SessionDB:
                 else None
             )
             record.session_result = (
-                json.dumps(
-                    [result.model_dump() for result in session_data.session_result]
-                )
+                json.dumps([result.model_dump() for result in session_data.session_result])
                 if session_data.session_result
                 else None
             )
@@ -168,9 +157,7 @@ class SessionDB:
 
         await self._init_db()
         async with get_async_session() as session:
-            await session.execute(
-                delete(SessionORM).where(SessionORM.session_id == session_id)
-            )
+            await session.execute(delete(SessionORM).where(SessionORM.session_id == session_id))
             await session.commit()
 
     async def list_sessions(self) -> list[Session]:
@@ -192,9 +179,7 @@ class SessionDB:
                 session_name=record.session_name,
                 create_time=datetime.fromisoformat(record.create_time),
                 status=record.status,
-                session_run=(
-                    json.loads(record.session_run) if record.session_run else None
-                ),
+                session_run=(json.loads(record.session_run) if record.session_run else None),
                 session_result=(
                     json.loads(record.session_result) if record.session_result else None
                 ),

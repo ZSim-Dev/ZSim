@@ -5,6 +5,7 @@ from zsim.define import SWAP_CANCEL
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode
+
     NODE_T = TypeVar("NODE_T", bound=SkillNode)
 else:
     NODE_T = TypeVar("NODE_T", bound="SkillNode")

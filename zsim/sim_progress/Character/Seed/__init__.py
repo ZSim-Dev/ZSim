@@ -202,7 +202,9 @@ class Seed(Character):
                         if self.sna_quick_release:
                             self.sna_quick_release = False
                     else:
-                        print("【席德测试】检测到位于强化E后自动衔接释放的SNA_1，本次释放不会消耗快速释放标记！")
+                        print(
+                            "【席德测试】检测到位于强化E后自动衔接释放的SNA_1，本次释放不会消耗快速释放标记！"
+                        )
 
     @property
     def steel_charge(self) -> float:
@@ -341,6 +343,7 @@ class Seed(Character):
 
     def get_special_stats(self, *args, **kwargs) -> dict[str | None, object | None]:
         from .ExStateManager import SeedEXState
+
         return {
             "钢能值足够": self.steel_charge_enough,
             "sna快速释放": self.sna_quick_release,
@@ -351,7 +354,5 @@ class Seed(Character):
             "明攻状态生效": self.direct_strike_active,
             "正兵": self.vanguard.NAME if self.vanguard else None,
             "强化E达到最大次数": self.e_ex_repeat_limit_reached,
-            "强化E连续释放": self.sesm.e_ex_state in [SeedEXState.LOOPING, SeedEXState.FIRST_CAST]
+            "强化E连续释放": self.sesm.e_ex_state in [SeedEXState.LOOPING, SeedEXState.FIRST_CAST],
         }
-
-

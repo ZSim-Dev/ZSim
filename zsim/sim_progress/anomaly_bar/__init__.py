@@ -1,11 +1,11 @@
 from .Anomalies import (
-    PhysicalAnomaly,
-    FireAnomaly,
-    IceAnomaly,
+    AuricInkAnomaly,
     ElectricAnomaly,
     EtherAnomaly,
+    FireAnomaly,
     FrostAnomaly,
-    AuricInkAnomaly,
+    IceAnomaly,
+    PhysicalAnomaly,
 )
 from .AnomalyBarClass import AnomalyBar
 from .CopyAnomalyForOutput import Disorder

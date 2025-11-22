@@ -10,14 +10,14 @@ def page_character_config():
     if "name_box" in saved_char_config:
         default_chars = saved_char_config["name_box"]
     from zsim.lib_webui.constants import (
+        char_profession_map,
         equip_set2_options,
         equip_set4_options,
+        profession_chars_map,
+        weapon_char_map,
         weapon_options,
         weapon_profession_map,
         weapon_rarity_map,
-        weapon_char_map,
-        char_profession_map,
-        profession_chars_map,
     )
 
     col0, col1, col2, col3, col4, col5, col6, col7 = st.columns([1, 1, 1, 1, 1, 1, 1, 1])

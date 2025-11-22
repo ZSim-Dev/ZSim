@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+
 from .DetectEdges import detect_edge  # noqa: F401
 from .FindCharFromCID import find_char_from_CID
 from .FindCharFromName import find_char_from_name
@@ -10,10 +11,10 @@ from .FindMain import (
     find_enemy,
     find_event_list,
     find_exist_buff_dict,
+    find_init_data,  # noqa: F401,
     find_preload_data,
     find_stack,
     find_tick,  # noqa: F401
-    find_init_data,  # noqa: F401,
 )
 
 if TYPE_CHECKING:

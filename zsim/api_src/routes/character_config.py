@@ -1,11 +1,12 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
 from datetime import datetime
-import polars as pl
+from typing import List
 
+import polars as pl
+from fastapi import APIRouter, Depends, HTTPException
+
+from zsim.api_src.services.database.character_db import CharacterDB, get_character_db
 from zsim.models.character.character_config import CharacterConfig
-from zsim.api_src.services.database.character_db import get_character_db, CharacterDB
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -30,12 +31,12 @@ async def get_character_info(name: str, db: CharacterDB = Depends(get_character_
     try:
         df = pl.scan_csv("./zsim/data/character.csv")
         character_data = df.filter(pl.col("name") == name).collect()
-        
+
         if character_data.height == 0:
             raise HTTPException(status_code=404, detail=f"Character {name} not found")
-        
+
         row = character_data.row(0, named=True)
-        
+
         # Map element number to element name using the mapping from constants.py
         element_mapping = {
             0: "物理",
@@ -46,7 +47,7 @@ async def get_character_info(name: str, db: CharacterDB = Depends(get_character_
             5: "烈霜",
             6: "玄墨",
         }
-        
+
         character_info = {
             "name": row["name"],
             "cid": row["CID"],
@@ -73,7 +74,7 @@ async def get_character_info(name: str, db: CharacterDB = Depends(get_character_
             "element": "以太",  # 示例元素类型
             "weapon_type": "音擎",  # 示例武器类型
             "rarity": 5,  # 示例稀有度
-            "description": f"{name}的角色描述信息"
+            "description": f"{name}的角色描述信息",
         }
 
 
@@ -95,7 +96,14 @@ async def get_equipments(db: CharacterDB = Depends(get_character_db)):
     """获取所有可用装备列表"""
     try:
         df = pl.scan_csv("./zsim/data/equip_set_2pc.csv")
-        equipments = df.select("set_ID").filter(pl.col("set_ID").is_not_null()).unique().collect().to_series().to_list()
+        equipments = (
+            df.select("set_ID")
+            .filter(pl.col("set_ID").is_not_null())
+            .unique()
+            .collect()
+            .to_series()
+            .to_list()
+        )
         # Filter out the "0" set which appears to be a placeholder
         equipments = [eq for eq in equipments if eq != "0"]
         return equipments
@@ -110,7 +118,14 @@ async def get_equipment_sets(db: CharacterDB = Depends(get_character_db)):
     """获取装备套装信息"""
     try:
         df = pl.scan_csv("./zsim/data/equip_set_2pc.csv")
-        sets = df.select("set_ID").filter(pl.col("set_ID").is_not_null()).unique().collect().to_series().to_list()
+        sets = (
+            df.select("set_ID")
+            .filter(pl.col("set_ID").is_not_null())
+            .unique()
+            .collect()
+            .to_series()
+            .to_list()
+        )
         # Filter out the "0" set which appears to be a placeholder
         sets = [s for s in sets if s != "0"]
         return sets
@@ -121,19 +136,21 @@ async def get_equipment_sets(db: CharacterDB = Depends(get_character_db)):
 
 
 @router.post("/characters/{name}/configs", response_model=CharacterConfig)
-async def create_character_config(name: str, config: CharacterConfig, db: CharacterDB = Depends(get_character_db)):
+async def create_character_config(
+    name: str, config: CharacterConfig, db: CharacterDB = Depends(get_character_db)
+):
     """为指定角色创建配置"""
     # 检查角色配置是否已存在
     existing_config = await db.get_character_config(name, config.config_name)
     if existing_config:
         raise HTTPException(status_code=400, detail="角色配置已存在")
-    
+
     # 设置角色名称和配置ID
     config.name = name
     config.config_id = f"{name}_{config.config_name}"
     config.create_time = datetime.now()
     config.update_time = datetime.now()
-    
+
     # 添加到数据库
     await db.add_character_config(config)
     return config
@@ -146,7 +163,9 @@ async def list_character_configs(name: str, db: CharacterDB = Depends(get_charac
 
 
 @router.get("/characters/{name}/configs/{config_name}", response_model=CharacterConfig)
-async def get_character_config(name: str, config_name: str, db: CharacterDB = Depends(get_character_db)):
+async def get_character_config(
+    name: str, config_name: str, db: CharacterDB = Depends(get_character_db)
+):
     """获取指定角色的特定配置"""
     config = await db.get_character_config(name, config_name)
     if not config:
@@ -155,30 +174,37 @@ async def get_character_config(name: str, config_name: str, db: CharacterDB = De
 
 
 @router.put("/characters/{name}/configs/{config_name}", response_model=CharacterConfig)
-async def update_character_config(name: str, config_name: str, config: CharacterConfig, db: CharacterDB = Depends(get_character_db)):
+async def update_character_config(
+    name: str,
+    config_name: str,
+    config: CharacterConfig,
+    db: CharacterDB = Depends(get_character_db),
+):
     """更新指定角色的特定配置"""
     # 检查角色配置是否存在
     existing_config = await db.get_character_config(name, config_name)
     if not existing_config:
         raise HTTPException(status_code=404, detail="角色配置未找到")
-    
+
     # 设置角色名称、配置名称和配置ID
     config.name = name
     config.config_name = config_name
     config.config_id = f"{name}_{config_name}"
-    
+
     # 更新数据库
     await db.update_character_config(config)
     return config
 
 
 @router.delete("/characters/{name}/configs/{config_name}", status_code=204)
-async def delete_character_config(name: str, config_name: str, db: CharacterDB = Depends(get_character_db)):
+async def delete_character_config(
+    name: str, config_name: str, db: CharacterDB = Depends(get_character_db)
+):
     """删除指定角色的特定配置"""
     # 检查角色配置是否存在
     existing_config = await db.get_character_config(name, config_name)
     if not existing_config:
         raise HTTPException(status_code=404, detail="角色配置未找到")
-    
+
     # 从数据库删除
     await db.delete_character_config(name, config_name)

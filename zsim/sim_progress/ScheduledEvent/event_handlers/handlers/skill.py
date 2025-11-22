@@ -114,7 +114,9 @@ class SkillEventHandler(BaseEventHandler):
         self._update_damage_effects(tick, enemy, data, event)
         self._broadcast_skill_event_to_char(event=event, sim_instance=sim_instance)
 
-    def _broadcast_skill_event_to_char(self, event: SkillNode | LoadingMission, sim_instance: Simulator) -> None:
+    def _broadcast_skill_event_to_char(
+        self, event: SkillNode | LoadingMission, sim_instance: Simulator
+    ) -> None:
         """广播技能事件到所有角色以触发特殊资源更新
 
         Args:

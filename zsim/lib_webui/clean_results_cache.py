@@ -6,7 +6,7 @@ try:
 except ModuleNotFoundError:
     pass
 
-from .constants import results_dir, IDDuplicateError
+from .constants import IDDuplicateError, results_dir
 
 
 # 获取合法的结果缓存

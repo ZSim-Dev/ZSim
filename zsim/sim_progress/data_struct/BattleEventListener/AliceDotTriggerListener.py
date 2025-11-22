@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-from .BaseListenerClass import BaseListener
+
 from zsim.define import ALICE_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
+from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
-    from zsim.sim_progress.Character.character import Character
     from zsim.sim_progress.Character.Alice import Alice
+    from zsim.sim_progress.Character.character import Character
+    from zsim.simulator.simulator_class import Simulator
 
 
 class AliceDotTriggerListener(BaseListener):
@@ -34,8 +36,9 @@ class AliceDotTriggerListener(BaseListener):
                 "【爱丽丝核心被动Dot监听器警告】敌人当前的状态不符合核心被动激活条件，请检查！"
             )
 
-        from zsim.sim_progress.Update.UpdateAnomaly import spawn_normal_dot
         from copy import deepcopy
+
+        from zsim.sim_progress.Update.UpdateAnomaly import spawn_normal_dot
 
         """
         解释：deepcopy的对象为何来自enemy.anomaly_bars_dict而非enemy.dynamic.active_anomaly_bar_dicts？

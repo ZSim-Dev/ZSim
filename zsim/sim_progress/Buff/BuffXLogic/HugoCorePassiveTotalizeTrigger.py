@@ -1,6 +1,7 @@
-from .. import Buff, JudgeTools, check_preparation, find_tick
-from zsim.sim_progress.Enemy import Enemy
 from zsim.define import HUGO_REPORT
+from zsim.sim_progress.Enemy import Enemy
+
+from .. import Buff, JudgeTools, check_preparation, find_tick
 
 
 class HugoCorePassiveTotalizeTriggerRecord:
@@ -198,8 +199,8 @@ class HugoCorePassiveTotalizeTrigger(Buff.BuffLogic):
                 )
 
         """再生成决算的skill_node"""
-        from zsim.sim_progress.Preload.SkillsQueue import spawn_node
         from zsim.sim_progress.Load import LoadingMission
+        from zsim.sim_progress.Preload.SkillsQueue import spawn_node
 
         if self.record.active_signal == 2:
             node_tag = self.record.E_totalize_tag

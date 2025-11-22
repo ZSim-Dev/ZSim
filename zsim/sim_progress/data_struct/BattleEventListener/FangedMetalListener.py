@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 
-from .BaseListenerClass import BaseListener
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
+from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
@@ -24,7 +25,12 @@ class FangedMetalListener(BaseListener):
         """獠牙重金属4的监听器激活时，为佩戴者添加增伤buff"""
         from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
         from zsim.sim_progress.Character.character import Character
+
         target = kwargs.get("target")
-        assert isinstance(target, Character), "獠牙重金属4的监听器激活时，传入激活函数的target参数必须是Character类"
+        assert isinstance(target, Character), (
+            "獠牙重金属4的监听器激活时，传入激活函数的target参数必须是Character类"
+        )
         benifit_list = [target.NAME]
-        buff_add_strategy(self.buff_index, benifit_list=benifit_list, sim_instance=self.sim_instance)
+        buff_add_strategy(
+            self.buff_index, benifit_list=benifit_list, sim_instance=self.sim_instance
+        )

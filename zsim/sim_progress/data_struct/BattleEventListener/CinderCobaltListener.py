@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
+
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
 from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:

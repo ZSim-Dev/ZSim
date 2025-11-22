@@ -22,7 +22,9 @@ class SPUpdateData:
         return dynamic_sp_regen, dynamic_sp_gain_ratio
 
     def get_sp_regen(self) -> float:
-        sp_regen = (self.static_sp_regen + self.dynamic_sp_regen[0]) * (self.dynamic_sp_regen[1] + 1)
+        sp_regen = (self.static_sp_regen + self.dynamic_sp_regen[0]) * (
+            self.dynamic_sp_regen[1] + 1
+        )
         return sp_regen
 
 

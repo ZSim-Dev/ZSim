@@ -49,8 +49,8 @@ class RoaringRideBuffTrigger(Buff.BuffLogic):
                 1: f"Buff-武器-精{int(self.buff_instance.ft.refinement)}轰鸣座驾-精通提升",
                 2: f"Buff-武器-精{int(self.buff_instance.ft.refinement)}轰鸣座驾-属性异常积蓄",
             }
-        from zsim.sim_progress.RandomNumberGenerator import RNG
         from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
+        from zsim.sim_progress.RandomNumberGenerator import RNG
 
         rng: RNG = self.buff_instance.sim_instance.rng_instance
         normalized_value = rng.random_float()

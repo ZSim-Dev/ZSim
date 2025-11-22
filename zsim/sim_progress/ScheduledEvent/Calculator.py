@@ -148,7 +148,9 @@ class MultiplierData:
                 char_name=self.char_name,
             )
         except TypeError as err:
-            raise TypeError(f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}") from err
+            raise TypeError(
+                f"参数错误！enabled_buff为{type(enabled_buff)}，node为{type(node)}"
+            ) from err
         return dynamic_statement
 
     class StaticStatement:
@@ -1354,7 +1356,10 @@ class Calculator:
                 self.skill_node.skill.skill_text,
                 f"第{self.skill_node.loading_mission.hitted_count if self.skill_node.loading_mission else 1}次命中",
                 "：",
-                [f"{__tag} : {__value:.2f}" for __tag, __value in zip(tag_list, multipliers, strict=True)],
+                [
+                    f"{__tag} : {__value:.2f}"
+                    for __tag, __value in zip(tag_list, multipliers, strict=True)
+                ],
             )
 
     def cal_dmg_crit(self) -> np.float64:

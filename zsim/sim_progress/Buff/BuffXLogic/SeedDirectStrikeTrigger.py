@@ -42,6 +42,7 @@ class SeedDirectStrikeTrigger(Buff.BuffLogic):
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
         from zsim.sim_progress.Character.Seed import Seed
+
         seed: Seed = self.record.char
         if seed.vanguard is None:
             # 当席德的没有队友被指定为“正兵”时，明攻永远不可能触发。
@@ -56,4 +57,9 @@ class SeedDirectStrikeTrigger(Buff.BuffLogic):
         assert self.record is not None
         seed = self.record.char
         from zsim.sim_progress.Buff.BuffAddStrategy import buff_add_strategy
-        buff_add_strategy(self.record.buff_index, benifit_list=[seed.vanguard.NAME],sim_instance=self.buff_instance.sim_instance)
+
+        buff_add_strategy(
+            self.record.buff_index,
+            benifit_list=[seed.vanguard.NAME],
+            sim_instance=self.buff_instance.sim_instance,
+        )

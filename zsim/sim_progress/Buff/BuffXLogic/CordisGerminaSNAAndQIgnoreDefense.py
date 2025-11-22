@@ -46,5 +46,3 @@ class CordisGerminaSNAAndQIgnoreDefense(Buff.BuffLogic):
         self.check_record_module()
         self.get_prepared(equipper="机巧心种", trigger_buff_0=("equipper", "机巧心种-电属性增伤"))
         return not self.xjudge
-
-

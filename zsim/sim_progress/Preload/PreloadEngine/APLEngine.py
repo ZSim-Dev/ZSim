@@ -3,12 +3,12 @@ from typing import TYPE_CHECKING
 from zsim.define import APL_PATH, APL_THOUGHT_CHECK
 from zsim.define import APL_THOUGHT_CHECK_WINDOW as ATCW
 
-from .. import SkillNode, SkillsQueue
 from ..APLModule import APLManager
+from ..SkillsQueue import SkillNode, spawn_node
 from .BasePreloadEngine import BasePreloadEngine
 
 if TYPE_CHECKING:
-    from .. import PreloadData
+    from ..PreloadDataClass import PreloadData
 
 
 class APLEngine(BasePreloadEngine):
@@ -32,7 +32,7 @@ class APLEngine(BasePreloadEngine):
 
         self.apl = self.apl_manager.load_apl(apl_path, mode=0, preload_data=self.preload_data)
         self.latest_node: SkillNode | None = None
-        self._apl_want: tuple | None = None       # APL引擎的想法
+        self._apl_want: tuple | None = None  # APL引擎的想法
 
     @property
     def apl_want(self) -> tuple | None:
@@ -47,7 +47,9 @@ class APLEngine(BasePreloadEngine):
                 if value != self.apl_want:
                     print(
                         f"{tick}tick：APL引擎的想法变化，{self.apl_want[0] if self.apl_want else None} → {skill_tag}，来自于优先级 {apl_priority} 的单元，详细内容：{apl_unit.whole_line}"
-                    ) if self.apl_want is not None else print(f"{tick}tick：APL引擎产生了第一个想法：{skill_tag}")
+                    ) if self.apl_want is not None else print(
+                        f"{tick}tick：APL引擎产生了第一个想法：{skill_tag}"
+                    )
         self._apl_want = value
 
     def run_myself(self, tick) -> SkillNode | None:
@@ -56,7 +58,7 @@ class APLEngine(BasePreloadEngine):
         self.apl_want = (skill_tag, apl_priority, apl_unit)
         if skill_tag == "wait":
             return None
-        node = SkillsQueue.spawn_node(
+        node = spawn_node(
             skill_tag,
             tick,
             self.data.skills,

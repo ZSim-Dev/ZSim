@@ -1,7 +1,8 @@
 import streamlit as st
+
 from zsim.define import saved_char_config
-from zsim.sim_progress.Character import character_factory
 from zsim.models.session.session_run import CharConfig
+from zsim.sim_progress.Character import character_factory
 
 
 def display_character_panels(name_box: list[str], use_columns: bool = True) -> None:

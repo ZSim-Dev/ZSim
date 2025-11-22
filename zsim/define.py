@@ -34,7 +34,6 @@ char_config_file = data_dir / "character_config.toml"
 saved_char_config = {}
 
 
-
 # 修复：将char_config_file作为参数传递给initialize_config_files
 def initialize_config_files_with_paths(char_file, data_dir, config_path):
     """

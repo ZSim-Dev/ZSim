@@ -1,6 +1,7 @@
+from typing import TYPE_CHECKING
+
 from .. import Buff, JudgeTools, check_preparation
 from ._buff_record_base_class import BuffRecordBaseClass as BRBC
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass
@@ -48,6 +49,7 @@ class AliceCinema6Trigger(Buff.BuffLogic):
         if skill_node is None:
             return False
         from zsim.sim_progress.Preload import SkillNode
+
         assert isinstance(skill_node, SkillNode), "skill_node必须为SkillNode类型"
         # 首先过滤掉自己的技能
         if skill_node.char_name == self.record.char.NAME:

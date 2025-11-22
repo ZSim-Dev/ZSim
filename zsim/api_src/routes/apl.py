@@ -4,19 +4,20 @@ APL相关API路由
 """
 
 from fastapi import APIRouter, HTTPException, status
-from ..services.apl_service import APLService
+
 from ..models.apl import (
+    APIResponse,
     APLConfigCreateRequest,
     APLConfigUpdateRequest,
-    APLFileCreateRequest,
-    APLFileUpdateRequest,
-    APLValidateRequest,
-    APLParseRequest,
-    APIResponse,
-    APLTemplateInfo,
-    APLFileInfo,
     APLFileContent,
+    APLFileCreateRequest,
+    APLFileInfo,
+    APLFileUpdateRequest,
+    APLParseRequest,
+    APLTemplateInfo,
+    APLValidateRequest,
 )
+from ..services.apl_service import APLService
 
 router = APIRouter()
 apl_service = APLService()
@@ -326,7 +327,11 @@ async def import_apl_config(file_path: str):
     try:
         config_id = apl_service.import_apl_config(file_path)
         if config_id:
-            return APIResponse(code=200, message="Success", data={"config_id": config_id, "message": "APL配置导入成功"})
+            return APIResponse(
+                code=200,
+                message="Success",
+                data={"config_id": config_id, "message": "APL配置导入成功"},
+            )
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="APL配置导入失败")
     except Exception as e:

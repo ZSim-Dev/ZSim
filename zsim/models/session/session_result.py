@@ -2,7 +2,6 @@ from typing import Any, Literal, Self, Union
 
 from pydantic import BaseModel, Field, RootModel
 
-
 # --- Payloads for different result types ---
 
 

@@ -5,8 +5,4 @@ from .test_basic_simulator import TestBasicSimulator
 from .test_parallel_mode import TestParallelMode
 from .test_queue_system import TestQueueSystem
 
-__all__ = [
-    'TestBasicSimulator',
-    'TestParallelMode',
-    'TestQueueSystem'
-]
+__all__ = ["TestBasicSimulator", "TestParallelMode", "TestQueueSystem"]

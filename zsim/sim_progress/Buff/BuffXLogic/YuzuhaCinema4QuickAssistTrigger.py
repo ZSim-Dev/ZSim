@@ -1,10 +1,12 @@
-from .. import Buff, JudgeTools, check_preparation
-from zsim.define import YUZUHA_REPORT
 from typing import TYPE_CHECKING
 
+from zsim.define import YUZUHA_REPORT
+
+from .. import Buff, JudgeTools, check_preparation
+
 if TYPE_CHECKING:
-    from zsim.sim_progress.Preload import SkillNode
     from zsim.sim_progress.data_struct.QuickAssistSystem import QuickAssistSystem
+    from zsim.sim_progress.Preload import SkillNode
 
 
 class YuzuhaCinema4QuickAssistTriggerRecord:

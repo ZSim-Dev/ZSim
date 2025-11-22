@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
     from zsim.sim_progress.Preload.PreloadDataClass import PreloadData
+    from zsim.simulator.simulator_class import Simulator
 
 
 class SchedulePreload:

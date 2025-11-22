@@ -4,12 +4,13 @@
 """
 
 import os
-import sys
-import time
-import requests
 import platform
 import subprocess
+import sys
+import time
 from pathlib import Path
+
+import requests
 
 
 def test_uds_connection():

@@ -29,7 +29,7 @@ class TeamConfigBase(ABC):
         return {
             "team_name": self.team_name,
             "description": self.description,
-            "characters": self.get_expected_characters()
+            "characters": self.get_expected_characters(),
         }
 
 
@@ -74,8 +74,7 @@ class TeamRegistry:
     @classmethod
     def get_teams_by_attribute(cls, attribute: str) -> List[TeamConfigBase]:
         """根据属性获取团队配置"""
-        return [team for team in cls.get_all_teams()
-                if attribute.lower() in team.team_name.lower()]
+        return [team for team in cls.get_all_teams() if attribute.lower() in team.team_name.lower()]
 
     @classmethod
     def list_team_names(cls) -> List[str]:

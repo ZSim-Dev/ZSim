@@ -1,6 +1,8 @@
 from math import floor
 from typing import TYPE_CHECKING
+
 from zsim.define import ALICE_REPORT
+
 from .character import Character
 from .utils.filters import _skill_node_filter
 
@@ -100,8 +102,8 @@ class Alice(Character):
 
     def update_blade_etiquette(self, update_obj: "SkillNode | float | int") -> None:
         # 更新剑仪值的函数
-        from zsim.simulator.simulator_class import Simulator
         from zsim.sim_progress.Preload import SkillNode
+        from zsim.simulator.simulator_class import Simulator
 
         assert isinstance(self.sim_instance, Simulator), "角色未正确初始化，请检查函数"
         if update_obj is None:

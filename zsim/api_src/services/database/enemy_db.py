@@ -16,7 +16,6 @@ _enemy_db: "EnemyDB | None" = None
 
 
 class EnemyConfigORM(Base):
-
     __tablename__ = "enemy_configs"
 
     config_id: Mapped[str] = mapped_column(String(128), primary_key=True)
@@ -109,9 +108,7 @@ class EnemyDB:
         config.update_time = datetime.now()
         async with get_async_session() as session:
             result = await session.execute(
-                select(EnemyConfigORM).where(
-                    EnemyConfigORM.config_id == config.config_id
-                )
+                select(EnemyConfigORM).where(EnemyConfigORM.config_id == config.config_id)
             )
             record = result.scalar_one_or_none()
             if record is None:

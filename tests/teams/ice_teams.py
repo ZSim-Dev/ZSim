@@ -10,10 +10,7 @@ class IceTeamExampleConfig(TeamConfigBase):
     """示例冰属性队配置"""
 
     def __init__(self):
-        super().__init__(
-            team_name="示例冰属性队",
-            description="角色1-角色2-角色3冰属性队伍"
-        )
+        super().__init__(team_name="示例冰属性队", description="角色1-角色2-角色3冰属性队伍")
 
     def create_config(self) -> CommonCfg:
         """创建示例冰属性队配置"""
@@ -82,9 +79,7 @@ class IceTeamConfigs:
     @staticmethod
     def get_all_configs() -> list:
         """获取所有冰属性队伍配置"""
-        return [
-            IceTeamConfigs.get_example_team()
-        ]
+        return [IceTeamConfigs.get_example_team()]
 
 
 # # 自动注册

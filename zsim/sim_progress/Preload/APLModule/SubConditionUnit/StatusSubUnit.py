@@ -109,6 +109,7 @@ class StatusSubUnit(BaseSubConditionUnit):
             quick_assist_available = char.dynamic.quick_assist_manager.quick_assist_available
             from zsim.sim_progress.Character.character import Character
             from zsim.simulator.simulator_class import Simulator
+
             assert isinstance(char, Character)
             assert isinstance(sim_instance, Simulator)
             tick = sim_instance.tick

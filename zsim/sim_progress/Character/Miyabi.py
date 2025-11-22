@@ -1,4 +1,5 @@
 from typing import Literal
+
 from zsim.sim_progress.anomaly_bar import Disorder
 from zsim.sim_progress.Preload import SkillNode
 from zsim.sim_progress.Report import report_to_log

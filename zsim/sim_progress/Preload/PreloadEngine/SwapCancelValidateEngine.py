@@ -11,7 +11,7 @@ from zsim.define import (
     SWAP_CANCEL_MODE_LAG_TIME as SCLT,
 )
 
-from .. import SkillNode
+from ..SkillsQueue import SkillNode
 from .BasePreloadEngine import BasePreloadEngine
 
 # EXPLAIN：关于SCK和LT的作用：
@@ -123,13 +123,14 @@ class SwapCancelValidateEngine(BasePreloadEngine):
         这样一来，get_effective_node()发现当前node_stack中全部都是附加伤害技能，就直接返回None，导致函数直接放行，
         虽然整个SwapCancelValidateEngine内置多个校验器，但是关于角色是否“有空”的校验只有这一个，
         这导致一旦本函数放行，后续的校验器将完全默认“角色有空”，最终导致某些场景下的错误判断。
-        
+
         更新后，我在get_effective_node()的返回结果为None的情况下，进一步检查角色的dynamic.lasting_node.node是否为None。
         如果dynamic.lasting_node.node也为None，那么说明角色当前确实没有任何动作，角色才是真正“有空的”。
         """
         try_get_char_latest_node = char_stack.get_effective_node()
         if try_get_char_latest_node is None:
             from zsim.sim_progress.Character.character import Character
+
             char = self.data.char_data.find_char_obj(CID=cid)
             assert isinstance(char, Character)
             if char.dynamic.lasting_node.node is not None:
@@ -257,7 +258,7 @@ class SwapCancelValidateEngine(BasePreloadEngine):
             preload_data中，preload_action_list_before_confirm是一个列表，
             其中记录了当前tick要被抛出的动作，其中，每个元素是一个元组，
             元组的第一个元素是技能的tag，第二个元素是技能的主动类型，第三个元素是APL的优先级。
-            
+
             对于当前函数来说，APL抛出的动作apl_skill_node尚未进入preload_action_list_before_confirm列表，
             此时该列表中的所有技能都来自于ForceAddEngine强行添加。
             """
@@ -283,9 +284,11 @@ class SwapCancelValidateEngine(BasePreloadEngine):
                             or "additional_damage" not in skill_info
                         ):
                             """但若当前tick被force_add 添加的skill_tag只是个普通技能，那么就要执行顶替。"""
-                            print(
-                                f"即将添加的衔接技能：{_tuples}被{skill_tag}顶替！"
-                            ) if SWAP_CANCEL_MODE_DEBUG else None
+                            (
+                                print(f"即将添加的衔接技能：{_tuples}被{skill_tag}顶替！")
+                                if SWAP_CANCEL_MODE_DEBUG
+                                else None
+                            )
                             self.data.preload_action_list_before_confirm.remove(_tuples)
                             return True
                         break
@@ -403,33 +406,63 @@ class SwapCancelValidateEngine(BasePreloadEngine):
         if mode == 0:
             print("APL返回的结果是wait！")
         elif mode == 1:
-            print(f"{skill_tag}所涉及角色当前没空！") if not skill_compare else print(
-                f"{skill_tag}所涉及角色当前没空！"
-            ) if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL else None
+            (
+                print(f"{skill_tag}所涉及角色当前没空！")
+                if not skill_compare
+                else (
+                    print(f"{skill_tag}所涉及角色当前没空！")
+                    if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL
+                    else None
+                )
+            )
         elif mode == 2:
-            print(
-                f"{skill_tag}所涉及角色当前tick存在任务冲突，合轴失败！"
-            ) if not skill_compare else (
-                print(f"{skill_tag}所涉所涉及角色当前tick存在任务冲突，合轴失败！及角色当前没空！")
-                if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL
-                else None
+            (
+                print(f"{skill_tag}所涉及角色当前tick存在任务冲突，合轴失败！")
+                if not skill_compare
+                else (
+                    print(
+                        f"{skill_tag}所涉所涉及角色当前tick存在任务冲突，合轴失败！及角色当前没空！"
+                    )
+                    if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL
+                    else None
+                )
             )
         elif mode == 3:
-            print(
-                f"{skill_tag}所涉及角色切人CD未就绪  或是 技能优先级低于前台技能，合轴失败！"
-            ) if not skill_compare else print(
-                f"{skill_tag}所涉及角色切人CD未就绪  或是 技能优先级低于前台技能，合轴失败！"
-            ) if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL else None
+            (
+                print(f"{skill_tag}所涉及角色切人CD未就绪  或是 技能优先级低于前台技能，合轴失败！")
+                if not skill_compare
+                else (
+                    print(
+                        f"{skill_tag}所涉及角色切人CD未就绪  或是 技能优先级低于前台技能，合轴失败！"
+                    )
+                    if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL
+                    else None
+                )
+            )
         elif mode == 4:
-            print(f"当前tick不满足{skill_tag}合轴所需的时间！") if not skill_compare else print(
-                f"当前tick不满足{skill_tag}合轴所需的时间！"
-            ) if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL else None
+            (
+                print(f"当前tick不满足{skill_tag}合轴所需的时间！")
+                if not skill_compare
+                else (
+                    print(f"当前tick不满足{skill_tag}合轴所需的时间！")
+                    if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL
+                    else None
+                )
+            )
         elif mode == 5:
             if last_actively_generated_node:
-                print(
-                    f"{skill_tag}的上一个主动动作{last_actively_generated_node.skill.skill_tag}的APL策略为不要合轴！"
-                ) if not skill_compare else print(
-                    f"{skill_tag}的上一个主动动作{last_actively_generated_node.skill.skill_tag}的APL策略为不要合轴！"
-                ) if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL else None
+                (
+                    print(
+                        f"{skill_tag}的上一个主动动作{last_actively_generated_node.skill.skill_tag}的APL策略为不要合轴！"
+                    )
+                    if not skill_compare
+                    else (
+                        print(
+                            f"{skill_tag}的上一个主动动作{last_actively_generated_node.skill.skill_tag}的APL策略为不要合轴！"
+                        )
+                        if skill_tag == SWAP_CANCEL_DEBUG_TARGET_SKILL
+                        else None
+                    )
+                )
         else:
             raise ValueError("mode参数错误！")

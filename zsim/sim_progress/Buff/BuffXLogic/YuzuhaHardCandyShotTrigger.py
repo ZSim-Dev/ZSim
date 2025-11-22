@@ -1,10 +1,12 @@
-from .. import Buff, JudgeTools, check_preparation
 from typing import TYPE_CHECKING
 
+from .. import Buff, JudgeTools, check_preparation
+
 if TYPE_CHECKING:
-    from ...Preload import SkillNode
-    from ...Character.Yuzuha import Yuzuha
     from zsim.simulator.simulator_class import Simulator
+
+    from ...Character.Yuzuha import Yuzuha
+    from ...Preload import SkillNode
 
 
 class YuzuhaHardCandyShotTriggerRecord:

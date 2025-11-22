@@ -1,7 +1,10 @@
 import importlib
-from .special_state_class import EnemySpecialState
-from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS, PostInitObjectType as PIOT
 from typing import TYPE_CHECKING
+
+from zsim.models.event_enums import PostInitObjectType as PIOT
+from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
+
+from .special_state_class import EnemySpecialState
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Enemy import Enemy

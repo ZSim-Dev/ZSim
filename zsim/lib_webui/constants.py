@@ -71,7 +71,7 @@ def _init_skill_tag_mapping() -> dict[str, str]:
         return {
             _tag: f"{_text if _text else ''}{f' - {_instruction}' if _instruction else ''}"
             for _tag, _text, _instruction in zip(
-                mapping["skill_tag"], mapping["skill_text"], mapping["INSTRUCTION"]
+                mapping["skill_tag"], mapping["skill_text"], mapping["INSTRUCTION"], strict=False
             )
         }
     except Exception as e:
@@ -88,7 +88,7 @@ def _init_char_mapping() -> dict[str, str]:
     try:
         df = pl.scan_csv("./zsim/data/character.csv")
         mapping = df.select(["name", "CID"]).collect().to_dict(as_series=False)
-        return {name: str(cid) for name, cid in zip(mapping["name"], mapping["CID"])}
+        return {name: str(cid) for name, cid in zip(mapping["name"], mapping["CID"], strict=False)}
     except Exception as e:
         print(f"Warning: Failed to load character mapping: {e}")
         return {}

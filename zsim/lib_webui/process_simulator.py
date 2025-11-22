@@ -1,7 +1,8 @@
 import json
-from typing import Any, Iterator
-import shutil
 import os
+import shutil
+from typing import Any, Iterator
+
 import polars as pl
 import streamlit as st
 

@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 """物理队伍配置"""
 
+from zsim.models.session.session_run import CharConfig, CommonCfg, EnemyConfig
+
 from .team_configs import TeamConfigBase, TeamRegistry
-from zsim.models.session.session_run import CommonCfg, CharConfig, EnemyConfig
 
 
 class PhysicalTeamVivianConfig(TeamConfigBase):
     """薇薇安物理队配置"""
 
     def __init__(self):
-        super().__init__(
-            team_name="薇薇安物理队",
-            description="薇薇安-柳-耀嘉音物理属性队伍"
-        )
+        super().__init__(team_name="薇薇安物理队", description="薇薇安-柳-耀嘉音物理属性队伍")
 
     def create_config(self) -> CommonCfg:
         """创建薇薇安物理队配置"""
@@ -81,9 +79,7 @@ class PhysicalTeamConfigs:
     @staticmethod
     def get_all_configs() -> list:
         """获取所有物理队伍配置"""
-        return [
-            PhysicalTeamConfigs.get_vivian_team()
-        ]
+        return [PhysicalTeamConfigs.get_vivian_team()]
 
 
 # 自动注册

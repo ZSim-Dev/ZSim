@@ -1,6 +1,5 @@
 from .. import Buff, JudgeTools
 
-
 anomaly_statement_dict = {
     "Buff-异常-霜寒": "frostbite",
     "Buff-异常-畏缩": "assault",

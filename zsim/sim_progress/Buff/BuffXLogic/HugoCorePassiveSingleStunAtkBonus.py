@@ -1,5 +1,5 @@
-from zsim.sim_progress.Buff import Buff, JudgeTools, check_preparation
 from zsim.define import HUGO_REPORT
+from zsim.sim_progress.Buff import Buff, JudgeTools, check_preparation
 
 
 class HugoCorePassiveSingleStunAtkBonusRecord:

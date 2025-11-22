@@ -94,7 +94,9 @@ class Buff0Manager:
                         else self.sim_instance.schedule_data.enemy
                     )
                     self.sim_instance.listener_manager.listener_factory(
-                        listener_owner=_obj, initiate_signal=_buff_0.ft.listener_id, sim_instance=self.sim_instance
+                        listener_owner=_obj,
+                        initiate_signal=_buff_0.ft.listener_id,
+                        sim_instance=self.sim_instance,
                     )
 
     def __process_label(self):

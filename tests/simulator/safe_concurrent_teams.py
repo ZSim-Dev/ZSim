@@ -47,18 +47,10 @@ def run_simulation_in_process(common_cfg_dict, session_id, stop_tick=1000):
         del simulator
         gc.collect()
 
-        return {
-            "success": True,
-            "session_id": session_id,
-            "error": None
-        }
+        return {"success": True, "session_id": session_id, "error": None}
 
     except Exception as e:
-        return {
-            "success": False,
-            "session_id": session_id,
-            "error": str(e)
-        }
+        return {"success": False, "session_id": session_id, "error": str(e)}
 
 
 class TestSafeConcurrentTeams:
@@ -95,7 +87,9 @@ class TestSafeConcurrentTeams:
                 future_to_team = {}
 
                 for i, (team_name, common_cfg) in enumerate(team_configs):
-                    session_id = f"process-test-{uuid.uuid4().hex[:8]}-{team_name.replace(' ', '-')}"
+                    session_id = (
+                        f"process-test-{uuid.uuid4().hex[:8]}-{team_name.replace(' ', '-')}"
+                    )
 
                     # 创建会话
                     session = Session(
@@ -111,10 +105,7 @@ class TestSafeConcurrentTeams:
 
                     # 提交任务到进程池
                     future = executor.submit(
-                        run_simulation_in_process,
-                        common_cfg.model_dump(),
-                        session_id,
-                        1000
+                        run_simulation_in_process, common_cfg.model_dump(), session_id, 1000
                     )
                     future_to_team[future] = (team_name, session_id)
 
@@ -126,28 +117,30 @@ class TestSafeConcurrentTeams:
 
                         if result["success"]:
                             print(f"队伍 '{team_name}' 模拟成功")
-                            results.append({
-                                "team_name": team_name,
-                                "session_id": session_id,
-                                "success": True
-                            })
+                            results.append(
+                                {"team_name": team_name, "session_id": session_id, "success": True}
+                            )
                         else:
                             print(f"队伍 '{team_name}' 模拟失败: {result['error']}")
-                            results.append({
-                                "team_name": team_name,
-                                "session_id": session_id,
-                                "success": False,
-                                "error": result["error"]
-                            })
+                            results.append(
+                                {
+                                    "team_name": team_name,
+                                    "session_id": session_id,
+                                    "success": False,
+                                    "error": result["error"],
+                                }
+                            )
 
                     except Exception as e:
                         print(f"队伍 '{team_name}' 执行异常: {e}")
-                        results.append({
-                            "team_name": team_name,
-                            "session_id": session_id,
-                            "success": False,
-                            "error": str(e)
-                        })
+                        results.append(
+                            {
+                                "team_name": team_name,
+                                "session_id": session_id,
+                                "success": False,
+                                "error": str(e),
+                            }
+                        )
 
         except Exception as e:
             print(f"进程池执行错误: {e}")
@@ -176,8 +169,7 @@ class TestSafeConcurrentTeams:
 
         # 验证所有队伍都成功
         assert len(successful_teams) == len(team_configs), (
-            f"期望所有 {len(team_configs)} 个队伍都成功，"
-            f"但只有 {len(successful_teams)} 个成功"
+            f"期望所有 {len(team_configs)} 个队伍都成功，但只有 {len(successful_teams)} 个成功"
         )
 
         print(f"\n所有 {len(team_configs)} 个队伍在进程隔离环境下成功完成！")
@@ -192,7 +184,7 @@ class TestSafeConcurrentTeams:
         results = []
 
         for i, (team_name, common_cfg) in enumerate(team_configs):
-            print(f"\n执行队伍 {i+1}/{len(team_configs)}: {team_name}")
+            print(f"\n执行队伍 {i + 1}/{len(team_configs)}: {team_name}")
 
             session_id = f"sequential-delay-{i}-{team_name.replace(' ', '-')}"
 
@@ -200,10 +192,7 @@ class TestSafeConcurrentTeams:
                 # 使用进程隔离运行
                 with ProcessPoolExecutor(max_workers=1) as executor:
                     future = executor.submit(
-                        run_simulation_in_process,
-                        common_cfg.model_dump(),
-                        session_id,
-                        1000
+                        run_simulation_in_process, common_cfg.model_dump(), session_id, 1000
                     )
 
                     result = future.result(timeout=60)
@@ -244,30 +233,27 @@ class TestSafeConcurrentTeams:
 
         # 多次运行同一个队伍
         for i in range(3):
-            print(f"第 {i+1} 次运行")
+            print(f"第 {i + 1} 次运行")
 
             session_id = f"multiple-test-{i}-{team_name.replace(' ', '-')}"
 
             try:
                 with ProcessPoolExecutor(max_workers=1) as executor:
                     future = executor.submit(
-                        run_simulation_in_process,
-                        common_cfg.model_dump(),
-                        session_id,
-                        1000
+                        run_simulation_in_process, common_cfg.model_dump(), session_id, 1000
                     )
 
                     result = future.result(timeout=60)
 
                     if result["success"]:
-                        results.append(i+1)
-                        print(f"第 {i+1} 次运行成功")
+                        results.append(i + 1)
+                        print(f"第 {i + 1} 次运行成功")
                     else:
-                        print(f"第 {i+1} 次运行失败: {result['error']}")
-                        pytest.fail(f"第 {i+1} 次运行失败")
+                        print(f"第 {i + 1} 次运行失败: {result['error']}")
+                        pytest.fail(f"第 {i + 1} 次运行失败")
 
             except Exception as e:
-                print(f"第 {i+1} 次运行异常: {e}")
+                print(f"第 {i + 1} 次运行异常: {e}")
                 raise
 
             # 延迟

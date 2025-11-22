@@ -9,7 +9,7 @@ class SeedAdditionalAbilityTriggerRecord(BRBC):
     def __init__(self):
         super().__init__()
         self.cd = 60
-        self.energy_value = 2       # 回能值，2点能量。
+        self.energy_value = 2  # 回能值，2点能量。
 
 
 class SeedAdditionalAbilityTrigger(Buff.BuffLogic):
@@ -47,6 +47,7 @@ class SeedAdditionalAbilityTrigger(Buff.BuffLogic):
         if skill_node is None:
             return False
         from zsim.sim_progress.Preload import SkillNode
+
         assert isinstance(skill_node, SkillNode)
         preload_data = self.buff_instance.sim_instance.preload.preload_data
         # 当前操作角色不是席德时，直接返回False
@@ -70,9 +71,12 @@ class SeedAdditionalAbilityTrigger(Buff.BuffLogic):
         assert isinstance(self.record, SeedAdditionalAbilityTriggerRecord), (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
-        assert self.record.char.vanguard is not None, "席德在激活了组队被动的情况下没有指定正兵，请检查"
+        assert self.record.char.vanguard is not None, (
+            "席德在激活了组队被动的情况下没有指定正兵，请检查"
+        )
         vanguard = self.record.char.vanguard
         from zsim.sim_progress.data_struct.sp_update_data import ScheduleRefreshData
+
         energy_value = self.record.energy_value
         refresh_data = ScheduleRefreshData(
             sp_target=(vanguard.NAME,),

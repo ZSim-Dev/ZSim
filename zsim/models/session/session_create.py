@@ -4,8 +4,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from .session_run import SessionRun
 from .session_result import NormalModeResult, ParallelModeResult
+from .session_run import SessionRun
 
 
 def generate_session_id() -> str:

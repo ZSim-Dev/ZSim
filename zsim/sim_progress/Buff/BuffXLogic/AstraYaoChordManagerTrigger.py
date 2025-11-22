@@ -1,5 +1,6 @@
-from .. import Buff, JudgeTools, check_preparation, find_tick
 from zsim.define import ASTRAYAO_REPORT
+
+from .. import Buff, JudgeTools, check_preparation, find_tick
 
 
 class AstraYaoChordManagerTriggerRecord:

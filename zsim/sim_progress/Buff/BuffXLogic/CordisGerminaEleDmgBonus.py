@@ -40,6 +40,7 @@ class CordisGerminaEleDmgBonus(Buff.BuffLogic):
         assert self.record is not None
         skill_node = kwargs.get("skill_node", None)
         from zsim.sim_progress.Preload import SkillNode
+
         assert isinstance(skill_node, SkillNode)
         # 首先筛选掉没有佩戴机巧心种的角色的技能
         if skill_node.char_name != self.record.char.NAME:

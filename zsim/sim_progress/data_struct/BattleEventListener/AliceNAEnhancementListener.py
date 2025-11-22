@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-from .BaseListenerClass import BaseListener
+
 from zsim.define import ALICE_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
+from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
-    from zsim.sim_progress.Character.character import Character
     from zsim.sim_progress.Character.Alice import Alice
+    from zsim.sim_progress.Character.character import Character
+    from zsim.simulator.simulator_class import Simulator
 
 
 class AliceNAEnhancementListener(BaseListener):
@@ -30,5 +32,6 @@ class AliceNAEnhancementListener(BaseListener):
             self.sim_instance.schedule_data.change_process_state()
             print("【爱丽丝事件】监听到强击事件触发！爱丽丝获得1次强化A5次数")
         from zsim.sim_progress.Character.Alice import Alice
+
         assert isinstance(self.char, Alice)
         self.char.na_enhancement_state = True

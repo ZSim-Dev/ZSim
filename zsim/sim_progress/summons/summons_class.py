@@ -1,5 +1,6 @@
-from zsim.sim_progress.Character.character import Character
 from abc import ABC, abstractmethod
+
+from zsim.sim_progress.Character.character import Character
 
 
 class Summons(ABC):

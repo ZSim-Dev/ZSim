@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 """火属性队伍配置"""
 
+from zsim.models.session.session_run import CharConfig, CommonCfg, EnemyConfig
+
 from .team_configs import TeamConfigBase, TeamRegistry
-from zsim.models.session.session_run import CommonCfg, CharConfig, EnemyConfig
 
 
 class FireTeamLighterConfig(TeamConfigBase):
     """莱特火属性队配置"""
 
     def __init__(self):
-        super().__init__(
-            team_name="莱特火属性队",
-            description="莱特-扳机-雨果火属性队伍"
-        )
+        super().__init__(team_name="莱特火属性队", description="莱特-扳机-雨果火属性队伍")
 
     def create_config(self) -> CommonCfg:
         """创建莱特火属性队配置"""
@@ -81,9 +79,7 @@ class FireTeamConfigs:
     @staticmethod
     def get_all_configs() -> list:
         """获取所有火属性队伍配置"""
-        return [
-            FireTeamConfigs.get_lighter_team()
-        ]
+        return [FireTeamConfigs.get_lighter_team()]
 
 
 # 自动注册

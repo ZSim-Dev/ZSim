@@ -33,7 +33,7 @@ class ViviansProphecy(Dot):
         max_count: int | None = 999999
         incremental_step: int | None = 1
         max_duration: int | None = 999999
-        complex_exit_logic = True       # 该dot为复杂退出逻辑
+        complex_exit_logic = True  # 该dot为复杂退出逻辑
 
     def exit_judge(self, **kwargs):
         """薇薇安的预言 dot的退出逻辑：敌人只要处于异常状态，就不会退出。"""

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from zsim.sim_progress.summons.summons_class import Summons
 from typing import TYPE_CHECKING
+
+from zsim.sim_progress.summons.summons_class import Summons
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator

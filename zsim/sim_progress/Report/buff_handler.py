@@ -23,7 +23,7 @@ def dump_buff_csv(result_id: str):
     # Check if buffered_data has any content
     if not buffered_data:
         return
-        
+
     for char_name, char_data in buffered_data.items():
         if not char_data:
             continue
@@ -46,7 +46,7 @@ def dump_buff_csv(result_id: str):
             continue
 
         buff_report_file_path = f"{result_id}/buff_log/{char_name}.csv"
-        
+
         # Ensure the directory exists
         try:
             os.makedirs(os.path.dirname(buff_report_file_path), exist_ok=True)
@@ -58,7 +58,7 @@ def dump_buff_csv(result_id: str):
             df = pl.DataFrame(rows)
             if df.is_empty():
                 continue
-                
+
             # Sort columns: time_tick first, then buff names alphabetically for deterministic output.
             buff_columns = sorted([col for col in df.columns if col != "time_tick"])
             df = df.sort("time_tick").select(["time_tick"] + buff_columns)

@@ -46,10 +46,10 @@ class AnomalyBar:
     UUID: uuid.UUID | None = None
     activated_by: "SkillNode | None" = None
     ndarray_box: list[tuple] | None = None
-    scaling_factor: float = 1.0     # 缩放比例，在计算伤害时会乘以该比例
+    scaling_factor: float = 1.0  # 缩放比例，在计算伤害时会乘以该比例
     settled: bool = False  # 快照是否被结算过
-    rename_tag: str | None = None      # 重命名标签
-    schedule_priority: int = 999        # 默认情况下，异常条的处理优先级为999，位于当前tick的最后。
+    rename_tag: str | None = None  # 重命名标签
+    schedule_priority: int = 999  # 默认情况下，异常条的处理优先级为999，位于当前tick的最后。
 
     @property
     def rename(self) -> bool:
@@ -257,7 +257,9 @@ class AnomalyBar:
     def anomaly_settled(self):
         """结算快照！"""
         if self.settled:
-            raise RuntimeError("【异常条结算警告】当前异常条快照已经被结算过一次了，请检查业务逻辑，找出重复结算的时间点！")
+            raise RuntimeError(
+                "【异常条结算警告】当前异常条快照已经被结算过一次了，请检查业务逻辑，找出重复结算的时间点！"
+            )
         total_array = np.zeros((1, 1), dtype=np.float64)
         effective_buildup: np.float64 = np.float64(0)
         while self.ndarray_box:

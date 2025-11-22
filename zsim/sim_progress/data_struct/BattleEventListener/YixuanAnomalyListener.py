@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 
 from zsim.define import YIXUAN_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 
 from .BaseListenerClass import BaseListener
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Character.Yixuan import Yixuan

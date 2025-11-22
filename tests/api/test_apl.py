@@ -4,12 +4,13 @@ APL API 测试
 """
 
 import pytest
+
 from zsim.api_src.models.apl import (
     APLCharacterConfig,
     APLCharactersInfo,
-    APLLogicInfo,
     APLConfigCreateRequest,
     APLConfigUpdateRequest,
+    APLLogicInfo,
 )
 
 

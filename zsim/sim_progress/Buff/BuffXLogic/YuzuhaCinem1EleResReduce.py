@@ -1,5 +1,6 @@
-from .. import Buff, JudgeTools, check_preparation
 from typing import TYPE_CHECKING
+
+from .. import Buff, JudgeTools, check_preparation
 
 if TYPE_CHECKING:
     from ...Preload import SkillNode

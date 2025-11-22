@@ -21,7 +21,6 @@ from zsim.define import COSTOM_APL_DIR, DEFAULT_APL_DIR
 
 
 class APLConfigORM(Base):
-
     __tablename__ = "apl_configs"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -72,9 +71,7 @@ class APLDatabase:
         if not config_id or not isinstance(config_id, str):
             return None
 
-        return asyncio.get_event_loop().run_until_complete(
-            self._get_apl_config_async(config_id)
-        )
+        return asyncio.get_event_loop().run_until_complete(self._get_apl_config_async(config_id))
 
     async def _get_apl_config_async(self, config_id: str) -> dict[str, Any] | None:
         """异步获取特定APL配置。
@@ -88,9 +85,7 @@ class APLDatabase:
 
         await self._ensure_initialized()
         async with get_async_session() as session:
-            result = await session.execute(
-                select(APLConfigORM).where(APLConfigORM.id == config_id)
-            )
+            result = await session.execute(select(APLConfigORM).where(APLConfigORM.id == config_id))
             record = result.scalar_one_or_none()
             if record is None:
                 return None
@@ -125,9 +120,7 @@ class APLDatabase:
         )
         return config_id
 
-    async def _create_apl_config_async(
-        self, config_id: str, config_data: dict[str, Any]
-    ) -> None:
+    async def _create_apl_config_async(self, config_id: str, config_data: dict[str, Any]) -> None:
         """异步创建APL配置。
 
         Args:
@@ -181,9 +174,7 @@ class APLDatabase:
             self._update_apl_config_async(config_id, config_data)
         )
 
-    async def _update_apl_config_async(
-        self, config_id: str, config_data: dict[str, Any]
-    ) -> bool:
+    async def _update_apl_config_async(self, config_id: str, config_data: dict[str, Any]) -> bool:
         """异步更新APL配置。
 
         Args:
@@ -196,9 +187,7 @@ class APLDatabase:
 
         await self._ensure_initialized()
         async with get_async_session() as session:
-            result = await session.execute(
-                select(APLConfigORM).where(APLConfigORM.id == config_id)
-            )
+            result = await session.execute(select(APLConfigORM).where(APLConfigORM.id == config_id))
             record = result.scalar_one_or_none()
             if record is None:
                 return False
@@ -233,9 +222,7 @@ class APLDatabase:
         if not config_id or not isinstance(config_id, str):
             return False
 
-        return asyncio.get_event_loop().run_until_complete(
-            self._delete_apl_config_async(config_id)
-        )
+        return asyncio.get_event_loop().run_until_complete(self._delete_apl_config_async(config_id))
 
     async def _delete_apl_config_async(self, config_id: str) -> bool:
         """异步删除APL配置。
@@ -249,9 +236,7 @@ class APLDatabase:
 
         await self._ensure_initialized()
         async with get_async_session() as session:
-            result = await session.execute(
-                delete(APLConfigORM).where(APLConfigORM.id == config_id)
-            )
+            result = await session.execute(delete(APLConfigORM).where(APLConfigORM.id == config_id))
             if result.rowcount == 0:
                 await session.rollback()
                 return False
@@ -459,18 +444,14 @@ class APLDatabase:
                         "author": general_info.get("author", ""),
                         "comment": general_info.get("comment", ""),
                         "create_time": general_info.get("create_time", ""),
-                        "latest_change_time": general_info.get(
-                            "latest_change_time", ""
-                        ),
+                        "latest_change_time": general_info.get("latest_change_time", ""),
                         "source": source_type,
                         "file_path": file_path,
                     }
                 )
         return apl_list
 
-    def _get_apl_files_from_dir(
-        self, apl_dir: str, source_type: str
-    ) -> list[dict[str, Any]]:
+    def _get_apl_files_from_dir(self, apl_dir: str, source_type: str) -> list[dict[str, Any]]:
         """从指定目录获取APL文件列表。
 
         Args:

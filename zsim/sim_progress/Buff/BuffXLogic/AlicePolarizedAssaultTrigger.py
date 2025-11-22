@@ -1,18 +1,22 @@
-from .. import Buff, JudgeTools, check_preparation
-from define import ALICE_REPORT
 from copy import deepcopy
+
+from define import ALICE_REPORT
+
 from zsim.sim_progress.Preload import SkillNode
+
+from .. import Buff, JudgeTools, check_preparation
 
 
 class AlicePolarizedAssaultTriggerRecord:
     def __init__(self):
         self.char = None
-        self.allowed_skill_tag_list: list[str] = ["1401_SNA_3", "1401_Q"]        # 合法的极性强击触发源
+        self.allowed_skill_tag_list: list[str] = ["1401_SNA_3", "1401_Q"]  # 合法的极性强击触发源
         self.trigger_origin: "SkillNode | None" = None
 
 
 class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
     """爱丽丝的极性强击触发器"""
+
     def __init__(self, buff_instance):
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
@@ -52,7 +56,9 @@ class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
             return False
 
         if self.record.trigger_origin is not None:
-            raise ValueError(f"【极性强击触发器警告】存在尚未处理的触发源{self.record.trigger_origin.skill_tag}")
+            raise ValueError(
+                f"【极性强击触发器警告】存在尚未处理的触发源{self.record.trigger_origin.skill_tag}"
+            )
         self.record.trigger_origin = skill_node
         # print(f"【测试】当前时间{tick}，{skill_node.skill_tag}即将通过判定。preload_tick: {skill_node.preload_tick}， end_tick: {skill_node.end_tick}，tick_list: {skill_node.tick_list}")
         return True
@@ -62,6 +68,7 @@ class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
         self.check_record_module()
         self.get_prepared(char_CID=1401)
         from zsim.sim_progress.data_struct import PolarizedAssaultEvent
+
         sim_instance = self.buff_instance.sim_instance
         tick = sim_instance.tick
         enemy = sim_instance.schedule_data.enemy
@@ -71,10 +78,13 @@ class AlicePolarizedAssaultTrigger(Buff.BuffLogic):
             execute_tick=tick,
             anomlay_bar=copyed_anomaly_bar,
             char_instance=self.record.char,
-            skill_node=self.record.trigger_origin)
+            skill_node=self.record.trigger_origin,
+        )
         event_list = sim_instance.schedule_data.event_list
         event_list.append(event)
         if ALICE_REPORT:
             sim_instance.schedule_data.change_process_state()
-            print(f"【爱丽丝事件】{self.record.trigger_origin.skill.skill_text} 最后一Hit命中，创建了一个极性强击事件！")
+            print(
+                f"【爱丽丝事件】{self.record.trigger_origin.skill.skill_text} 最后一Hit命中，创建了一个极性强击事件！"
+            )
         self.record.trigger_origin = None

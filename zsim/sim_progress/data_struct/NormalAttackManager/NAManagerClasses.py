@@ -47,9 +47,10 @@ class SeedNAManager(BaseNAManager):
     def __init__(self, char_obj: "Character | Seed", rule_inventory_dict: dict):
         super().__init__(char_obj, rule_inventory_dict)
         from zsim.sim_progress.Character.Seed import Seed
+
         self.char: Seed = char_obj
         self.na_rule_inventory = rule_inventory_dict
         self.RULE_MAP = {
             "default": lambda: not self.char.steel_charge_enough,
-            "steel_charge_enough": lambda: self.char.steel_charge_enough
+            "steel_charge_enough": lambda: self.char.steel_charge_enough,
         }

@@ -13,5 +13,5 @@ __all__ = [
     "ElectricTeamConfigs",
     "TeamConfigBase",
     "TeamRegistry",
-    "auto_register_teams"
+    "auto_register_teams",
 ]

@@ -1,13 +1,15 @@
 from typing import TYPE_CHECKING
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-from .BaseListenerClass import BaseListener
+
 from zsim.define import ALICE_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
+from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
-    from zsim.sim_progress.Character.character import Character
-    from zsim.sim_progress.Character.Alice import Alice
     from zsim.sim_progress.anomaly_bar import AnomalyBar
+    from zsim.sim_progress.Character.Alice import Alice
+    from zsim.sim_progress.Character.character import Character
+    from zsim.simulator.simulator_class import Simulator
 
 
 class AliceCoreSkillPhyBuildupBonusListener(BaseListener):
@@ -43,4 +45,6 @@ class AliceCoreSkillPhyBuildupBonusListener(BaseListener):
         buff_add_strategy(self.buff_index, benifit_list=["爱丽丝"], sim_instance=self.sim_instance)
         if ALICE_REPORT:
             self.sim_instance.schedule_data.change_process_state()
-            print(f"【爱丽丝事件】检测到爱丽丝触发{"强击" if signal == LBS.ASSAULT_SPAWN else "极性强击"}，为爱丽丝添加 物理积蓄效率提高 的Buff")
+            print(
+                f"【爱丽丝事件】检测到爱丽丝触发{'强击' if signal == LBS.ASSAULT_SPAWN else '极性强击'}，为爱丽丝添加 物理积蓄效率提高 的Buff"
+            )

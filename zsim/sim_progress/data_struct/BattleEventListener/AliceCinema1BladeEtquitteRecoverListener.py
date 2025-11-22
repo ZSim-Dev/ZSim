@@ -1,11 +1,13 @@
 from typing import TYPE_CHECKING
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-from .BaseListenerClass import BaseListener
+
 from zsim.define import ALICE_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
+from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
     from zsim.sim_progress.Character.Alice import Alice
+    from zsim.simulator.simulator_class import Simulator
 
 
 class AliceCinema1BladeEtquitteRecoverListener(BaseListener):

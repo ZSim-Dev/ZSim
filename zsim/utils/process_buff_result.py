@@ -1,11 +1,12 @@
+import asyncio
 import json
 import os
-import asyncio
-import aiofiles
-import aiofiles.os
 from typing import Any
 
+import aiofiles
+import aiofiles.os
 import polars as pl
+
 from zsim.define import results_dir
 
 

@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from typing import TYPE_CHECKING
 
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
     from zsim.sim_progress.Character.character import Character
     from zsim.sim_progress.Enemy import Enemy
+    from zsim.simulator.simulator_class import Simulator
 
 
 class BaseListener(ABC):

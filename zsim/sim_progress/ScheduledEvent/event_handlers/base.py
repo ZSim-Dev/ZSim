@@ -133,9 +133,7 @@ class BaseEventHandler(EventHandlerABC):
 
         # Pydantic模型已经确保了数据的完整性和有效性
 
-    def _handle_error(
-        self, error: Exception, operation: str, event: Any = None
-    ) -> None:
+    def _handle_error(self, error: Exception, operation: str, event: Any = None) -> None:
         """
         统一错误处理方法
 

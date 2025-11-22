@@ -39,6 +39,7 @@ class SeedCinema2BesiegeIgnoreDefenceTrigger(Buff.BuffLogic):
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
         from zsim.sim_progress.Character.Seed import Seed
+
         seed = self.record.char
         assert isinstance(seed, Seed)
         besiege_state_tuple = seed.besiege_active_check()
@@ -52,6 +53,7 @@ class SeedCinema2BesiegeIgnoreDefenceTrigger(Buff.BuffLogic):
         self.get_prepared(char_CID=1461)
         assert self.record is not None
         from zsim.sim_progress.Character.Seed import Seed
+
         seed = self.record.char
         assert isinstance(seed, Seed)
         besiege_state_tuple = seed.besiege_active_check()
@@ -63,6 +65,8 @@ class SeedCinema2BesiegeIgnoreDefenceTrigger(Buff.BuffLogic):
         if besiege_state_tuple[1]:
             benefit_list.append(seed.vanguard.NAME) if seed.vanguard is not None else None
         if benefit_list:
-            buff_add_strategy(self.record.buff_index, benifit_list=benefit_list, sim_instance=self.buff_instance.sim_instance)
-
-
+            buff_add_strategy(
+                self.record.buff_index,
+                benifit_list=benefit_list,
+                sim_instance=self.buff_instance.sim_instance,
+            )

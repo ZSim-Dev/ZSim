@@ -1,15 +1,17 @@
-from zsim.sim_progress.Preload import SkillNode
-from zsim.models.event_enums import PostInitObjectType as PIOT, SpecialStateUpdateSignal as SSUS
+from typing import TYPE_CHECKING
+
 from zsim.define import YUZUHA_REPORT
+from zsim.models.event_enums import PostInitObjectType as PIOT
+from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
+from zsim.sim_progress.Preload import SkillNode
+
+from ...data_struct.SchedulePreload import schedule_preload_event_factory
 from ..character import Character
 from ..utils.filters import _skill_node_filter
-from typing import TYPE_CHECKING
-from ...data_struct.SchedulePreload import schedule_preload_event_factory
-
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
     from zsim.sim_progress.data_struct.enemy_special_state_manager.special_classes import SweetScare
+    from zsim.simulator.simulator_class import Simulator
 
 
 class Yuzuha(Character):

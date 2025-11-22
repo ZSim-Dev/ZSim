@@ -4,7 +4,9 @@ from zsim.sim_progress.Enemy import Enemy
 from zsim.sim_progress.Report import report_buff_to_queue, report_to_log
 
 
-def update_time_related_effect(DYNAMIC_BUFF_DICT: dict, timetick, exist_buff_dict: dict, enemy: Enemy):
+def update_time_related_effect(
+    DYNAMIC_BUFF_DICT: dict, timetick, exist_buff_dict: dict, enemy: Enemy
+):
     """
     更新一些和时间相关的效果，异常条、Buff、Dot
     """
@@ -111,7 +113,9 @@ def KickOutBuff(
 ):
     buff.end(timetick, sub_exist_buff_dict)
     DYNAMIC_BUFF_DICT[charname].remove(buff)
-    report_to_log(f"[Buff END]:{timetick}:{charname} 的 {buff.ft.index} 结束，已从动态列表移除", level=4)
+    report_to_log(
+        f"[Buff END]:{timetick}:{charname} 的 {buff.ft.index} 结束，已从动态列表移除", level=4
+    )
     if buff.ft.is_debuff:
         enemy.dynamic.dynamic_debuff_list.remove(buff)
 

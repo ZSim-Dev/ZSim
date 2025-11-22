@@ -26,4 +26,3 @@ def na_manager_factory(char_obj) -> BaseNAManager:
             char_na_dict = all_default_na_dict.get(str(char_cid))
             dict_input = {"default": char_na_dict}
             return BaseNAManager(char_obj, dict_input)
-

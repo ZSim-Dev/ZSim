@@ -44,8 +44,8 @@ class FlamemakerShakerDmgBonus(Buff.BuffLogic):
         skill_node = kwargs.get("skill_node", None)
         if skill_node is None:
             return False
-        from zsim.sim_progress.Preload import SkillNode
         from zsim.sim_progress.Load import LoadingMission
+        from zsim.sim_progress.Preload import SkillNode
 
         if isinstance(skill_node, SkillNode):
             pass

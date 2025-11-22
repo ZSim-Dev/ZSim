@@ -27,7 +27,7 @@ __char_module_map = {
     "仪玄": "Yixuan",
     "柚叶": "Yuzuha",
     "爱丽丝": "Alice",
-    "席德": "Seed"
+    "席德": "Seed",
 }
 
 

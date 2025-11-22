@@ -47,6 +47,7 @@ class SeedCinema6Trigger(Buff.BuffLogic):
         if skill_node is None:
             return False
         from zsim.sim_progress.Preload import SkillNode
+
         assert isinstance(skill_node, SkillNode)
         if skill_node.skill_tag != self.record.trigger_skill_tag:
             return False
@@ -62,6 +63,7 @@ class SeedCinema6Trigger(Buff.BuffLogic):
         self.get_prepared(char_CID=1461)
         assert self.record is not None
         from zsim.sim_progress.data_struct.SchedulePreload import schedule_preload_event_factory
+
         tick = self.buff_instance.sim_instance.tick
         preload_tick_list = [tick, tick, tick]
         skill_tag_list = [self.record.additional_damage_skill_tag] * 3
@@ -70,10 +72,9 @@ class SeedCinema6Trigger(Buff.BuffLogic):
             preload_tick_list=preload_tick_list,
             skill_tag_list=skill_tag_list,
             preload_data=preload_data,
-            sim_instance=self.buff_instance.sim_instance
+            sim_instance=self.buff_instance.sim_instance,
         )
         self.record.last_active_tick = tick
         if SEED_REPORT:
             self.buff_instance.sim_instance.schedule_data.change_process_state()
             print("【席德6画】检测到席德发动了 落华·重戮，添加三次协同攻击！")
-

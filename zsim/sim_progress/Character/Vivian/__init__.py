@@ -1,7 +1,8 @@
-from ..utils.filters import _skill_node_filter
-from ..character import Character
-from .FeatherManager import FeatherManager
 from typing import TYPE_CHECKING
+
+from ..character import Character
+from ..utils.filters import _skill_node_filter
+from .FeatherManager import FeatherManager
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Preload import SkillNode

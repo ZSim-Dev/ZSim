@@ -130,6 +130,7 @@ class SwapCancelValidateEngine(BasePreloadEngine):
         try_get_char_latest_node = char_stack.get_effective_node()
         if try_get_char_latest_node is None:
             from zsim.sim_progress.Character.character import Character
+
             char = self.data.char_data.find_char_obj(CID=cid)
             assert isinstance(char, Character)
             if char.dynamic.lasting_node.node is not None:

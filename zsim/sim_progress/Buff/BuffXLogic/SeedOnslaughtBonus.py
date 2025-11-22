@@ -11,6 +11,7 @@ class SeedOnslaughtBonusRecord(BRBC):
 
 class SeedOnslaughtBonus(Buff.BuffLogic):
     """席德的强袭Buff复杂逻辑"""
+
     def __init__(self, buff_instance):
         super().__init__(buff_instance)
         self.buff_instance: Buff = buff_instance
@@ -41,7 +42,9 @@ class SeedOnslaughtBonus(Buff.BuffLogic):
         assert self.record is not None, (
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
-        assert type(self.record.char) is Seed, f"当前record中的角色不是席德，而是{type(self.record.char).__name__}, CID为：{self.record.char.CID, self.record.char.NAME}"
+        assert type(self.record.char) is Seed, (
+            f"当前record中的角色不是席德，而是{type(self.record.char).__name__}, CID为：{self.record.char.CID, self.record.char.NAME}"
+        )
 
         return self.record.char.onslaught_active
 
@@ -53,4 +56,3 @@ class SeedOnslaughtBonus(Buff.BuffLogic):
             f"【Buff初始化警告】{self.buff_instance.ft.index}的复杂逻辑模块未正确初始化，请检查函数"
         )
         return not self.xjudge
-

@@ -34,8 +34,12 @@ class PreloadData:
 
         from zsim.sim_progress.data_struct import NodeStack
 
-        self.personal_node_stack: dict[int, "NodeStack[SkillNode]"] = {}  # 个人的技能栈（包括主动生成的和被动生成的）
-        self.personal_active_generation_node_stack: dict[int, "NodeStack[SkillNode]"] = {}  # 个人的主动生成的技能栈
+        self.personal_node_stack: dict[
+            int, "NodeStack[SkillNode]"
+        ] = {}  # 个人的技能栈（包括主动生成的和被动生成的）
+        self.personal_active_generation_node_stack: dict[
+            int, "NodeStack[SkillNode]"
+        ] = {}  # 个人的主动生成的技能栈
         self.current_node_stack: "NodeStack" = NodeStack(length=5)  # Preload阶段的总技能栈
         self.latest_active_generation_node: SkillNode | None = (
             None  # 最近一次主动生成的skillnode，#TODO：可能是无用参数！
@@ -67,6 +71,7 @@ class PreloadData:
         self.current_node_stack.push(node)
         if char_cid not in self.personal_node_stack:
             from zsim.sim_progress.data_struct import NodeStack
+
             self.personal_node_stack[char_cid] = NodeStack(length=3)
             self.personal_active_generation_node_stack[char_cid] = NodeStack(length=3)
 

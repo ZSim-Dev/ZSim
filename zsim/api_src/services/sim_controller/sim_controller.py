@@ -144,27 +144,21 @@ class SimController:
                     else session.session_run.stop_tick
                 )
                 if stop_tick is None:
-                    logger.warning(
-                        f"会话 {session_id} 未设置 stop_tick，使用默认值 3600"
-                    )
+                    logger.warning(f"会话 {session_id} 未设置 stop_tick，使用默认值 3600")
                     stop_tick = 3600
 
                 def run_simulator(
                     _common_cfg: CommonCfg, _sim_cfg: SimCfg | None, _stop_tick: int
                 ) -> "Confirmation":
                     simulator = Simulator()
-                    return simulator.api_run_simulator(
-                        _common_cfg, _sim_cfg, _stop_tick
-                    )
+                    return simulator.api_run_simulator(_common_cfg, _sim_cfg, _stop_tick)
 
                 # 创建模拟器实例并提交任务
                 future: asyncio.Future["Confirmation"] = event_loop.run_in_executor(
                     self.executor, run_simulator, common_cfg, sim_cfg, stop_tick
                 )
                 self._running_tasks.add(future)
-                future.add_done_callback(
-                    lambda f: self._task_done_callback(f, session_id)
-                )
+                future.add_done_callback(lambda f: self._task_done_callback(f, session_id))
                 # 让出控制权给其他协程
                 await asyncio.sleep(0)
 
@@ -207,18 +201,14 @@ class SimController:
                     else session.session_run.stop_tick
                 )
                 if stop_tick is None:
-                    logger.warning(
-                        f"会话 {session_id} 未设置 stop_tick，使用默认值 3600"
-                    )
+                    logger.warning(f"会话 {session_id} 未设置 stop_tick，使用默认值 3600")
                     stop_tick = 3600
 
                 def run_simulator(
                     _common_cfg: CommonCfg, _sim_cfg: SimCfg | None, _stop_tick: int
                 ) -> "Confirmation":
                     simulator = Simulator()
-                    return simulator.api_run_simulator(
-                        _common_cfg, _sim_cfg, _stop_tick
-                    )
+                    return simulator.api_run_simulator(_common_cfg, _sim_cfg, _stop_tick)
 
                 # 使用 ThreadPoolExecutor 避免序列化问题
                 with ThreadPoolExecutor() as thread_executor:
@@ -366,9 +356,7 @@ class SimController:
         else:
             return await loop.run_in_executor(self.executor, _run_simulator)
 
-    def _task_done_callback(
-        self, future: asyncio.Future["Confirmation"], session_id: str
-    ) -> None:
+    def _task_done_callback(self, future: asyncio.Future["Confirmation"], session_id: str) -> None:
         """
         任务完成时的回调函数。
 
@@ -397,9 +385,9 @@ class SimController:
 
             # 处理模拟结果确认信息
             if isinstance(result, dict) and "run_turn_uuid" in result:
-                processed_result: NormalModeResult | ParallelModeResult = (
-                    await self._process_simulation_result(result)
-                )
+                processed_result: (
+                    NormalModeResult | ParallelModeResult
+                ) = await self._process_simulation_result(result)
                 try:
                     session.session_result = [processed_result]
                 except Exception as e:
@@ -525,13 +513,9 @@ class SimController:
         func_cfg = parallel_cfg.func_config
 
         if func == "attr_curve" and isinstance(func_cfg, ParallelCfg.AttrCurveConfig):
-            yield from self._generate_attr_curve_args(
-                func_cfg, parallel_cfg, stop_tick, session_id
-            )
+            yield from self._generate_attr_curve_args(func_cfg, parallel_cfg, stop_tick, session_id)
         elif func == "weapon" and isinstance(func_cfg, ParallelCfg.WeaponConfig):
-            yield from self._generate_weapon_args(
-                func_cfg, parallel_cfg, stop_tick, session_id
-            )
+            yield from self._generate_weapon_args(func_cfg, parallel_cfg, stop_tick, session_id)
         else:
             error_msg = f"未知的func类型: {func}, 完整配置: {parallel_cfg}"
             logger.error(error_msg)

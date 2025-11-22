@@ -1,8 +1,11 @@
-from .. import Buff, JudgeTools, check_preparation, find_tick
 from zsim.sim_progress.ScheduledEvent.Calculator import (
-    MultiplierData as Mul,
     Calculator as Cal,
 )
+from zsim.sim_progress.ScheduledEvent.Calculator import (
+    MultiplierData as Mul,
+)
+
+from .. import Buff, JudgeTools, check_preparation, find_tick
 
 
 class JaneCinema1APTransToDmgBonusRecord:

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """团队配置使用示例"""
 
-from .team_configs import TeamRegistry
 from .physical_teams import PhysicalTeamConfigs
-from .fire_teams import FireTeamConfigs
-from .electric_teams import ElectricTeamConfigs
+from .team_configs import TeamRegistry
 
 
 def example_usage():
@@ -33,15 +31,13 @@ def example_usage():
 
         def create_new_team_config(self):
             """创建新队伍配置的示例"""
+            from zsim.models.session.session_run import CommonCfg
+
             from .team_configs import TeamConfigBase
-            from zsim.models.session.session_run import CommonCfg, CharConfig, EnemyConfig
 
             class NewIceTeamConfig(TeamConfigBase):
                 def __init__(self):
-                    super().__init__(
-                        team_name="冰属性新队伍",
-                        description="冰属性队伍示例"
-                    )
+                    super().__init__(team_name="冰属性新队伍", description="冰属性队伍示例")
 
                 def create_config(self) -> CommonCfg:
                     # 这里实现具体的配置逻辑

@@ -41,7 +41,7 @@ def find_consecutive_true_ranges(df, column):
     ticks = df["tick"].tolist()
     values = df[column].tolist()
 
-    for i, (tick, value) in enumerate(zip(ticks, values)):
+    for i, (tick, value) in enumerate(zip(ticks, values, strict=False)):
         if value:
             if start is None:
                 start = tick

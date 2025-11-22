@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 
 from zsim.define import ENEMY_ADJUSTMENT_PATH, ENEMY_DATA_PATH
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
 from zsim.sim_progress.anomaly_bar import (
     AuricInkAnomaly,
     ElectricAnomaly,
@@ -15,14 +17,12 @@ from zsim.sim_progress.anomaly_bar import (
 )
 from zsim.sim_progress.anomaly_bar.AnomalyBarClass import AnomalyBar
 from zsim.sim_progress.data_struct import SingleHit
+from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
 from zsim.sim_progress.Report import report_to_log
-from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
 
 from .EnemyAttack import EnemyAttackMethod
 from .EnemyUniqueMechanic import unique_mechanic_factory
 from .QTEManager import QTEManager
-from zsim.sim_progress.data_struct.enemy_special_state_manager import SpecialStateManager
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
@@ -675,8 +675,9 @@ class Enemy:
             if value:
                 # 检查更新值并且广播给各监听器（目前只为爱丽丝核心被动Dot触发器服务）
                 sim_instance = self.enemy.sim_instance
-                sim_instance.listener_manager.broadcast_event(signal=LBS.ASSAULT_STATE_ON, event=self.enemy.anomaly_bars_dict[0])
-
+                sim_instance.listener_manager.broadcast_event(
+                    signal=LBS.ASSAULT_STATE_ON, event=self.enemy.anomaly_bars_dict[0]
+                )
 
         def __str__(self):
             return f"失衡: {self.stun}, 失衡条: {self.stun_bar:.2f}, 冻结: {self.frozen}, 霜寒: {self.frostbite}, 畏缩: {self.assault}, 感电: {self.shock}, 灼烧: {self.burn}, 侵蚀：{self.corruption}, 烈霜霜寒：{self.frost_frostbite}"

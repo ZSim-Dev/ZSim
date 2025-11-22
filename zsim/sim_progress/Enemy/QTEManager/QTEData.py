@@ -56,7 +56,7 @@ class QTEData:
             "qte_triggered_times": SumStrategy,
         }
         self.preload_data = None
-        self.qte_answered_box: list[str | None] = []        # 响应过QTE的角色
+        self.qte_answered_box: list[str | None] = []  # 响应过QTE的角色
 
     def check_myself(self, single_hit: SingleHit | None = None) -> bool:
         """该函数用于检查自身目前的状态，即当前是彩色失衡还是灰色失衡；"""
@@ -267,7 +267,9 @@ class SingleQTE:
             # 当角色响应了QTE时，需要将角色的skill_tag添加到qte_answered_box中
             CID = _single_hit.skill_node.skill.char_obj.CID
             if CID in self.qte_data.qte_answered_box:
-                raise ValueError(f"一轮连续地QTE中，每名角色只允许响应一次QTE！当前轮次QTE中，已经有{self.qte_data.qte_answered_box}响应过了QTE，{CID}  企图响应QTE两次！")
+                raise ValueError(
+                    f"一轮连续地QTE中，每名角色只允许响应一次QTE！当前轮次QTE中，已经有{self.qte_data.qte_answered_box}响应过了QTE，{CID}  企图响应QTE两次！"
+                )
             self.qte_data.qte_answered_box.append(_single_hit.skill_node.skill.char_obj.CID)
         self.__is_hitted = True
         self.merge_single_qte()

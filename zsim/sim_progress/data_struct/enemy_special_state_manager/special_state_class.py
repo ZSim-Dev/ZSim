@@ -1,9 +1,11 @@
-from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+from zsim.models.event_enums import SpecialStateUpdateSignal as SSUS
+
 if TYPE_CHECKING:
     from zsim.sim_progress.Enemy import Enemy
+
     from .special_state_manager_class import SpecialStateManager
 
 

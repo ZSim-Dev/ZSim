@@ -4,13 +4,15 @@ APL导入导出测试
 """
 
 import os
-import tomli_w
-import tomllib
-import pytest
-import tempfile
 import shutil
+import tempfile
+import tomllib
+
+import pytest
+import tomli_w
+
 from zsim.api_src.services.database.apl_db import APLDatabase
-from zsim.define import DEFAULT_APL_DIR, COSTOM_APL_DIR
+from zsim.define import COSTOM_APL_DIR, DEFAULT_APL_DIR
 
 
 class TestAPLImportExport:

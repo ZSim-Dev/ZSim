@@ -1,6 +1,8 @@
-from .. import Buff, JudgeTools, check_preparation
-from zsim.define import YUZUHA_REPORT
 from typing import TYPE_CHECKING
+
+from zsim.define import YUZUHA_REPORT
+
+from .. import Buff, JudgeTools, check_preparation
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Character.Yuzuha import Yuzuha

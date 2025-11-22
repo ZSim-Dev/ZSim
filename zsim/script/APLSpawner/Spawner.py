@@ -1,14 +1,17 @@
 import dash
-from dash import Dash, dcc, html, Output, Input
 import dash_bootstrap_components as dbc
 import pandas as pd
+from dash import Dash, Input, Output, dcc, html
+
 from zsim.define import CHARACTER_DATA_PATH
 
 # 初始化角色数据
 char_data = pd.read_csv(CHARACTER_DATA_PATH)
 full_char_name_list = char_data["name"].tolist()
 full_char_cid_list = char_data["CID"].tolist()
-full_char_dict = {name: cid for name, cid in zip(full_char_name_list, full_char_cid_list)}
+full_char_dict = {
+    name: cid for name, cid in zip(full_char_name_list, full_char_cid_list, strict=False)
+}
 
 
 class Spawner:

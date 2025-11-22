@@ -1,5 +1,6 @@
-from zsim.sim_progress.Buff import Buff, JudgeTools, check_preparation, find_tick
 import math
+
+from zsim.sim_progress.Buff import Buff, JudgeTools, check_preparation, find_tick
 
 
 class RainforestGourmetATKBonusRecord:

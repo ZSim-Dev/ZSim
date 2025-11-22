@@ -1,4 +1,4 @@
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 
 module_LinkedList = Extension(
     "sim_progress.data_struct.LinkedList",

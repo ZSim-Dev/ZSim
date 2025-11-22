@@ -7,8 +7,8 @@ from .buff_class import Buff
 from .BuffAdd import add_debuff_to_enemy
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
     from zsim.sim_progress.Load import LoadingMission
+    from zsim.simulator.simulator_class import Simulator
 
 
 def ScheduleBuffSettle(
@@ -31,8 +31,8 @@ def ScheduleBuffSettle(
         if anomaly_bar.activated_by is not None:
             action_result = anomaly_bar.activated_by
     elif "skill_node" in kwargs:
-        from zsim.sim_progress.Preload import SkillNode
         from zsim.sim_progress.Load import LoadingMission
+        from zsim.sim_progress.Preload import SkillNode
 
         skill_node = kwargs["skill_node"]
         if isinstance(skill_node, SkillNode):

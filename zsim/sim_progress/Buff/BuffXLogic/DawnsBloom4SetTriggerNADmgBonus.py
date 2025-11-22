@@ -45,6 +45,7 @@ class DawnsBloom4SetTriggerNADmgBonus(Buff.BuffLogic):
         if skill_node is None:
             return False
         from zsim.sim_progress.Preload import SkillNode
+
         assert isinstance(skill_node, SkillNode)
         # 筛选掉不是强化E和大招的技能
         if skill_node.skill.trigger_buff_level not in [2, 6]:

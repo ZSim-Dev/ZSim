@@ -10,10 +10,7 @@ class ElectricTeamQingyiConfig(TeamConfigBase):
     """青衣雷属性队配置"""
 
     def __init__(self):
-        super().__init__(
-            team_name="青衣雷属性队",
-            description="青衣-丽娜-雅雷属性队伍"
-        )
+        super().__init__(team_name="青衣雷属性队", description="青衣-丽娜-雅雷属性队伍")
 
     def create_config(self) -> CommonCfg:
         """创建青衣雷属性队配置"""
@@ -68,11 +65,9 @@ class ElectricTeamQingyiConfig(TeamConfigBase):
 
 class ElectricTeamSeedZeroAnbiConfig(TeamConfigBase):
     """席德大安比队伍"""
+
     def __init__(self):
-        super().__init__(
-            team_name="席德大安比队",
-            description="席德-大安比-扳机队伍"
-        )
+        super().__init__(team_name="席德大安比队", description="席德-大安比-扳机队伍")
 
     # TODO：扳机的影画目前只支持到1画，不能给高！
 
@@ -148,10 +143,7 @@ class ElectricTeamConfigs:
     @staticmethod
     def get_all_configs() -> list:
         """获取所有雷属性队伍配置"""
-        return [
-            ElectricTeamConfigs.get_qingyi_team(),
-            ElectricTeamConfigs.get_seed_zeroanbi_team()
-        ]
+        return [ElectricTeamConfigs.get_qingyi_team(), ElectricTeamConfigs.get_seed_zeroanbi_team()]
 
 
 # 自动注册

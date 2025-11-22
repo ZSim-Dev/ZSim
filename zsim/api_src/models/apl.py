@@ -3,7 +3,8 @@ APL相关Pydantic模型
 定义APL API请求和响应的数据模型
 """
 
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, Field
 
 

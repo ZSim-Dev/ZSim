@@ -1,7 +1,8 @@
-import os
 import csv
-from tqdm import tqdm
+import os
 from decimal import Decimal
+
+from tqdm import tqdm
 
 """
 用于将./data 目录下的csv重整

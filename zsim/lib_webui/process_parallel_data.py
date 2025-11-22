@@ -14,10 +14,10 @@ import streamlit as st
 from zsim.define import results_dir
 from zsim.lib_webui.process_buff_result import show_buff_result
 from zsim.lib_webui.process_dmg_result import show_dmg_result
-
-from .constants import stats_trans_mapping
 from zsim.utils.process_buff_result import prepare_buff_data_and_cache
 from zsim.utils.process_dmg_result import prepare_dmg_data_and_cache
+
+from .constants import stats_trans_mapping
 
 reversed_stats_trans_mapping = {v: k for k, v in stats_trans_mapping.items()}
 

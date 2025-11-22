@@ -16,7 +16,6 @@ _character_db: "CharacterDB | None" = None
 
 
 class CharacterConfigORM(Base):
-
     __tablename__ = "character_configs"
 
     config_id: Mapped[str] = mapped_column(String(128), primary_key=True)
@@ -119,9 +118,7 @@ class CharacterDB:
                 await session.rollback()
                 raise exc
 
-    async def get_character_config(
-        self, name: str, config_name: str
-    ) -> CharacterConfig | None:
+    async def get_character_config(self, name: str, config_name: str) -> CharacterConfig | None:
         """根据角色名称和配置名称获取角色配置。
 
         Args:
@@ -136,9 +133,7 @@ class CharacterDB:
         config_id = f"{name}_{config_name}"
         async with get_async_session() as session:
             result = await session.execute(
-                select(CharacterConfigORM).where(
-                    CharacterConfigORM.config_id == config_id
-                )
+                select(CharacterConfigORM).where(CharacterConfigORM.config_id == config_id)
             )
             record = result.scalar_one_or_none()
             if record is None:
@@ -189,9 +184,7 @@ class CharacterDB:
 
         async with get_async_session() as session:
             result = await session.execute(
-                select(CharacterConfigORM).where(
-                    CharacterConfigORM.config_id == config.config_id
-                )
+                select(CharacterConfigORM).where(CharacterConfigORM.config_id == config.config_id)
             )
             record = result.scalar_one_or_none()
             if record is None:
@@ -241,9 +234,7 @@ class CharacterDB:
         config_id = f"{name}_{config_name}"
         async with get_async_session() as session:
             await session.execute(
-                delete(CharacterConfigORM).where(
-                    CharacterConfigORM.config_id == config_id
-                )
+                delete(CharacterConfigORM).where(CharacterConfigORM.config_id == config_id)
             )
             await session.commit()
 

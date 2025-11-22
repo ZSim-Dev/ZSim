@@ -3,6 +3,7 @@
 
 import pytest
 from pydantic import ValidationError
+
 from zsim.api_src.services.sim_controller.sim_controller import SimController
 from zsim.models.session.session_create import Session
 from zsim.models.session.session_run import (
@@ -19,6 +20,7 @@ class TestParallelMode:
     def test_parallel_args_generation_attr_curve(self):
         """Test async generation of attribute curve parallel arguments."""
         from ..test_simulator import TestSimulator
+
         test_sim = TestSimulator()
 
         controller = SimController()
@@ -40,6 +42,7 @@ class TestParallelMode:
     def test_parallel_args_generation_weapon(self):
         """Test async generation of weapon parallel arguments."""
         from ..test_simulator import TestSimulator
+
         test_sim = TestSimulator()
 
         controller = SimController()
@@ -79,6 +82,7 @@ class TestParallelMode:
     def test_parallel_args_generation_edge_cases(self):
         """Test parallel argument generation edge cases."""
         from ..test_simulator import TestSimulator
+
         test_sim = TestSimulator()
 
         controller = SimController()
@@ -109,6 +113,7 @@ class TestParallelMode:
     def test_parallel_args_generation_invalid_mode(self):
         """Test parallel argument generation with invalid mode."""
         from ..test_simulator import TestSimulator
+
         test_sim = TestSimulator()
 
         controller = SimController()
@@ -123,6 +128,7 @@ class TestParallelMode:
     def test_parallel_args_generation_missing_config(self):
         """Test parallel argument generation with missing configuration."""
         from ..test_simulator import TestSimulator
+
         test_sim = TestSimulator()
 
         with pytest.raises(ValidationError) as excinfo:

@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING
-from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-from .BaseListenerClass import BaseListener
+
 from zsim.define import ALICE_REPORT
+from zsim.models.event_enums import ListenerBroadcastSignal as LBS
+
+from .BaseListenerClass import BaseListener
 
 if TYPE_CHECKING:
-    from zsim.simulator.simulator_class import Simulator
-    from zsim.sim_progress.Character.character import Character
     from zsim.sim_progress.Character.Alice import Alice
+    from zsim.sim_progress.Character.character import Character
+    from zsim.simulator.simulator_class import Simulator
 
 
 class AliceDisorderListener(BaseListener):
@@ -40,5 +42,6 @@ class AliceDisorderListener(BaseListener):
                 f"【爱丽丝事件】紊乱监听器监听到紊乱结算，即将为爱丽丝回复{self.update_value}点剑仪值！"
             )
         from zsim.sim_progress.Character.Alice import Alice
+
         assert isinstance(self.char, Alice)
         self.char.update_blade_etiquette(update_obj=self.update_value)

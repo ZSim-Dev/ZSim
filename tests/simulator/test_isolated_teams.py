@@ -90,12 +90,14 @@ class TestIsolatedTeams:
                 # 验证结果
                 assert result is not None, f"队伍 '{team_name}' 模拟结果为空"
 
-                results.append({
-                    "team_name": team_name,
-                    "session_id": session_id,
-                    "duration": duration,
-                    "success": True
-                })
+                results.append(
+                    {
+                        "team_name": team_name,
+                        "session_id": session_id,
+                        "duration": duration,
+                        "success": True,
+                    }
+                )
 
                 print(f"=== 队伍 '{team_name}' 测试完成 ===\n")
 
@@ -111,7 +113,9 @@ class TestIsolatedTeams:
                     pass
 
         # 验证所有队伍都测试成功
-        assert len(results) == len(team_configs), f"期望测试 {len(team_configs)} 个队伍，实际测试了 {len(results)} 个"
+        assert len(results) == len(team_configs), (
+            f"期望测试 {len(team_configs)} 个队伍，实际测试了 {len(results)} 个"
+        )
 
         # 输出测试结果摘要
         print("\n=== 测试结果摘要 ===")
@@ -137,12 +141,12 @@ class TestIsolatedTeams:
         # 多次运行同一个队伍，确保每次都是独立的
         results = []
         for i in range(3):
-            print(f"第 {i+1} 次运行队伍: {team_name}")
+            print(f"第 {i + 1} 次运行队伍: {team_name}")
 
             session_id = f"isolation-test-{i}-{team_name.replace(' ', '-')}"
             result = await self.run_single_team_simulation(team_name, common_cfg, session_id)
 
-            assert result is not None, f"第 {i+1} 次运行失败"
+            assert result is not None, f"第 {i + 1} 次运行失败"
             results.append(result)
 
         # 验证每次运行都是独立的（结果应该相似但不完全相同）

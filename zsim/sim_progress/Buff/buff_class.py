@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
-from zsim.define import CONFIG_PATH, EFFECT_FILE_PATH, EXIST_FILE_PATH, JUDGE_FILE_PATH
+from zsim.define import EFFECT_FILE_PATH, EXIST_FILE_PATH, JUDGE_FILE_PATH, config_path
 from zsim.sim_progress.Report import report_to_log
 
 from .BuffXLogic._buff_record_base_class import BuffRecordBaseClass as BRBC
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator
 
 
-with open(CONFIG_PATH, "r", encoding="utf-8") as file:
+with open(config_path, "r", encoding="utf-8") as file:
     config = json.load(file)
 debug = config.get("debug")
 with open("./zsim/sim_progress/Buff/buff_config.json", "r", encoding="utf-8") as f:
@@ -207,7 +207,7 @@ class Buff:
                 编写beneficiary属性的原因：
                 目前，在Buff循环逻辑中，find_buff_0函数返回的结果只能是equipper的buff_0，这对于大部分buff来说是没有影响的，
                 但是如果一个Buff加给自己的和加给他人的buff情况不同、而我们有需要去找受益者获取buff_0时，beneficiary属性就派上用场了。
-                ——启发自  Buff 静听嘉音  
+                ——启发自  Buff 静听嘉音
                 """
 
                 """Buff标签"""
@@ -630,7 +630,7 @@ class Buff:
             则意味着buff只执行添加，而不执行更新。
             只有操作者才有资格更新buff。而在外部，更新、轮询char的顺序，来自于select_character，
             该列表是按照操作者作为第一视角的，所以，我们总能保证操作者的更新buff在前，而受益者的被动添加在后。
-            
+
             但是，如果char_name是enemy，则意味着这是要给敌人添加buff。这是单向行为，所以不在这一层屏蔽的范围内。
             """
             self.dy.is_changed = True
@@ -748,7 +748,7 @@ class Buff:
                         self.dy.count = min(buff_0.dy.count + self.ft.step, self.ft.maxcount)
                     self.dy.ready = False
                     self.dy.is_changed = True
-                    """ 
+                    """
                     所有因start标签而更新的buff，它们的底层逻辑往往和Hit更新互斥，
                     它们的层数计算往往非常直接，就是当前层数 + 步长；
                     而想要做到所谓的“层数叠加了”，那么当前层数应该从buff_0处获取（这是通用步骤，其他类型的层数更新也是这个流程）

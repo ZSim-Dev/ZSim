@@ -3,7 +3,16 @@ import shutil
 import sys
 import tomllib
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, ClassVar, Literal, cast
+
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_pascal
+from pydantic_settings import (
+    BaseSettings,
+    JsonConfigSettingsSource,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 # 属性类型：
 ElementType = Literal[0, 1, 2, 3, 4, 5, 6]
@@ -15,18 +24,155 @@ NORMAL_MODE_ID_JSON = "results/id_cache.json"
 
 results_dir = "results/"
 
-# 加载角色配置
-# 处理打包后的资源路径
+
+data_dir = Path("./zsim/data")
+config_path = Path("./zsim/config.json")
 
 
-if getattr(sys, "frozen", False):
-    # 如果是打包后的可执行文件，直接从当前目录读取
-    data_dir = Path("./zsim/data")
-    CONFIG_PATH = Path("./zsim/config.json")
-else:
-    # 如果是开发环境
-    data_dir = Path("./zsim/data")
-    CONFIG_PATH = Path("zsim/config.json")
+class DebugConfig(BaseModel):
+    enabled: bool = True
+    level: int = 4
+    check_skill_mul: bool = False
+    check_skill_mul_tag: list[str] = Field(default_factory=list)
+
+
+class WatchdogConfig(BaseModel):
+    enabled: bool = False
+    level: int = 4
+
+
+class CharacterConfig(BaseModel):
+    crit_balancing: bool = True
+    back_attack_rate: float = 1.0
+
+
+class EnemyConfig(BaseModel):
+    index_id: int = Field(alias="index_ID")
+    adjust_id: int = Field(alias="adjust_ID")
+    difficulty: float
+
+
+class AplModeConfig(BaseModel):
+    enabled: bool = True
+    na_order: str
+    enemy_random_attack: bool = False
+    enemy_regular_attack: bool = False
+    enemy_attack_response: bool = False
+    enemy_attack_method_config: str
+    enemy_attack_action_data: str
+    enemy_attack_report: bool = True
+    player_level: int = 5
+    default_apl_dir: str
+    custom_apl_dir: str
+    yanagi: str
+    hugo: str
+    alice: str
+    seed: str
+    perfect_player: bool = True
+    apl_thought_check: bool = False
+    apl_thought_check_window: list[int] = [0, 1]
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_pascal)
+
+
+class SwapCancelModeConfig(BaseModel):
+    enabled: bool = True
+    completion_coefficient: float
+    lag_time: float
+    debug: bool = False
+    debug_target_skill: str
+
+
+class DatabaseConfig(BaseModel):
+    sqlite_path: str
+    character_data_path: str
+    weapon_data_path: str
+    equip_2pc_data_path: str
+    skill_data_path: str
+    enemy_data_path: str
+    enemy_adjustment_path: str
+    default_skill_path: str
+    judge_file_path: str
+    effect_file_path: str
+    exist_file_path: str
+    apl_file_path: str
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=str.upper)
+
+
+class Buff0ReportConfig(BaseModel):
+    enabled: bool = False
+
+    model_config = ConfigDict()
+
+
+class CharReportConfig(BaseModel):
+    vivian: bool
+    astra_yao: bool
+    hugo: bool
+    yixuan: bool
+    trigger: bool
+    jufufu: bool
+    yuzuha: bool
+    alice: bool
+    seed: bool
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_pascal)
+
+
+class NaModeLevelConfig(BaseModel):
+    hugo: int
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_pascal)
+
+
+class DevConfig(BaseModel):
+    new_sim_boot: bool = True
+
+
+class Config(BaseSettings):
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        json_file=config_path,
+        json_file_encoding="utf-8",
+        env_file=".env",
+        env_ignore_empty=True,
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+        env_prefix="ZSIM_",
+        populate_by_name=True,
+    )
+    debug: DebugConfig
+    stop_tick: int = 10800
+    watchdog: WatchdogConfig
+    character: CharacterConfig
+    enemy: EnemyConfig
+    apl_mode: AplModeConfig
+    swap_cancel_mode: SwapCancelModeConfig
+    database: DatabaseConfig
+    translate: dict[str, str] = {}
+    buff_0_report: Buff0ReportConfig
+    char_report: CharReportConfig
+    na_mode_level: NaModeLevelConfig
+    parallel_mode: dict[str, Any] = {}
+    dev: DevConfig = DevConfig()
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        return (
+            init_settings,
+            JsonConfigSettingsSource(settings_cls),
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )
+
 
 # 确保数据目录存在
 data_dir.mkdir(exist_ok=True, parents=True)
@@ -35,7 +181,7 @@ saved_char_config = {}
 
 
 # 修复：将char_config_file作为参数传递给initialize_config_files
-def initialize_config_files_with_paths(char_file, data_dir, config_path):
+def initialize_config_files_with_paths(char_file: Path, data_dir: Path, config_path: Path):
     """
     初始化配置文件。
     如果配置文件不存在，则从 _example 文件复制生成。
@@ -50,7 +196,7 @@ def initialize_config_files_with_paths(char_file, data_dir, config_path):
         print(f"已生成配置文件：{char_file}")
 
     # JSON config
-    def update_json_config(template: dict, user: dict) -> bool:
+    def update_json_config(template: dict[str, Any], user: dict[str, Any]) -> bool:
         """递归更新用户配置，返回是否被更新"""
         updated = False
         for key, value in template.items():
@@ -58,7 +204,7 @@ def initialize_config_files_with_paths(char_file, data_dir, config_path):
                 user[key] = value
                 updated = True
             elif isinstance(value, dict) and isinstance(user.get(key), dict):
-                if update_json_config(value, user[key]):
+                if update_json_config(cast(dict[str, Any], value), user[key]):
                     updated = True
         return updated
 
@@ -78,7 +224,7 @@ def initialize_config_files_with_paths(char_file, data_dir, config_path):
 
 
 # 使用新的函数
-initialize_config_files_with_paths(char_config_file, data_dir, CONFIG_PATH)
+initialize_config_files_with_paths(char_config_file, data_dir, config_path)
 if char_config_file.exists():
     with open(char_config_file, "rb") as f:
         saved_char_config = tomllib.load(f)
@@ -86,33 +232,33 @@ else:
     raise FileNotFoundError(f"Character config file {char_config_file} not found.")
 
 # 确保配置文件目录存在
-CONFIG_PATH.parent.mkdir(exist_ok=True, parents=True)
-_config = json.load(open(CONFIG_PATH, encoding="utf-8-sig"))
+config_path.parent.mkdir(exist_ok=True, parents=True)
+config = Config()  # type:ignore
 
 # 敌人配置
-ENEMY_INDEX_ID: int = _config["enemy"]["index_ID"]
-ENEMY_ADJUST_ID: int = _config["enemy"]["adjust_ID"]
-ENEMY_DIFFICULTY: float = _config["enemy"]["difficulty"]
+ENEMY_INDEX_ID: int = config.enemy.index_id
+ENEMY_ADJUST_ID: int = config.enemy.adjust_id
+ENEMY_DIFFICULTY: float = config.enemy.difficulty
 
 # APL模式配置
-APL_MODE: bool = _config["apl_mode"]["enabled"]
-SWAP_CANCEL: bool = _config["swap_cancel_mode"]["enabled"]
-APL_PATH: str = _config["database"]["APL_FILE_PATH"]
-APL_NA_ORDER_PATH: str = _config["apl_mode"]["na_order"]
-ENEMY_RANDOM_ATTACK: bool = _config["apl_mode"]["enemy_random_attack"]
-ENEMY_REGULAR_ATTACK: bool = _config["apl_mode"]["enemy_regular_attack"]
+APL_MODE: bool = config.apl_mode.enabled
+SWAP_CANCEL: bool = config.swap_cancel_mode.enabled
+APL_PATH: str = config.database.apl_file_path
+APL_NA_ORDER_PATH: str = config.apl_mode.na_order
+ENEMY_RANDOM_ATTACK: bool = config.apl_mode.enemy_random_attack
+ENEMY_REGULAR_ATTACK: bool = config.apl_mode.enemy_regular_attack
 if ENEMY_RANDOM_ATTACK and ENEMY_REGULAR_ATTACK:
     raise ValueError("不能同时开启“敌人随机进攻”与“敌人规律进攻”参数。")
-ENEMY_ATTACK_RESPONSE: bool = _config["apl_mode"]["enemy_attack_response"]
-ENEMY_ATTACK_METHOD_CONFIG: str = _config["apl_mode"]["enemy_attack_method_config"]
-ENEMY_ATTACK_ACTION: str = _config["apl_mode"]["enemy_attack_action_data"]
-ENEMY_ATTACK_REPORT: bool = _config["apl_mode"]["enemy_attack_report"]
+ENEMY_ATTACK_RESPONSE: bool = config.apl_mode.enemy_attack_response
+ENEMY_ATTACK_METHOD_CONFIG: str = config.apl_mode.enemy_attack_method_config
+ENEMY_ATTACK_ACTION: str = config.apl_mode.enemy_attack_action_data
+ENEMY_ATTACK_REPORT: bool = config.apl_mode.enemy_attack_report
 
 ENEMY_ATK_PARAMETER_DICT: dict[str, int | float | bool] = {
     "Taction": 30,  # 角色弹刀与闪避动作的持续时间，不开放给用户更改。
     "Tbase": 273,  # 人类反应时间大数据中位数，单位ms，不可更改！
-    "PlayerLevel": _config["apl_mode"]["player_level"],  # 玩家水平系数，由用户自己填写。
-    "PerfectPlayer": _config["apl_mode"].get("perfect_player", True),  # 是否是完美玩家（默认是）
+    "PlayerLevel": config.apl_mode.player_level,  # 玩家水平系数，由用户自己填写。
+    "PerfectPlayer": config.apl_mode.perfect_player,  # 是否是完美玩家（默认是）
     "theta": 90,  # θ，人类胜利最小反应时间（神经传导极限），为90ms，不可更改！
     "c": 0.5,  # 波动调节系数，暂取0.5，不开放给用户更改。
     "delta": 30,  # 玩家水平系数所导致的中位数波动单位，暂时取30ms，不开放给用户更改。
@@ -125,71 +271,69 @@ PARRY_BASE_PARAMETERS: dict[str, int | float] = {
 # 该字典的key为CID，value为招架动作的skill_tag
 # 注意，不同的招架策略有时候存在着影画或是其他的限制条件，
 # 所以若是在不满足这些条件的情况下强行使用这些招架策略，那么character中的审查函数会报错而中断程序运行。
-CHAR_PARRY_STRATEGY_MAP: dict = {1411: "1411_Assault_Aid_A"}
+CHAR_PARRY_STRATEGY_MAP: dict[int, str] = {1411: "1411_Assault_Aid_A"}
 
 # debug参数，用于检查APL在窗口期间的想法
-APL_THOUGHT_CHECK: bool = _config["apl_mode"].get("apl_thought_check", False)
-APL_THOUGHT_CHECK_WINDOW: list[int] = _config["apl_mode"].get("apl_thought_check_window", [0, 1])
+APL_THOUGHT_CHECK: bool = config.apl_mode.apl_thought_check
+APL_THOUGHT_CHECK_WINDOW: list[int] = config.apl_mode.apl_thought_check_window
 
 
-DEFAULT_APL_DIR: str = _config["apl_mode"]["default_apl_dir"]
-COSTOM_APL_DIR: str = _config["apl_mode"]["custom_apl_dir"]
-YANAGI_NA_ORDER: str = _config["apl_mode"]["Yanagi"]
-HUGO_NA_ORDER: str = _config["apl_mode"]["Hugo"]
-HUGO_NA_MODE_LEVEL: int = _config["na_mode_level"]["Hugo"]
-ALICE_NA_ORDER: str = _config["apl_mode"]["Alice"]
-SEED_NA_ORDER: str = _config["apl_mode"]["Seed"]
+DEFAULT_APL_DIR: str = config.apl_mode.default_apl_dir
+COSTOM_APL_DIR: str = config.apl_mode.custom_apl_dir
+YANAGI_NA_ORDER: str = config.apl_mode.yanagi
+HUGO_NA_ORDER: str = config.apl_mode.hugo
+HUGO_NA_MODE_LEVEL: int = config.na_mode_level.hugo
+ALICE_NA_ORDER: str = config.apl_mode.alice
+SEED_NA_ORDER: str = config.apl_mode.seed
 
 #: 合轴操作完成度系数->根据前一个技能帧数的某个比例来延后合轴
-SWAP_CANCEL_MODE_COMPLETION_COEFFICIENT: float = _config["swap_cancel_mode"][
-    "completion_coefficient"
-]
+SWAP_CANCEL_MODE_COMPLETION_COEFFICIENT: float = config.swap_cancel_mode.completion_coefficient
 
 #: 操作滞后系数->合轴操作延后的另一种迟滞方案，即固定值延后。
-SWAP_CANCEL_MODE_LAG_TIME: float = _config["swap_cancel_mode"]["lag_time"]
-SWAP_CANCEL_MODE_DEBUG: bool = _config["swap_cancel_mode"]["debug"]
-SWAP_CANCEL_DEBUG_TARGET_SKILL: str = _config["swap_cancel_mode"]["debug_target_skill"]
+SWAP_CANCEL_MODE_LAG_TIME: float = config.swap_cancel_mode.lag_time
+SWAP_CANCEL_MODE_DEBUG: bool = config.swap_cancel_mode.debug
+SWAP_CANCEL_DEBUG_TARGET_SKILL: str = config.swap_cancel_mode.debug_target_skill
 
 # 数据库配置
-SQLITE_PATH: str = _config["database"]["SQLITE_PATH"]
-CHARACTER_DATA_PATH: str = _config["database"]["CHARACTER_DATA_PATH"]
-WEAPON_DATA_PATH: str = _config["database"]["WEAPON_DATA_PATH"]
-EQUIP_2PC_DATA_PATH: str = _config["database"]["EQUIP_2PC_DATA_PATH"]
-SKILL_DATA_PATH: str = _config["database"]["SKILL_DATA_PATH"]
-ENEMY_DATA_PATH: str = _config["database"]["ENEMY_DATA_PATH"]
-ENEMY_ADJUSTMENT_PATH: str = _config["database"]["ENEMY_ADJUSTMENT_PATH"]
-DEFAULT_SKILL_PATH: str = _config["database"]["DEFAULT_SKILL_PATH"]
-CRIT_BALANCING: bool = _config["character"]["crit_balancing"]
-BACK_ATTACK_RATE: bool = _config["character"]["back_attack_rate"]
+SQLITE_PATH: str = config.database.sqlite_path
+CHARACTER_DATA_PATH: str = config.database.character_data_path
+WEAPON_DATA_PATH: str = config.database.weapon_data_path
+EQUIP_2PC_DATA_PATH: str = config.database.equip_2pc_data_path
+SKILL_DATA_PATH: str = config.database.skill_data_path
+ENEMY_DATA_PATH: str = config.database.enemy_data_path
+ENEMY_ADJUSTMENT_PATH: str = config.database.enemy_adjustment_path
+DEFAULT_SKILL_PATH: str = config.database.default_skill_path
+CRIT_BALANCING: bool = config.character.crit_balancing
+BACK_ATTACK_RATE: float = config.character.back_attack_rate
 # FIXME：背击暂时用几率控制。
-DEBUG: bool = _config["debug"]["enabled"]
-DEBUG_LEVEL: int = _config["debug"]["level"]
-JUDGE_FILE_PATH: str = _config["database"]["JUDGE_FILE_PATH"]
-EFFECT_FILE_PATH: str = _config["database"]["EFFECT_FILE_PATH"]
-EXIST_FILE_PATH: str = _config["database"]["EXIST_FILE_PATH"]
-BUFF_LOADING_CONDITION_TRANSLATION_DICT: dict = _config["translate"]
-ENABLE_WATCHDOG: bool = _config["watchdog"]["enabled"]
-WATCHDOG_LEVEL: int = _config["watchdog"]["level"]
+DEBUG: bool = config.debug.enabled
+DEBUG_LEVEL: int = config.debug.level
+JUDGE_FILE_PATH: str = config.database.judge_file_path
+EFFECT_FILE_PATH: str = config.database.effect_file_path
+EXIST_FILE_PATH: str = config.database.exist_file_path
+BUFF_LOADING_CONDITION_TRANSLATION_DICT = config.translate
+ENABLE_WATCHDOG: bool = config.watchdog.enabled
+WATCHDOG_LEVEL: int = config.watchdog.level
 INPUT_ACTION_LIST = ""  # 半废弃
 
 # 初始化Buff的报告：
-BUFF_0_REPORT: bool = _config["buff_0_report"]["enabled"]
+BUFF_0_REPORT: bool = config.buff_0_report.enabled
 # 角色特殊机制报告：
-VIVIAN_REPORT: bool = _config["char_report"]["Vivian"]
-ASTRAYAO_REPORT: bool = _config["char_report"]["AstraYao"]
-HUGO_REPORT: bool = _config["char_report"]["Hugo"]
-YIXUAN_REPORT: bool = _config["char_report"]["Yixuan"]
-TRIGGER_REPORT: bool = _config["char_report"]["Trigger"]
-YUZUHA_REPORT: bool = _config["char_report"]["Yuzuha"]
-ALICE_REPORT: bool = _config["char_report"]["Alice"]
-SEED_REPORT: bool = _config["char_report"]["Seed"]
+VIVIAN_REPORT: bool = config.char_report.vivian
+ASTRAYAO_REPORT: bool = config.char_report.astra_yao
+HUGO_REPORT: bool = config.char_report.hugo
+YIXUAN_REPORT: bool = config.char_report.yixuan
+TRIGGER_REPORT: bool = config.char_report.trigger
+YUZUHA_REPORT: bool = config.char_report.yuzuha
+ALICE_REPORT: bool = config.char_report.alice
+SEED_REPORT: bool = config.char_report.seed
 
 # Cal计算debug
-CHECK_SKILL_MUL: bool = _config["debug"]["check_skill_mul"]
-CHECK_SKILL_MUL_TAG: list[str] = _config["debug"]["check_skill_mul_tag"]
+CHECK_SKILL_MUL: bool = config.debug.check_skill_mul
+CHECK_SKILL_MUL_TAG: list[str] = config.debug.check_skill_mul_tag
 
 # 开发变量
-NEW_SIM_BOOT: bool = _config.get("dev", {}).get("new_sim_boot", True)
+NEW_SIM_BOOT: bool = config.dev.new_sim_boot
 
 compare_methods_mapping: dict[str, Callable[[float | int, float | int], bool]] = {
     "<": lambda a, b: a < b,
@@ -297,3 +441,4 @@ if __name__ == "__main__":
             print(f"{name}: {value}")
 
     print_constant_names_and_values()
+    print(config.model_dump_json(indent=2, by_alias=True))

@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
 from zsim.sim_progress.Report import report_to_log
 
-from .. import SkillNode, SkillsQueue
 from ..PreloadEngine import BasePreloadEngine
+from ..SkillsQueue import SkillNode, spawn_node
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Character import Character
@@ -67,7 +67,7 @@ class ConfirmEngine(BasePreloadEngine):
             apl_unit = template_node_from_apl.apl_unit
         else:
             apl_unit = None
-        node = SkillsQueue.spawn_node(
+        node = spawn_node(
             skill_tag,
             tick,
             self.data.skills,

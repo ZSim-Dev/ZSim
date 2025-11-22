@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
-from .. import SkillNode
 from ..APLModule.APLJudgeTools import get_game_state
 from ..PreloadEngine import BasePreloadEngine
+from ..SkillsQueue import SkillNode
 
 if TYPE_CHECKING:
     from zsim.simulator.simulator_class import Simulator

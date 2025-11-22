@@ -3,12 +3,12 @@ from typing import TYPE_CHECKING
 from zsim.define import APL_PATH, APL_THOUGHT_CHECK
 from zsim.define import APL_THOUGHT_CHECK_WINDOW as ATCW
 
-from .. import SkillNode, SkillsQueue
 from ..APLModule import APLManager
+from ..SkillsQueue import SkillNode, spawn_node
 from .BasePreloadEngine import BasePreloadEngine
 
 if TYPE_CHECKING:
-    from .. import PreloadData
+    from ..PreloadDataClass import PreloadData
 
 
 class APLEngine(BasePreloadEngine):
@@ -58,7 +58,7 @@ class APLEngine(BasePreloadEngine):
         self.apl_want = (skill_tag, apl_priority, apl_unit)
         if skill_tag == "wait":
             return None
-        node = SkillsQueue.spawn_node(
+        node = spawn_node(
             skill_tag,
             tick,
             self.data.skills,

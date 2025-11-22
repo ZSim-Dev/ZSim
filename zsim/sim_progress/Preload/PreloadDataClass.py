@@ -1,15 +1,12 @@
 from typing import TYPE_CHECKING, Iterable
 
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-from zsim.sim_progress.Preload.SkillsQueue import SkillNode
+
+from .SkillsQueue import SkillNode
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Character.skill_class import Skill
-    from zsim.sim_progress.data_struct import (
-        EnemyAttackEventManager,
-        NodeStack,
-        QuickAssistSystem,
-    )
+    from zsim.sim_progress.data_struct import EnemyAttackEventManager, NodeStack, QuickAssistSystem
     from zsim.sim_progress.Load.loading_mission import LoadingMission
     from zsim.simulator.dataclasses import CharacterData, LoadData
     from zsim.simulator.simulator_class import Simulator
@@ -39,7 +36,9 @@ class PreloadData:
         self.personal_active_generation_node_stack: dict[
             int, "NodeStack[SkillNode]"
         ] = {}  # 个人的主动生成的技能栈
-        self.current_node_stack: "NodeStack" = NodeStack(length=5)  # Preload阶段的总技能栈
+        self.current_node_stack: "NodeStack[SkillNode]" = NodeStack(
+            length=5
+        )  # Preload阶段的总技能栈
         self.latest_active_generation_node: SkillNode | None = (
             None  # 最近一次主动生成的skillnode，#TODO：可能是无用参数！
         )
@@ -99,9 +98,7 @@ class PreloadData:
         self.quick_assist_system.update(tick, node, self.load_data.all_name_order_box)
         if self.atk_manager is not None and self.atk_manager.attacking:
             self.atk_manager.answered_action.append(node)
-        from zsim.sim_progress.Preload.APLModule.ActionReplaceManager import (
-            ActionReplaceManager,
-        )
+        from zsim.sim_progress.Preload.APLModule.ActionReplaceManager import ActionReplaceManager
 
         action_replace_manager: "ActionReplaceManager" = (
             self.sim_instance.preload.strategy.apl_engine.apl.action_replace_manager

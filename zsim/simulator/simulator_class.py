@@ -4,13 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
-from zsim.define import (
-    APL_MODE,
-    APL_PATH,
-    ENEMY_ADJUST_ID,
-    ENEMY_DIFFICULTY,
-    ENEMY_INDEX_ID,
-)
+from zsim.define import config
 from zsim.sim_progress.Buff import (
     BuffLoadLoop,
     buff_add,
@@ -96,9 +90,9 @@ class Simulator:
         self.__detect_parallel_mode(sim_cfg)
         self.init_data = InitData(common_cfg=None, sim_cfg=sim_cfg)
         self.enemy = Enemy(
-            index_id=ENEMY_INDEX_ID,
-            adjustment_id=ENEMY_ADJUST_ID,
-            difficulty=ENEMY_DIFFICULTY,
+            index_id=config.enemy.index_id,
+            adjustment_id=config.enemy.adjust_id,
+            difficulty=config.enemy.difficulty,
             sim_instance=self,
         )
         self.__init_data_struct(sim_cfg)
@@ -180,7 +174,7 @@ class Simulator:
         self.preload = PreloadClass(
             skills,
             load_data=self.load_data,
-            apl_path=APL_PATH if api_apl_path is None else api_apl_path,
+            apl_path=config.apl_mode.enabled if api_apl_path is None else api_apl_path,
             sim_instance=self,
         )
         self.game_state: dict[str, Any] = {
@@ -227,7 +221,10 @@ class Simulator:
             preload_list = self.preload.preload_data.preload_action
 
             if stop_tick is None:
-                if not APL_MODE and self.preload.preload_data.skills_queue.head is None:
+                if (
+                    not config.apl_mode.enabled
+                    and self.preload.preload_data.skills_queue.head is None
+                ):
                     # Old Sequence mode left, not compatible with APL mode now
                     stop_tick = self.tick + 120
             elif self.tick >= stop_tick:

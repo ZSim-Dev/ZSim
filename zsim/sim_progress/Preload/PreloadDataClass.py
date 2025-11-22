@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING, Iterable
 
 from zsim.models.event_enums import ListenerBroadcastSignal as LBS
-
-from . import SkillNode
+from zsim.sim_progress.Preload.SkillsQueue import SkillNode
 
 if TYPE_CHECKING:
     from zsim.sim_progress.Character.skill_class import Skill

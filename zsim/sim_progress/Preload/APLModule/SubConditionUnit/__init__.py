@@ -1,6 +1,6 @@
+from .BaseSubConditionUnit import BaseSubConditionUnit  # noqa: I001
 from .ActionSubUnit import ActionSubUnit
 from .AttributeSubUnit import AttributeSubUnit
-from .BaseSubConditionUnit import BaseSubConditionUnit
 from .BuffSubUnit import BuffSubUnit
 from .SpecialSubUnit import SpecialSubUnit
 from .StatusSubUnit import StatusSubUnit

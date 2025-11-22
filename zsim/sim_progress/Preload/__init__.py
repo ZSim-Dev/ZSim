@@ -1,5 +1,4 @@
-# from . import SkillsQueue
-from . import watchdog
+from . import SkillsQueue, watchdog
 from .APLModule.APLClass import APLClass
 from .APLModule.APLJudgeTools import find_char, get_game_state
 from .APLModule.APLParser import APLParser
@@ -9,6 +8,7 @@ from .SkillsQueue import SkillNode
 
 __all__ = [
     "watchdog",
+    "SkillsQueue",
     "SkillNode",
     "APLParser",
     "APLClass",

@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, Iterable, TypeVar
 
+
 from ....define import SkillSubEventTypes, ZSimEventTypes
+
 from ..zsim_events import EventMessage, ZSimEventABC
 from ..zsim_events.skill_event import (
     SkillEvent,
@@ -24,7 +26,9 @@ def skill_start_handler(
     技能开始事件Handler,该Handler接收一个SkillEvent事件,返回一个ExecutionEvent 事件
     """
     assert isinstance(event, SkillEvent), (
+
         f"skill_start_handler接收的event类型只能是SkillEvent,当前event类型为{type(event).__name__}"
+
     )
     assert isinstance(event.event_origin, SkillNode)
     assert context.preload_tick is not None, "preload_tick不能为None"
@@ -34,6 +38,7 @@ def skill_start_handler(
         event_type=SkillSubEventTypes.START,
         event_origin=event,  # type: ignore
         event_message=event_message,
+
     )
 
     print(f"技能开始事件Handler处理技能{event.event_origin.skill_tag}开始执行")

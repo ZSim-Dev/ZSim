@@ -19,6 +19,7 @@ class ZSimEventConfigRepository(LeafConfiguration):
             configuration (LeafConfiguration): 事件配置
         Returns:
             LeafConfiguration: 注册的事件配置
+
         """
         self._snaoshot.setdefault(node_id, []).append(configuration)
         return configuration

@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import Any, DefaultDict, Generator, Iterable, TypeVar
 
+
 from ....define import SkillSubEventTypes, ZSimEventTypes
+
 from ..zsim_events import BaseZSimEventContext, EventMessage, ZSimEventABC
 from .base_handler_class import ZSimEventHandler
 
@@ -19,6 +21,7 @@ class ZSimEventHandlerRegistry:
     def register(
         self, event_type: ZSimEventTypes | SkillSubEventTypes, handler: ZSimEventHandler[Any]
     ) -> None:
+
         """注册事件处理器类到指定事件类型"""
         self._handlers[event_type].append(handler)
 

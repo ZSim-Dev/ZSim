@@ -1,7 +1,9 @@
+
 from typing import Iterable, TypeVar
 
 from ....define import SkillSubEventTypes, SkillType
 from ...data_struct import ZSimTimer
+
 from ...Preload import SkillNode
 from .base_zsim_event import BaseZSimEventContext, EventMessage, ExecutionEvent
 from .base_zsim_event import ZSimBaseEvent as ZBE
@@ -26,11 +28,13 @@ class SkillEventMessage(EventMessage):
 
 class SkillEventContext(BaseZSimEventContext):
     def __init__(self, timer: ZSimTimer):
+
         super().__init__()
         self._is_active: bool = False
         self._hitted_count: int = 0
         self.preload_tick: int | None = None  # 【技能开始事件】发出的时刻
         self.timer: ZSimTimer = timer
+
 
     @property
     def hitted_count(self) -> int:
@@ -65,11 +69,13 @@ class SkillExecutionEvent(ExecutionEvent):
         self,
         event_origin: SkillEvent[SkillEventMessage],
         event_type: SkillSubEventTypes,
+
         event_message: SkillEventMessage,
     ):
         super().__init__(
             event_origin=event_origin, event_type=event_type, event_message=event_message
         )
+
         self.time_line: dict[SkillSubEventTypes, list[int | float]] | None = None
 
     @property
@@ -127,3 +133,4 @@ def skill_event_start(
     )
     skill_execution_event.update_time_line(preload_tick)
     return [skill_execution_event]
+

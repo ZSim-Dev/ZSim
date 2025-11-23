@@ -1,17 +1,26 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Iterable, Protocol, Sequence, TypeVar
+from typing import Any, Callable, Iterable, Protocol, Sequence, TypeVar, cast
 
-from ....define import ZSimEventTypes
+from ....define import SkillSubEventTypes, ZSimEventTypes
 from ..zsim_events import BaseZSimEventContext, EventMessage, ZSimEventABC
 
 T = TypeVar("T", bound=EventMessage)
+T_contra = TypeVar("T_contra", bound=EventMessage, contravariant=True)
 
 
 class EventConditionFn(Protocol):
     """事件条件判断协议"""
 
-    def __call__(self, event: ZSimEventABC[T]) -> bool: ...
+    def __call__(self, event: ZSimEventABC[T], context: BaseZSimEventContext) -> bool: ...
+
+
+class EventActionFn(Protocol[T_contra]):
+    """事件操作函数协议"""
+
+    def __call__(
+        self, event: ZSimEventABC[T_contra], context: BaseZSimEventContext
+    ) -> Iterable[ZSimEventABC[EventMessage]]: ...
 
 
 class EventCondition(ABC):
@@ -34,7 +43,7 @@ class EventAction(ABC):
 class LeafConfiguration:
     """描述动态叶子运行方式的配置"""
 
-    listen_event: ZSimEventTypes  # 监听的事件类型
+    listen_event: ZSimEventTypes | SkillSubEventTypes  # 监听的事件类型
     condition: EventCondition  # 事件条件判断
     actions: Sequence[EventAction] = field(default_factory=tuple)  # 事件满足条件时,执行的操作
 
@@ -80,9 +89,11 @@ class EventBranchNode(EventTreeNode):
 
     def __init__(self, node_id: str):
         super().__init__(node_id=node_id)
-        self._transitions: dict[ZSimEventTypes, list[EventTransition]] = {}
+        self._transitions: dict[ZSimEventTypes | SkillSubEventTypes, list[EventTransition]] = {}
 
-    def add_transition(self, listen_event: ZSimEventTypes, transition: EventTransition) -> None:
+    def add_transition(
+        self, listen_event: ZSimEventTypes | SkillSubEventTypes, transition: EventTransition
+    ) -> None:
         """添加一个事件转换"""
         self._transitions.setdefault(listen_event, []).append(transition)
 
@@ -127,3 +138,32 @@ class DynamicLeafNode(EventTreeNode):
                 # 执行操作, 并将产生的事件返回
                 for produced in action.produce(event=event, context=context):
                     yield produced, context
+
+
+class CallableCondition(EventCondition):
+    """包装基本的函数判断器对象"""
+
+    def __init__(self, fn: EventConditionFn):
+        self._fn = fn
+
+    def evaluate(self, event: ZSimEventABC[T], context: BaseZSimEventContext) -> bool:
+        return bool(self._fn(event, context))
+
+
+class CallableAction(EventAction):
+    """包装函数触发器"""
+
+    def __init__(self, fn: Callable[..., Any]):
+        self._fn = fn
+
+    def produce(
+        self, event: ZSimEventABC[T], context: BaseZSimEventContext
+    ) -> Iterable[ZSimEventABC[EventMessage]]:
+        fn = cast(
+            Callable[
+                [ZSimEventABC[EventMessage], BaseZSimEventContext],
+                Iterable[ZSimEventABC[EventMessage]],
+            ],
+            self._fn,
+        )
+        return list(fn(event, context))

@@ -4,14 +4,18 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from ....define import ZSimEventTypes
+
+from ....define import SkillSubEventTypes, ZSimEventTypes
+
 
 if TYPE_CHECKING:
     from ...anomaly_bar import AnomalyBar
     from ...Buff import Buff
     from ...Character import Character
     from ...Preload import SkillNode
-    from .skill_event import SkillEvent
+
+    from .skill_event import SkillEvent, SkillEventMessage
+
 
 
 class EventMessage(BaseModel):
@@ -23,7 +27,7 @@ class EventMessage(BaseModel):
 T = TypeVar("T", bound=EventMessage)
 
 EventOriginType = Union[
-    "SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent[EventMessage]", None
+    "SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent[SkillEventMessage]", None
 ]
 
 
@@ -43,8 +47,8 @@ class ZSimEventABC[T: EventMessage](ABC):
 
     @property
     @abstractmethod
-    def event_type(self) -> ZSimEventTypes: ...
-
+    def event_type(self) -> ZSimEventTypes | SkillSubEventTypes: ...
+      
     @property
     @abstractmethod
     def event_message(self) -> T: ...
@@ -54,14 +58,18 @@ class ZSimBaseEvent[T: EventMessage](ZSimEventABC[T]):
     """ZSim事件基类, 所有事件均应继承自此类"""
 
     def __init__(
-        self, event_type: ZSimEventTypes, event_message: T, event_origin: EventOriginType
+        self,
+        event_type: ZSimEventTypes | SkillSubEventTypes,
+        event_message: T,
+        event_origin: EventOriginType,
     ) -> None:
         self._event_type = event_type
         self._event_message: T = event_message
         self._event_origin: EventOriginType = event_origin  # 构造事件的源头复杂对象
 
     @property
-    def event_type(self) -> ZSimEventTypes:
+    def event_type(self) -> ZSimEventTypes | SkillSubEventTypes:
+
         return self._event_type
 
     @property

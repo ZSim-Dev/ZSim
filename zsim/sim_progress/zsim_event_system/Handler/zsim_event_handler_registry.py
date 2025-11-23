@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import Any, DefaultDict, Generator, Iterable, TypeVar
 
-from ....define import ZSimEventTypes
+
+from ....define import SkillSubEventTypes, ZSimEventTypes
+
 from ..zsim_events import BaseZSimEventContext, EventMessage, ZSimEventABC
 from .base_handler_class import ZSimEventHandler
 
@@ -12,9 +14,14 @@ class ZSimEventHandlerRegistry:
     """事件Handler注册表, 用于管理和检索事件Handler类"""
 
     def __init__(self):
-        self._handlers: DefaultDict[ZSimEventTypes, list[ZSimEventHandler[Any]]] = defaultdict(list)
+        self._handlers: DefaultDict[
+            ZSimEventTypes | SkillSubEventTypes, list[ZSimEventHandler[Any]]
+        ] = defaultdict(list)
 
-    def register(self, event_type: ZSimEventTypes, handler: ZSimEventHandler[Any]) -> None:
+    def register(
+        self, event_type: ZSimEventTypes | SkillSubEventTypes, handler: ZSimEventHandler[Any]
+    ) -> None:
+
         """注册事件处理器类到指定事件类型"""
         self._handlers[event_type].append(handler)
 

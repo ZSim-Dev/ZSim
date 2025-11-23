@@ -1,6 +1,9 @@
-from typing import TypeVar
 
-from ....define import SkillSubEventTypes, SkillType, ZSimEventTypes
+from typing import Iterable, TypeVar
+
+from ....define import SkillSubEventTypes, SkillType
+from ...data_struct import ZSimTimer
+
 from ...Preload import SkillNode
 from .base_zsim_event import BaseZSimEventContext, EventMessage, ExecutionEvent
 from .base_zsim_event import ZSimBaseEvent as ZBE
@@ -24,11 +27,14 @@ class SkillEventMessage(EventMessage):
 
 
 class SkillEventContext(BaseZSimEventContext):
-    def __init__(self):
+    def __init__(self, timer: ZSimTimer):
+
         super().__init__()
         self._is_active: bool = False
         self._hitted_count: int = 0
         self.preload_tick: int | None = None  # 【技能开始事件】发出的时刻
+        self.timer: ZSimTimer = timer
+
 
     @property
     def hitted_count(self) -> int:
@@ -61,13 +67,16 @@ class SkillExecutionEvent(ExecutionEvent):
 
     def __init__(
         self,
-        event_origin: SkillEvent[EventMessage],
-        event_type: ZSimEventTypes,
+        event_origin: SkillEvent[SkillEventMessage],
+        event_type: SkillSubEventTypes,
+
         event_message: SkillEventMessage,
     ):
         super().__init__(
             event_origin=event_origin, event_type=event_type, event_message=event_message
         )
+
+        self.time_line: dict[SkillSubEventTypes, list[int | float]] | None = None
 
     @property
     def skill_type(self) -> SkillType:
@@ -107,3 +116,21 @@ class SkillExecutionEvent(ExecutionEvent):
         time_line[SkillSubEventTypes.HIT] = hit_list
         time_line[SkillSubEventTypes.END] = [end_tick]
         return time_line
+
+    def update_time_line(self, preload_tick: int) -> None:
+        """更新技能时间轴"""
+        self.time_line = self.get_timeline(preload_tick)
+
+
+def skill_event_start(
+    event: SkillEvent[SkillEventMessage], context: SkillEventContext
+) -> Iterable[SkillExecutionEvent]:
+    message = event.event_message
+    preload_tick = message.preload_tick
+    assert preload_tick is not None, f"{type(event).__name__}的preload_tick属性没有正确初始化"
+    skill_execution_event = SkillExecutionEvent(
+        event_origin=event, event_type=SkillSubEventTypes.START, event_message=message
+    )
+    skill_execution_event.update_time_line(preload_tick)
+    return [skill_execution_event]
+

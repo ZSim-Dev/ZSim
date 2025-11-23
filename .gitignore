@@ -44,6 +44,7 @@ dist*
 zsim/data/character_config.toml
 zsim/data/zsim.db
 zsim/config.json
+.trae/
 
 # macOS系统文件
 .DS_Store

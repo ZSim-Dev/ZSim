@@ -3,7 +3,6 @@ from typing import Iterable, TypeVar
 
 from ....define import SkillSubEventTypes, SkillType
 from ...data_struct import ZSimTimer
-
 from ...Preload import SkillNode
 from .base_zsim_event import BaseZSimEventContext, EventMessage, ExecutionEvent
 from .base_zsim_event import ZSimBaseEvent as ZBE

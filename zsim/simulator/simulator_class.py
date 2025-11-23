@@ -10,7 +10,7 @@ from zsim.sim_progress.Buff import (
     buff_add,
 )
 from zsim.sim_progress.Character.skill_class import Skill
-from zsim.sim_progress.data_struct import ActionStack, Decibelmanager, ListenerManger
+from zsim.sim_progress.data_struct import ActionStack, Decibelmanager, ListenerManger, ZSimTimer
 from zsim.sim_progress.Enemy import Enemy
 from zsim.sim_progress.Load import DamageEventJudge, SkillEventSplit
 from zsim.sim_progress.Preload import PreloadClass
@@ -191,6 +191,7 @@ class Simulator:
         self.rng_instance = RNG(sim_instance=self)
         # 监听器的初始化需要整个Simulator实例，因此在这里进行初始化
         self.load_data.buff_0_manager.initialize_buff_listener()
+        self.timer: ZSimTimer = ZSimTimer(sim_instance=self)
 
     def main_loop(
         self, stop_tick: int = 10800, *, sim_cfg: SimCfg | None = None, use_api: bool = False
@@ -288,7 +289,10 @@ class Simulator:
                     end="",
                 )
                 print("---------------------------------------------")
-            self.tick += 1
+
+            # self.tick += 1
+            self.timer.update_tick()
+
             self.schedule_data.reset_processed_event()
             if self.tick % 500 == 0 and self.tick != 0:
                 gc.collect()

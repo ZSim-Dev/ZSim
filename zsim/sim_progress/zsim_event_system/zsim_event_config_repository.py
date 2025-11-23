@@ -13,10 +13,13 @@ class ZSimEventConfigRepository(LeafConfiguration):
 
     def register(self, node_id: str, configuration: LeafConfiguration) -> LeafConfiguration:
         """
-        注册一个节点的事件配置
-        :param node_id: 节点ID
-        :param configuration: 节点的事件配置
-        :return: 注册的事件配置
+        这是一个注册事件配置的方法
+        Args:
+            node_id (str): 节点ID
+            configuration (LeafConfiguration): 事件配置
+        Returns:
+            LeafConfiguration: 注册的事件配置
+
         """
         self._snaoshot.setdefault(node_id, []).append(configuration)
         return configuration

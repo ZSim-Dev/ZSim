@@ -10,6 +10,7 @@ from .SchedulePreload import SchedulePreload, schedule_preload_event_factory
 from .single_hit import SingleHit
 from .sp_update_data import ScheduleRefreshData, SPUpdateData
 from .StunForcedTerminationEvent import StunForcedTerminationEvent
+from .zsim_timer import ZSimTimer
 
 __all__ = [
     "ActionStack",
@@ -28,4 +29,5 @@ __all__ = [
     "ScheduleRefreshData",
     "StunForcedTerminationEvent",
     "PolarizedAssaultEvent",
+    "ZSimTimer",
 ]

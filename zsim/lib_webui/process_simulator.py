@@ -6,7 +6,7 @@ from typing import Any, Iterator
 import polars as pl
 import streamlit as st
 
-from zsim.define import CONFIG_PATH
+from zsim.define import config_path
 from zsim.lib_webui.process_apl_editor import APLArchive, APLJudgeTool
 from zsim.simulator.config_classes import (
     ExecAttrCurveCfg,
@@ -78,7 +78,7 @@ def generate_parallel_args(
 
 
 def apl_selecter():
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
         default_apl_path = config["database"]["APL_FILE_PATH"]
 
@@ -108,10 +108,10 @@ def save_apl_selection(selected_title: str):
     """
     apl_archive = APLArchive()
     original_path = apl_archive.get_origin_relative_path(selected_title)
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
     config["database"]["APL_FILE_PATH"] = original_path
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
 
@@ -121,7 +121,7 @@ def get_default_apl_tile() -> str | None:
     Returns:
         str: 默认APL的标题。
     """
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
         default_apl_path = config["database"]["APL_FILE_PATH"]
 
@@ -170,7 +170,7 @@ def show_apl_judge_result(selected_title: str | None = None) -> bool:
 def enemy_selector() -> None:
     """敌人配置选择器界面。"""
     # 从enemy.csv获取所有唯一的IndexID和CN_enemy_ID，并按IndexID排序
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
         saved_index = config["enemy"]["index_ID"]
         saved_adjust = config["enemy"]["adjust_ID"]
@@ -246,12 +246,12 @@ def save_enemy_selection(index_id: int, adjust_id: int):
     """
 
     # 创建配置文件临时备份
-    backup_path = CONFIG_PATH + ".bak"
-    shutil.copy(CONFIG_PATH, backup_path)
+    backup_path = config_path.parent / "config.json.bak"
+    shutil.copy(config_path, backup_path)
 
     try:
         # 部分更新配置文件
-        with open(CONFIG_PATH, "r+", encoding="utf-8") as f:
+        with open(config_path, "r+", encoding="utf-8") as f:
             config = json.load(f)
 
             # 只更新需要的部分
@@ -266,7 +266,7 @@ def save_enemy_selection(index_id: int, adjust_id: int):
     except Exception as e:
         # 出错时恢复备份
         print(f"保存配置出错: {e}")
-        shutil.move(backup_path, CONFIG_PATH)
+        shutil.move(backup_path, config_path)
         raise
     finally:
         # 清理备份

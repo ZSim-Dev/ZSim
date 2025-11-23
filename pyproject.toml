@@ -52,6 +52,7 @@ dependencies = [
     "sqlalchemy>=2.0.43",
     "alembic>=1.16.5",
     "greenlet>=3.0.3",
+    "pydantic-settings>=2.12.0",
 ]
 
 [tool.ruff]

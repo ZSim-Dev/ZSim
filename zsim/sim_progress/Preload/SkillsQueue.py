@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Iterable
 
 import pandas as pd
 
-from zsim.define import APL_MODE, ElementType
 from zsim.define import ELEMENT_TYPE_MAPPING as ETM
+from zsim.define import ElementType, config
 from zsim.sim_progress.Character.skill_class import Skill
 from zsim.sim_progress.data_struct.LinkedList import LinkedList
 from zsim.sim_progress.Report import report_to_log
@@ -213,7 +213,7 @@ def get_skills_queue(
         raise ValueError("预加载序技能列表为空")
 
     preload_tick_stamps = {skill.CID: 0 for skill in skills}
-    if not APL_MODE:
+    if not config.apl_mode.enabled:
         for tag in preload_skills_list:
             cid = int(tag[:4])  # 提取tag的前四个字符作为key
             if cid not in preload_tick_stamps:

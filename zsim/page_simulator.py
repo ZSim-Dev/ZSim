@@ -61,7 +61,7 @@ PARALLEL_CONFIG_SUFFIX = "/.parallel_config.json"
 def page_simulator():
     """模拟器页面函数"""
     st.title("ZZZ Simulator - 模拟器")
-    from zsim.define import CONFIG_PATH
+    from zsim.define import config_path
 
     # 获取当前计算机的物理核心数量
     MAX_WORKERS = psutil.cpu_count(logical=False)
@@ -71,7 +71,7 @@ def page_simulator():
         """获取进程池执行器"""
         return concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
         default_stop_tick = config["stop_tick"]
 
@@ -99,7 +99,7 @@ def page_simulator():
                 label_visibility="collapsed",
             )
             if stop_tick != default_stop_tick:
-                with open(CONFIG_PATH, "r+", encoding="utf-8") as f:
+                with open(config_path, "r+", encoding="utf-8") as f:
                     config = json.load(f)
                     config["stop_tick"] = stop_tick
                     f.seek(0)
@@ -150,7 +150,7 @@ def page_simulator():
             @st.dialog("模拟器配置", width="large")
             def go_config():
                 """模拟器配置对话框"""
-                with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                with open(config_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
                     parallel_cfg = config["parallel_mode"]
                 default_mode = parallel_cfg["enabled"]
@@ -275,9 +275,11 @@ def page_simulator():
                                 selected_weapon = st.selectbox(
                                     f"音擎 {i + 1}",
                                     weapon_options,
-                                    index=weapon_options.index(default_weapon_name)
-                                    if default_weapon_name in weapon_options
-                                    else 0,
+                                    index=(
+                                        weapon_options.index(default_weapon_name)
+                                        if default_weapon_name in weapon_options
+                                        else 0
+                                    ),
                                     key=f"weapon_select_{i}",
                                     label_visibility="collapsed",
                                 )
@@ -307,7 +309,7 @@ def page_simulator():
                 if st.button("保存配置"):
                     mode_bool = True if mode == RUN_MODES[1] else False  # 多进程
                     if mode_bool:
-                        with open(CONFIG_PATH, "r+", encoding="utf-8") as f:
+                        with open(config_path, "r+", encoding="utf-8") as f:
                             config = json.load(f)
                             config["parallel_mode"]["enabled"] = mode_bool
                             config["parallel_mode"]["adjust_char"] = int(adjust_char.split("号")[0])
@@ -347,7 +349,7 @@ def page_simulator():
                             f.truncate()
                     else:
                         # 单进程模式
-                        with open(CONFIG_PATH, "r+", encoding="utf-8") as f:
+                        with open(config_path, "r+", encoding="utf-8") as f:
                             config = json.load(f)
                             config["parallel_mode"]["enabled"] = mode_bool
                             f.seek(0)
@@ -365,7 +367,7 @@ def page_simulator():
         col1, col2 = st.columns([8, 1])
 
         # 加载config
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
             parallel_cfg = config["parallel_mode"]
         if not parallel_cfg["enabled"]:

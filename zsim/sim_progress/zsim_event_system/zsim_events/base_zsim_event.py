@@ -4,16 +4,13 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-
 from ....define import SkillSubEventTypes, ZSimEventTypes
-
 
 if TYPE_CHECKING:
     from ...anomaly_bar import AnomalyBar
     from ...Buff import Buff
     from ...Character import Character
     from ...Preload import SkillNode
-
     from .skill_event import SkillEvent, SkillEventMessage
 
 
@@ -48,7 +45,7 @@ class ZSimEventABC[T: EventMessage](ABC):
     @property
     @abstractmethod
     def event_type(self) -> ZSimEventTypes | SkillSubEventTypes: ...
-      
+
     @property
     @abstractmethod
     def event_message(self) -> T: ...

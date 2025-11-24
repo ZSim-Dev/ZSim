@@ -1,8 +1,6 @@
 from typing import TYPE_CHECKING, Iterable, TypeVar
 
-
 from ....define import SkillSubEventTypes, ZSimEventTypes
-
 from ..zsim_events import EventMessage, ZSimEventABC
 from ..zsim_events.skill_event import (
     SkillEvent,

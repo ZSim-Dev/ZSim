@@ -1,9 +1,7 @@
 from collections import defaultdict
 from typing import Any, DefaultDict, Generator, Iterable, TypeVar
 
-
 from ....define import SkillSubEventTypes, ZSimEventTypes
-
 from ..zsim_events import BaseZSimEventContext, EventMessage, ZSimEventABC
 from .base_handler_class import ZSimEventHandler
 

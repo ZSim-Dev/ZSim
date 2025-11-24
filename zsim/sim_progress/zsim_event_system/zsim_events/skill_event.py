@@ -1,4 +1,3 @@
-
 from typing import Iterable, TypeVar
 
 from ....define import SkillSubEventTypes, SkillType
@@ -27,13 +26,11 @@ class SkillEventMessage(EventMessage):
 
 class SkillEventContext(BaseZSimEventContext):
     def __init__(self, timer: ZSimTimer):
-
         super().__init__()
         self._is_active: bool = False
         self._hitted_count: int = 0
         self.preload_tick: int | None = None  # 【技能开始事件】发出的时刻
         self.timer: ZSimTimer = timer
-
 
     @property
     def hitted_count(self) -> int:
@@ -68,7 +65,6 @@ class SkillExecutionEvent(ExecutionEvent):
         self,
         event_origin: SkillEvent[SkillEventMessage],
         event_type: SkillSubEventTypes,
-
         event_message: SkillEventMessage,
     ):
         super().__init__(
@@ -98,26 +94,16 @@ class SkillExecutionEvent(ExecutionEvent):
         return self.event_origin.skill.tick_list
 
     def get_timeline(self, preload_tick: int) -> dict[SkillSubEventTypes, list[int | float]]:
-        """获取技能时间轴"""
-        time_line: dict[SkillSubEventTypes, list[int | float]] = {}
-        _hit_list = self.hit_list
-        # 对于没有录入命中帧的技能，需要根据命中数量平均拆分、现场计算命中帧。
-        if _hit_list is None:
-            hit_times = self.hit_times
-            step_length = (self.ticks - 1) / (hit_times + 1)
-            hit_list = [preload_tick + i * step_length for i in range(hit_times + 1)]
-        else:
-            # 对于有录入命中帧的技能，直接使用录入的命中帧。
-            hit_list = [preload_tick + i for i in _hit_list]
-        start_tick = preload_tick
-        end_tick = preload_tick + self.ticks
-        time_line[SkillSubEventTypes.START] = [start_tick]
-        time_line[SkillSubEventTypes.HIT] = hit_list
-        time_line[SkillSubEventTypes.END] = [end_tick]
-        return time_line
+        from ..event_utools import cal_skill_time_line
+
+        return cal_skill_time_line(
+            preload_tick=preload_tick,
+            hit_times=self.hit_times,
+            ticks=self.ticks,
+            hit_list=self.hit_list,
+        )
 
     def update_time_line(self, preload_tick: int) -> None:
-        """更新技能时间轴"""
         self.time_line = self.get_timeline(preload_tick)
 
 
@@ -132,4 +118,3 @@ def skill_event_start(
     )
     skill_execution_event.update_time_line(preload_tick)
     return [skill_execution_event]
-

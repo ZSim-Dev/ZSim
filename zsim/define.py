@@ -24,10 +24,9 @@ class ZSimEventTypes(str, Enum):
 
 
 class SkillSubEventTypes(str, Enum):
-    HIT = "hit"
-    START = "start"
-    END = "end"
-
+    HIT = "skill.hit"
+    START = "skill.start"
+    END = "skill.end"
 
 
 # 属性类型：

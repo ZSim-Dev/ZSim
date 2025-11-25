@@ -17,9 +17,24 @@ from zsim.simulator.config_classes import SimulationConfig as SimCfg
 from .constants import stats_trans_mapping
 
 
+def _get_enabled_flag(config: dict[str, Any] | None) -> bool:
+    """Return the enabled flag supporting legacy ``enable`` naming."""
+
+    if not isinstance(config, dict):
+        return False
+
+    if "enabled" in config:
+        return bool(config.get("enabled"))
+
+    if "enable" in config:
+        return bool(config.get("enable"))
+
+    return False
+
+
 def generate_parallel_args(
     stop_tick: int,
-    parallel_cfg: dict,
+    parallel_cfg: dict[str, Any],
     run_turn_uuid: str,
 ) -> Iterator[SimCfg]:
     """生成用于并行模拟的参数。
@@ -34,13 +49,18 @@ def generate_parallel_args(
     """
     # Determine the function based on enabled flags
     func = None
-    if parallel_cfg.get("adjust_sc", {}).get("enabled", False):
+    if _get_enabled_flag(parallel_cfg.get("adjust_sc")):
         func = "attr_curve"
-    elif parallel_cfg.get("adjust_weapon", {}).get("enabled", False):
+    elif _get_enabled_flag(parallel_cfg.get("adjust_weapon")):
         func = "weapon"
+    elif isinstance(parallel_cfg.get("func"), str):
+        func = parallel_cfg["func"]
 
     if func == "attr_curve":
-        adjust_sc_cfg = parallel_cfg["adjust_sc"]
+        adjust_sc_cfg_raw = parallel_cfg.get("adjust_sc")
+        if not isinstance(adjust_sc_cfg_raw, dict):
+            raise ValueError(f"并行配置缺少属性收益参数: {parallel_cfg}")
+        adjust_sc_cfg = adjust_sc_cfg_raw
         sc_list = adjust_sc_cfg["sc_list"]
         sc_range_start, sc_range_end = adjust_sc_cfg["sc_range"]
         remove_equip_list = adjust_sc_cfg.get(
@@ -60,7 +80,10 @@ def generate_parallel_args(
                 )
                 yield args
     elif func == "weapon":
-        adjust_weapon_cfg = parallel_cfg["adjust_weapon"]
+        adjust_weapon_cfg_raw = parallel_cfg.get("adjust_weapon")
+        if not isinstance(adjust_weapon_cfg_raw, dict):
+            raise ValueError(f"并行配置缺少武器参数: {parallel_cfg}")
+        adjust_weapon_cfg = adjust_weapon_cfg_raw
         weapon_list = adjust_weapon_cfg["weapon_list"]
         for weapon in weapon_list:
             args = ExecWeaponCfg(

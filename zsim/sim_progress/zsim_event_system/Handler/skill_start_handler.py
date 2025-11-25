@@ -36,7 +36,6 @@ def skill_start_handler(
         event_type=SkillSubEventTypes.START,
         event_origin=event,  # type: ignore
         event_message=event_message,
-
     )
 
     print(f"技能开始事件Handler处理技能{event.event_origin.skill_tag}开始执行")

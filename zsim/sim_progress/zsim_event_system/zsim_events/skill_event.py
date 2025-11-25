@@ -1,4 +1,4 @@
-from typing import Iterable, TypeVar
+from typing import TypeVar
 
 from ....define import SkillSubEventTypes, SkillType
 from ...data_struct import ZSimTimer
@@ -94,6 +94,7 @@ class SkillExecutionEvent(ExecutionEvent):
         return self.event_origin.skill.tick_list
 
     def get_timeline(self, preload_tick: int) -> dict[SkillSubEventTypes, list[int | float]]:
+        """获取技能的时间线"""
         from ..event_utools import cal_skill_time_line
 
         return cal_skill_time_line(
@@ -103,18 +104,10 @@ class SkillExecutionEvent(ExecutionEvent):
             hit_list=self.hit_list,
         )
 
-    def update_time_line(self, preload_tick: int) -> None:
+    def init_time_line(self, preload_tick: int) -> None:
+        """初始化技能的时间线"""
+        assert self.time_line is None, "时间线已经初始化过了"
         self.time_line = self.get_timeline(preload_tick)
 
-
-def skill_event_start(
-    event: SkillEvent[SkillEventMessage], context: SkillEventContext
-) -> Iterable[SkillExecutionEvent]:
-    message = event.event_message
-    preload_tick = message.preload_tick
-    assert preload_tick is not None, f"{type(event).__name__}的preload_tick属性没有正确初始化"
-    skill_execution_event = SkillExecutionEvent(
-        event_origin=event, event_type=SkillSubEventTypes.START, event_message=message
-    )
-    skill_execution_event.update_time_line(preload_tick)
-    return [skill_execution_event]
+    def skill_event_start(self) -> None:
+        """技能事件开始的对外接口"""

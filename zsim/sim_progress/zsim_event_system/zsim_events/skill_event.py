@@ -70,6 +70,7 @@ class SkillExecutionEvent(ExecutionEvent):
         super().__init__(
             event_origin=event_origin, event_type=event_type, event_message=event_message
         )
+        self._event_message: SkillEventMessage = event_message
 
         self.time_line: dict[SkillSubEventTypes, list[int | float]] | None = None
 
@@ -90,10 +91,15 @@ class SkillExecutionEvent(ExecutionEvent):
 
     @property
     def hit_list(self) -> list[int | float] | None:
+        """"""
         assert isinstance(self.event_origin, SkillNode)
         return self.event_origin.skill.tick_list
 
-    def get_timeline(self, preload_tick: int) -> dict[SkillSubEventTypes, list[int | float]]:
+    @property
+    def event_message(self) -> SkillEventMessage:
+        return self._event_message
+
+    def _get_timeline(self, preload_tick: int) -> dict[SkillSubEventTypes, list[int | float]]:
         """获取技能的时间线"""
         from ..event_utools import cal_skill_time_line
 
@@ -104,10 +110,9 @@ class SkillExecutionEvent(ExecutionEvent):
             hit_list=self.hit_list,
         )
 
-    def init_time_line(self, preload_tick: int) -> None:
+    def skill_event_start(self) -> None:
         """初始化技能的时间线"""
         assert self.time_line is None, "时间线已经初始化过了"
-        self.time_line = self.get_timeline(preload_tick)
-
-    def skill_event_start(self) -> None:
-        """技能事件开始的对外接口"""
+        preload_tick = self.event_message.preload_tick
+        assert preload_tick is not None, "SkillExecutionEvent的skill_event_start方法必须依赖有效的preload_tick值"
+        self.time_line = self._get_timeline(preload_tick)

@@ -3,6 +3,7 @@ from typing import TypeVar
 from ....define import SkillSubEventTypes, SkillType
 from ...data_struct import ZSimTimer
 from ...Preload import SkillNode
+from ..accessor import ScheduleDataAccessor
 from .base_zsim_event import BaseZSimEventContext, EventMessage, ExecutionEvent
 from .base_zsim_event import ZSimBaseEvent as ZBE
 
@@ -12,6 +13,7 @@ T = TypeVar("T", bound=EventMessage)
 class SkillEventMessage(EventMessage):
     skill_tag: str
     _preload_tick: int | None = None  # 技能加载的时刻(技能开始时刻)
+    _default_split: bool = True  # 是否按默认的平均规则来分段技能
 
     @property
     def preload_tick(self) -> int | None:
@@ -23,14 +25,23 @@ class SkillEventMessage(EventMessage):
             raise ValueError("preload_tick 已经被设置过了")
         self._preload_tick = value
 
+    @property
+    def default_split(self) -> bool:
+        return self._default_split
+
+    @default_split.setter
+    def default_split(self, value: bool) -> None:
+        self._default_split = value
+
 
 class SkillEventContext(BaseZSimEventContext):
-    def __init__(self, timer: ZSimTimer):
+    def __init__(self, timer: ZSimTimer, schedule_data_accessor: ScheduleDataAccessor):
         super().__init__()
         self._is_active: bool = False
         self._hitted_count: int = 0
         self.preload_tick: int | None = None  # 【技能开始事件】发出的时刻
         self.timer: ZSimTimer = timer
+        self._schedule_data_accessor: ScheduleDataAccessor = schedule_data_accessor
 
     @property
     def hitted_count(self) -> int:
@@ -112,3 +123,20 @@ class SkillExecutionEvent(ExecutionEvent[SkillEventMessage]):
             "SkillExecutionEvent的skill_event_start方法必须依赖有效的preload_tick值"
         )
         self.time_line = self._get_timeline(preload_tick)
+
+    def hit_check(self, context: SkillEventContext) -> bool:
+        """技能命中时刻检查
+
+        Args:
+            context (SkillEventContext): 上下文,包含一个timer, 用于获取时间
+
+        Returns:
+            bool: 当前tick是否存在命中事件
+        """
+        assert context.timer is not None, "计时器尚未初始化"
+        tick_now: int = context.timer.tick
+        from ..event_utools import check_skill_hit_tick
+
+        return check_skill_hit_tick(
+            tick=tick_now, default_split=self.event_message.default_split, time_line=self.time_line
+        )

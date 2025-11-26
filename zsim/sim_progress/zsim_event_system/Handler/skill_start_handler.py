@@ -34,7 +34,7 @@ def skill_start_handler(
     event_message.preload_tick = context.preload_tick
     skill_execution_event = SkillExecutionEvent(
         event_type=SkillSubEventTypes.START,
-        event_origin=event,  # type: ignore
+        event_origin=event,
         event_message=event_message,
     )
     # 调用execution_event内置的开始方法,计算整体命中时间

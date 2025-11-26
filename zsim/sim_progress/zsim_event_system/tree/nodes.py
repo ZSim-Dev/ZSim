@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-
 from typing import Any, Callable, Iterable, Protocol, Sequence, TypeVar, cast
 
 from ....define import SkillSubEventTypes, ZSimEventTypes
@@ -12,6 +11,7 @@ T_contra = TypeVar("T_contra", bound=EventMessage, contravariant=True)
 
 class EventConditionFn(Protocol):
     """事件条件判断协议"""
+
     def __call__(self, event: ZSimEventABC[T], context: BaseZSimEventContext) -> bool: ...
 
 
@@ -21,7 +21,6 @@ class EventActionFn(Protocol[T_contra]):
     def __call__(
         self, event: ZSimEventABC[T_contra], context: BaseZSimEventContext
     ) -> Iterable[ZSimEventABC[EventMessage]]: ...
-
 
 
 class EventCondition(ABC):
@@ -43,7 +42,6 @@ class EventAction(ABC):
 @dataclass(frozen=True)
 class LeafConfiguration:
     """描述动态叶子运行方式的配置"""
-
 
     listen_event: ZSimEventTypes | SkillSubEventTypes  # 监听的事件类型
 
@@ -98,7 +96,6 @@ class EventBranchNode(EventTreeNode):
     def add_transition(
         self, listen_event: ZSimEventTypes | SkillSubEventTypes, transition: EventTransition
     ) -> None:
-
         """添加一个事件转换"""
         self._transitions.setdefault(listen_event, []).append(transition)
 
@@ -172,4 +169,3 @@ class CallableAction(EventAction):
             self._fn,
         )
         return list(fn(event, context))
-

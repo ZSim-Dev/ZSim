@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from ...Buff import Buff
     from ...Character import Character
     from ...Preload import SkillNode
-    from .skill_event import SkillEvent, SkillEventMessage
+    from .skill_event import SkillEvent
 
 
 """
@@ -35,9 +35,7 @@ class EventMessage(BaseModel):
 
 T = TypeVar("T", bound=EventMessage)
 
-EventOriginType = Union[
-    "SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent[SkillEventMessage]", None
-]
+EventOriginType = Union["SkillNode", "Buff", "AnomalyBar", "Character", "SkillEvent", None]
 
 
 class BaseZSimEventContext(BaseModel):
@@ -89,7 +87,6 @@ class ZSimBaseEvent[T: EventMessage](ZSimEventABC[T]):
         return self._event_origin
 
 
-class ExecutionEvent(ZSimBaseEvent[EventMessage]):
+class ExecutionEvent[T: EventMessage](ZSimBaseEvent[T]):
     """动态事件,表示一段时间内持续存在的事件,具有多时间点执行的特性"""
-
     pass

@@ -49,7 +49,7 @@ class SkillEventContext(BaseZSimEventContext):
         self._is_active = value
 
 
-class SkillEvent(ZBE[T]):
+class SkillEvent(ZBE[SkillEventMessage]):
     """技能事件, 仅记录静态技能。在角色初始化时创建,被Character对象持有,在后续其他事件中被引用。"""
 
     @property
@@ -58,19 +58,18 @@ class SkillEvent(ZBE[T]):
         return self.event_origin.skill.skill_type
 
 
-class SkillExecutionEvent(ExecutionEvent):
+class SkillExecutionEvent(ExecutionEvent[SkillEventMessage]):
     """技能持续事件,构造时,封装一个SkillEvent"""
 
     def __init__(
         self,
-        event_origin: SkillEvent[SkillEventMessage],
+        event_origin: SkillEvent,
         event_type: SkillSubEventTypes,
         event_message: SkillEventMessage,
     ):
         super().__init__(
             event_origin=event_origin, event_type=event_type, event_message=event_message
         )
-        self._event_message: SkillEventMessage = event_message
 
         self.time_line: dict[SkillSubEventTypes, list[int | float]] | None = None
 
@@ -91,13 +90,8 @@ class SkillExecutionEvent(ExecutionEvent):
 
     @property
     def hit_list(self) -> list[int | float] | None:
-        """"""
         assert isinstance(self.event_origin, SkillNode)
         return self.event_origin.skill.tick_list
-
-    @property
-    def event_message(self) -> SkillEventMessage:
-        return self._event_message
 
     def _get_timeline(self, preload_tick: int) -> dict[SkillSubEventTypes, list[int | float]]:
         """获取技能的时间线"""
@@ -114,5 +108,7 @@ class SkillExecutionEvent(ExecutionEvent):
         """初始化技能的时间线"""
         assert self.time_line is None, "时间线已经初始化过了"
         preload_tick = self.event_message.preload_tick
-        assert preload_tick is not None, "SkillExecutionEvent的skill_event_start方法必须依赖有效的preload_tick值"
+        assert preload_tick is not None, (
+            "SkillExecutionEvent的skill_event_start方法必须依赖有效的preload_tick值"
+        )
         self.time_line = self._get_timeline(preload_tick)

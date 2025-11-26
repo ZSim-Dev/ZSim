@@ -40,5 +40,5 @@ def skill_start_handler(
     # 调用execution_event内置的开始方法,计算整体命中时间
     skill_execution_event.skill_event_start()
 
-    print(f"技能开始事件Handler处理技能{event.event_origin.skill_tag}开始执行")
+    print(f"【ZSim新架构调试】技能开始事件Handler处理技能{event.event_origin.skill_tag}开始执行")
     return [skill_execution_event]

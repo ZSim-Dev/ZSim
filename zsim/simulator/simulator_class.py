@@ -174,7 +174,7 @@ class Simulator:
         self.preload = PreloadClass(
             skills,
             load_data=self.load_data,
-            apl_path=config.apl_mode.enabled if api_apl_path is None else api_apl_path,
+            apl_path=config.database.apl_file_path if api_apl_path is None else api_apl_path,
             sim_instance=self,
         )
         self.game_state: dict[str, Any] = {

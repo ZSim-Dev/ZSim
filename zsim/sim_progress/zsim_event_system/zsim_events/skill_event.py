@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from ....define import SkillSubEventTypes, SkillType
 from ...data_struct import ZSimTimer
@@ -58,6 +58,10 @@ class SkillEventContext(BaseZSimEventContext):
     @is_active.setter
     def is_active(self, value: bool) -> None:
         self._is_active = value
+
+    def push_event(self, event: Any) -> None:
+        """通过schedule_data_accessor向event_list推送事件"""
+        self._schedule_data_accessor.event_list.append(event)
 
 
 class SkillEvent(ZBE[SkillEventMessage]):
@@ -140,3 +144,11 @@ class SkillExecutionEvent(ExecutionEvent[SkillEventMessage]):
         return check_skill_hit_tick(
             tick=tick_now, default_split=self.event_message.default_split, time_line=self.time_line
         )
+
+    def end_check(self, context: SkillEventContext) -> bool:
+        """技能结束检查"""
+        assert self.time_line is not None, "时间线尚未初始化"
+        assert SkillSubEventTypes.END in self.time_line, "时间线中没有结束事件"
+        tick_now: int = context.timer.tick
+        end_tick: int | float = self.time_line.get(SkillSubEventTypes.END, [tick_now])[-1]
+        return tick_now >= end_tick

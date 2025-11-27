@@ -18,6 +18,7 @@ from zsim.sim_progress.RandomNumberGenerator import RNG
 from zsim.sim_progress.Report import start_report_threads, stop_report_threads
 from zsim.sim_progress.ScheduledEvent import ScheduledEvent as ScE
 from zsim.sim_progress.Update.Update_Buff import update_time_related_effect
+from zsim.sim_progress.zsim_event_system.accessor import ScheduleDataAccessor
 from zsim.simulator.dataclasses import (
     CharacterData,
     GlobalStats,
@@ -192,6 +193,9 @@ class Simulator:
         # 监听器的初始化需要整个Simulator实例，因此在这里进行初始化
         self.load_data.buff_0_manager.initialize_buff_listener()
         self.timer: ZSimTimer = ZSimTimer(sim_instance=self)
+        self.schedule_data_accessor: ScheduleDataAccessor = ScheduleDataAccessor(
+            schedule_data=self.schedule_data
+        )
 
     def main_loop(
         self, stop_tick: int = 10800, *, sim_cfg: SimCfg | None = None, use_api: bool = False
